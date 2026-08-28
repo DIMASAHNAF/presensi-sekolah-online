@@ -15,9 +15,12 @@ class AuthController extends Controller
     // ==== HALAMAN PILIHAN ====
     public function chooseRole()
     {
-        return view('auth.choose-role');
-    }
 
+       
+    return view('auth.index'); // halaman gabungan siswa & guru
+        
+    }
+        
     // ==== LOGIN SISWA ====
     public function showLoginSiswa()
     {
