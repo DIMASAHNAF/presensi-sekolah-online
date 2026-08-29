@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class RegisterSiswaRequest extends FormRequest
 {
@@ -19,22 +18,25 @@ class RegisterSiswaRequest extends FormRequest
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'nisn'     => ['required', 'string', 'digits:10', 'unique:users,nisn'],
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)->mixedCase()->numbers(),
-            ],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'username.alpha_dash' => 'Username hanya boleh huruf, angka, strip (-), dan underscore (_).',
+            'name.required'       => 'Nama lengkap wajib diisi.',
+            'username.required'   => 'Username wajib diisi.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, (-), dan (_).',
             'username.unique'     => 'Username sudah digunakan.',
+            'email.required'      => 'Email wajib diisi.',
+            'email.email'         => 'Format email tidak valid.',
             'email.unique'        => 'Email sudah terdaftar.',
-            'nisn.digits'         => 'NISN harus terdiri dari 10 digit angka.',
+            'nisn.required'       => 'NISN wajib diisi.',
+            'nisn.digits'         => 'NISN harus 10 digit angka.',
             'nisn.unique'         => 'NISN sudah terdaftar.',
+            'password.required'   => 'Password wajib diisi.',
+            'password.min'        => 'Password minimal 6 karakter.',
             'password.confirmed'  => 'Konfirmasi password tidak cocok.',
         ];
     }

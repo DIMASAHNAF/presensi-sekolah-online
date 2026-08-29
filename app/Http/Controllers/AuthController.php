@@ -84,7 +84,8 @@ class AuthController extends Controller
     // ==== REGISTER SISWA (PUBLIC) ====
     public function showRegisterSiswa()
     {
-        return view('auth.register-siswa');
+        $kelas = \App\Models\Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        return view('auth.register-siswa', compact('kelas'));
     }
 
     public function registerSiswa(Request $request)
