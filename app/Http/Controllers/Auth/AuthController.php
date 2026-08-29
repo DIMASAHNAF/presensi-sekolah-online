@@ -86,7 +86,8 @@ class AuthController extends Controller
     // ==== REGISTER SISWA (PUBLIC) ====
     public function showRegisterSiswa()
     {
-        return view('auth.register-siswa');
+        $kelas = \App\Models\Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        return view('auth.register-siswa', compact('kelas'));
     }
 
     public function registerSiswa(Request $request)
@@ -94,13 +95,10 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email'    => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             'nisn'     => ['required', 'string', 'digits:10', 'unique:users,nisn'],
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)->mixedCase()->numbers()->symbols(),
-            ],
+            'kelas_id' => ['required', 'exists:kelas,id'],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ], [
             'nisn.digits' => 'NISN harus terdiri dari 10 digit angka.',
             'username.alpha_dash' => 'Username hanya boleh huruf, angka, strip, dan underscore.',
@@ -111,8 +109,9 @@ class AuthController extends Controller
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'nisn'     => $validated['nisn'],
-            'password' => Hash::make($validated['password']),
+            'kelas_id' => $validated['kelas_id'],
             'role'     => 'siswa',
+            'password' => Hash::make($validated['password']),
         ]);
 
         Auth::login($user);

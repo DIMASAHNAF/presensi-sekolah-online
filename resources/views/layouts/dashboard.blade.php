@@ -93,12 +93,14 @@
     @stack('styles')
 </head>
 
-<body class="bg-slate-100 text-slate-800" x-data="{ sidebarOpen: true, mobileOpen: false }">
+<body class="bg-slate-100 text-slate-800" 
+      x-data="{ sidebarOpen: window.innerWidth >= 1024 }" 
+      @resize.window="sidebarOpen = window.innerWidth >= 1024">
 
 {{-- ===== SIDEBAR ===== --}}
 <aside class="sidebar-bg fixed top-0 left-0 h-full z-40 text-white flex flex-col
               transition-all duration-300 shadow-xl shadow-blue-900/20"
-       :class="sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'"
+       :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full lg:w-0 lg:translate-x-0 overflow-hidden'"
        x-cloak>
 
     {{-- Logo --}}
@@ -164,7 +166,13 @@
 
 {{-- ===== MAIN ===== --}}
 <div class="flex flex-col min-h-screen transition-all duration-300"
-     :class="sidebarOpen ? 'ml-64' : 'ml-0'">
+     :class="sidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'">
+
+    {{-- Overlay for mobile when sidebar is open --}}
+    <div x-show="sidebarOpen && window.innerWidth < 1024" 
+         @click="sidebarOpen = false" 
+         x-cloak 
+         class="fixed inset-0 bg-slate-900/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
     {{-- Header --}}
     <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -179,10 +187,11 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <span class="text-xs text-slate-400 hidden md:block">
-                <i class="far fa-calendar-alt mr-1"></i>
-                {{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}
+        <div class="flex items-center gap-4">
+            <span class="text-xs text-slate-500 hidden md:flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                <span><i class="far fa-calendar-alt text-slate-400 mr-1.5"></i>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                <span class="font-bold text-slate-700" id="realtimeClock">--:--:--</span>
             </span>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
@@ -249,7 +258,20 @@
 
 {{-- AOS --}}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>AOS.init({ once: true, duration: 350, offset: 30 });</script>
+<script>
+    AOS.init({ once: true, duration: 350, offset: 30 });
+    
+    // Realtime Clock
+    function updateClock() {
+        const now = new Date();
+        const clockElem = document.getElementById('realtimeClock');
+        if (clockElem) {
+            clockElem.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+        }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
 @stack('scripts')
 </body>
 </html>

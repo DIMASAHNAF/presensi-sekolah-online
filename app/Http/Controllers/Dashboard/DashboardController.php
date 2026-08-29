@@ -82,9 +82,8 @@ class DashboardController extends Controller
             ->withCount(['absensi as total_count'])
             ->latest('tanggal');
 
-        if ($user->isGuru()) {
-            $query->where('guru_id', $user->id);
-        }
+        // Guru dan Admin bisa melihat semua sesi (agar guru lain bisa mengedit kehadiran di hari yang sama)
+        // Hapus limitasi guru_id = user->id
         if ($request->kelas_id) {
             $query->where('kelas_id', $request->kelas_id);
         }
@@ -141,8 +140,14 @@ class DashboardController extends Controller
     // =========================================================
     public function absensiDetail(SesiAbsensi $sesiAbsensi)
     {
-        $sesiAbsensi->load(['kelas', 'guru', 'absensi.siswa']);
+        $sesiAbsensi->load(['kelas', 'guru', 'absensi.siswa', 'absensi.logAbsensi.guru']);
         return view('dashboard.absensi.detail', compact('sesiAbsensi'));
+    }
+
+    public function closeSesi(SesiAbsensi $sesiAbsensi)
+    {
+        $sesiAbsensi->update(['is_active' => false]);
+        return back()->with('success', 'Sesi berhasil ditutup. Barcode tidak bisa di-scan lagi.');
     }
 
     // =========================================================
@@ -155,10 +160,27 @@ class DashboardController extends Controller
             'keterangan' => 'nullable|string|max:255',
         ]);
 
-        $absensi->update([
-            'status'     => $request->status,
-            'keterangan' => $request->keterangan,
-        ]);
+        $statusSebelumnya = $absensi->status;
+        $statusBaru = $request->status;
+
+        // Cek jika ada perubahan
+        if ($statusSebelumnya !== $statusBaru || $absensi->keterangan !== $request->keterangan) {
+            
+            // Catat log
+            \App\Models\LogAbsensi::create([
+                'absensi_id'        => $absensi->id,
+                'guru_id'           => auth()->id(),
+                'status_sebelumnya' => $statusSebelumnya,
+                'status_baru'       => $statusBaru,
+                'keterangan'        => $request->keterangan,
+            ]);
+
+            // Update absensi
+            $absensi->update([
+                'status'     => $statusBaru,
+                'keterangan' => $request->keterangan,
+            ]);
+        }
 
         return back()->with('success', 'Status kehadiran diperbarui!');
     }

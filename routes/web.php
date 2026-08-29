@@ -28,6 +28,7 @@ Route::middleware('guest')->group(function () {
 // ============================================================
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/siswa/dashboard', [SiswaController::class, 'dashboard'])->name('siswa.dashboard');
+    Route::post('/siswa/scan',     [SiswaController::class, 'scanBarcode'])->name('siswa.scan');
 });
 
 // ============================================================
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::post('/absensi',                [DashboardController::class, 'storeSesi'])->name('.absensi.store');
     Route::get('/absensi/{sesiAbsensi}',   [DashboardController::class, 'absensiDetail'])->name('.absensi.detail');
     Route::patch('/absensi/record/{absensi}', [DashboardController::class, 'updateRecord'])->name('.absensi.record.update');
+    Route::patch('/absensi/{sesiAbsensi}/close', [DashboardController::class, 'closeSesi'])->name('.absensi.close');
 
     // Admin-only CRUD
     Route::get('/siswa',         [DashboardController::class, 'siswaIndex'])->name('.siswa');

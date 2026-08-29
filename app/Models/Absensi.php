@@ -49,4 +49,10 @@ class Absensi extends Model
             default => '-',
         };
     }
+
+    /** Log perubahan absensi ini */
+    public function logAbsensi()
+    {
+        return $this->hasMany(LogAbsensi::class, 'absensi_id')->latest();
+    }
 }

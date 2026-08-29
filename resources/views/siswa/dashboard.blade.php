@@ -17,6 +17,9 @@
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
             position: relative; overflow: hidden;
         }
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+            position: relative; overflow: hidden;
+        }
         .hero-bg::before {
             content:''; position:absolute; top:-60px; right:-60px;
             width:250px; height:250px; background:rgba(255,255,255,0.06); border-radius:50%;
@@ -70,7 +73,7 @@
     </div>
 
     {{-- CONTENT --}}
-    <div class="px-4 -mt-20 max-w-lg mx-auto pb-10">
+    <div class="px-4 -mt-20 max-w-lg mx-auto pb-24 relative z-20">
 
         @if(session('success'))
             <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
@@ -99,7 +102,7 @@
         </div>
 
         {{-- SCAN BUTTON CARD --}}
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-5 text-center" data-aos="fade-up" data-aos-delay="80">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-5 text-center" data-aos="fade-up" data-aos-delay="80" x-data="scannerApp()">
             <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-qrcode text-4xl text-blue-600"></i>
             </div>
@@ -107,13 +110,34 @@
             <p class="text-sm text-slate-500 mb-6 leading-relaxed">
                 Scan QR code yang ditampilkan guru di kelas untuk mencatat kehadiranmu hari ini.
             </p>
-            <a href="#" class="scan-btn inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-2xl text-base">
+            <button @click="openScanner" class="scan-btn inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-2xl text-base w-full sm:w-auto justify-center">
                 <i class="fas fa-camera text-xl"></i>
                 Scan QR Code
-            </a>
+            </button>
             <p class="text-xs text-slate-400 mt-4">
                 <i class="fas fa-info-circle mr-1"></i>Pastikan kamera aktif saat melakukan scan
             </p>
+
+            {{-- SCANNER MODAL --}}
+            <div x-show="isScanning" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm px-4">
+                <div @click.away="closeScanner" class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative">
+                    <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+                        <h3 class="font-bold">Scan QR Code</h3>
+                        <button @click="closeScanner" class="text-white/70 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                    </div>
+                    <div class="p-6">
+                        <div id="reader" class="w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[300px]"></div>
+                        
+                        <div x-show="scanStatus === 'processing'" class="mt-4 text-sm font-semibold text-blue-600 flex items-center justify-center gap-2">
+                            <i class="fas fa-spinner fa-spin"></i> Memproses barcode...
+                        </div>
+                        <div x-show="scanMessage" class="mt-4 text-sm font-semibold p-3 rounded-xl" 
+                             :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
+                            <span x-text="scanMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- RIWAYAT ABSENSI --}}
@@ -159,6 +183,99 @@
     </div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>AOS.init({ once: true, duration: 400, offset: 20 });</script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+    AOS.init({ once: true, duration: 400, offset: 20 });
+
+    function scannerApp() {
+        return {
+            isScanning: false,
+            scanStatus: 'idle', // idle, processing, done
+            scanMessage: '',
+            scanSuccess: false,
+            html5QrcodeScanner: null,
+
+            openScanner() {
+                this.isScanning = true;
+                this.scanStatus = 'idle';
+                this.scanMessage = '';
+                
+                // Initialize scanner after modal opens
+                setTimeout(() => {
+                    this.html5QrcodeScanner = new Html5QrcodeScanner(
+                        "reader",
+                        { fps: 10, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 },
+                        /* verbose= */ false);
+                    
+                    this.html5QrcodeScanner.render(this.onScanSuccess.bind(this), this.onScanFailure.bind(this));
+                }, 300);
+            },
+
+            closeScanner() {
+                this.isScanning = false;
+                if (this.html5QrcodeScanner) {
+                    this.html5QrcodeScanner.clear().catch(error => {
+                        console.error("Failed to clear html5QrcodeScanner. ", error);
+                    });
+                }
+                if (this.scanSuccess) {
+                    window.location.reload();
+                }
+            },
+
+            onScanSuccess(decodedText, decodedResult) {
+                if(this.scanStatus === 'processing' || this.scanStatus === 'done') return;
+                
+                this.scanStatus = 'processing';
+                
+                // Pause scanner temporarily if scanning
+                try {
+                    if(this.html5QrcodeScanner) {
+                        this.html5QrcodeScanner.pause();
+                    }
+                } catch(e) { console.log('Scanner not in scanning state'); }
+
+                fetch("{{ route('siswa.scan') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ token: decodedText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.scanStatus = 'done';
+                    this.scanSuccess = data.success;
+                    this.scanMessage = data.message;
+                    
+                    if(data.success) {
+                        setTimeout(() => { this.closeScanner(); }, 2000);
+                    } else {
+                        // Resume scanner if failed so they can try again
+                        setTimeout(() => { 
+                            this.scanStatus = 'idle';
+                            this.scanMessage = '';
+                            try { if(this.html5QrcodeScanner) this.html5QrcodeScanner.resume(); } catch(e){}
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    this.scanStatus = 'done';
+                    this.scanSuccess = false;
+                    this.scanMessage = "Terjadi kesalahan jaringan.";
+                    setTimeout(() => { 
+                        this.scanStatus = 'idle';
+                        try { if(this.html5QrcodeScanner) this.html5QrcodeScanner.resume(); } catch(e){}
+                    }, 3000);
+                });
+            },
+
+            onScanFailure(error) {
+                // handle scan failure, usually better to ignore and keep scanning
+            }
+        }
+    }
+</script>
 </body>
 </html>
