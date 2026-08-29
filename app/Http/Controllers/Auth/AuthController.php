@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Auth/AuthController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -15,12 +14,9 @@ class AuthController extends Controller
     // ==== HALAMAN PILIHAN ====
     public function chooseRole()
     {
-
-       
-    return view('auth.index'); // halaman gabungan siswa & guru
-        
+        return view('auth.index'); // halaman gabungan siswa & guru
     }
-        
+
     // ==== LOGIN SISWA ====
     public function showLoginSiswa()
     {
@@ -70,7 +66,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('nik', $request->nik)->where('role', 'guru')->first();
+        // Accept both guru and admin (both use NIK)
+        $user = User::where('nik', $request->nik)
+            ->whereIn('role', ['guru', 'admin'])
+            ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return back()->withErrors([
@@ -81,7 +80,7 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        return redirect()->intended(route('guru.dashboard'));
+        return redirect()->intended(route('dashboard'));
     }
 
     // ==== REGISTER SISWA (PUBLIC) ====
