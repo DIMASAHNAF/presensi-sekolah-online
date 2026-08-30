@@ -49,7 +49,7 @@
     <div class="glass rounded-3xl shadow-2xl p-8 w-full max-w-md">
 
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-extrabold text-white drop-shadow-sm">Sistem Absensi Sekolah</h1>
+            <h1 class="text-2xl font-extrabold text-white drop-shadow-sm">ABSENSI SMKN 1 BERINGIN</h1>
             <p class="text-green-50/90 text-sm mt-1">Masuk untuk melanjutkan</p>
         </div>
 

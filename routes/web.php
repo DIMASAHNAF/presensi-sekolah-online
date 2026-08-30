@@ -42,8 +42,11 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::get('/absensi',                 [DashboardController::class, 'absensiIndex'])->name('.absensi');
     Route::post('/absensi',                [DashboardController::class, 'storeSesi'])->name('.absensi.store');
     Route::get('/absensi/{sesiAbsensi}',   [DashboardController::class, 'absensiDetail'])->name('.absensi.detail');
+    Route::get('/absensi/{sesiAbsensi}/pdf', [DashboardController::class, 'exportPdf'])->name('.absensi.pdf');
     Route::patch('/absensi/record/{absensi}', [DashboardController::class, 'updateRecord'])->name('.absensi.record.update');
     Route::patch('/absensi/{sesiAbsensi}/close', [DashboardController::class, 'closeSesi'])->name('.absensi.close');
+    Route::post('/absensi/{sesiAbsensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.absensi.reset');
+    Route::delete('/absensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.absensi.delete-all');
 
     // Admin-only CRUD
     Route::get('/siswa',         [DashboardController::class, 'siswaIndex'])->name('.siswa');
@@ -60,6 +63,9 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::post('/kelas',         [DashboardController::class, 'storeKelas'])->name('.kelas.store');
     Route::put('/kelas/{kelas}',  [DashboardController::class, 'updateKelas'])->name('.kelas.update');
     Route::delete('/kelas/{kelas}',[DashboardController::class, 'destroyKelas'])->name('.kelas.destroy');
+
+    Route::get('/log',            [DashboardController::class, 'logAbsensiIndex'])->name('.log');
+    Route::post('/reset-sesi',    [DashboardController::class, 'resetSesi'])->name('.reset-sesi');
 });
 
 // ============================================================

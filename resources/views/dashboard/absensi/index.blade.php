@@ -34,7 +34,7 @@
 <div class="flex flex-col lg:flex-row gap-6 items-start">
 
     {{-- KIRI: FORM BUAT SESI (HANYA GURU/ADMIN) --}}
-    <div class="w-full lg:w-1/3 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 sticky top-24" data-aos="fade-up">
+    <div class="w-full lg:w-1/3 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 lg:sticky lg:top-24 z-10" data-aos="fade-up">
         <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
             <i class="fas fa-plus"></i>
         </div>
@@ -99,6 +99,16 @@
                     @endif
                 </div>
             </form>
+            @if(auth()->user()->isAdmin())
+            <div class="mt-4 pt-4 border-t border-slate-100 text-right">
+                <form action="{{ route('dashboard.absensi.delete-all') }}" method="POST" class="inline-block">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" onclick="return confirm('SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi absensi dari database? Tindakan ini tidak bisa dibatalkan.')">
+                        <i class="fas fa-trash-can mr-1"></i> Kosongkan Semua Riwayat Absensi
+                    </button>
+                </form>
+            </div>
+            @endif
         </div>
 
         {{-- Sesi List --}}

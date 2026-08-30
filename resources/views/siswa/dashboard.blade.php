@@ -15,26 +15,43 @@
         [x-cloak] { display: none !important; }
         .hero-bg {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-            position: relative; overflow: hidden;
+            position: relative; 
+            overflow: hidden;
         }
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-            position: relative; overflow: hidden;
-        }
-        .hero-bg::before {
-            content:''; position:absolute; top:-60px; right:-60px;
-            width:250px; height:250px; background:rgba(255,255,255,0.06); border-radius:50%;
+      .hero-bg::before {
+            content:''; 
+            position:absolute;
+            top:-60px;
+            right:-60px;
+            width:250px; 
+            height:250px; 
+            background:rgba(255,255,255,0.06); 
+            border-radius:50%;
         }
         .hero-bg::after {
-            content:''; position:absolute; bottom:-80px; left:-40px;
-            width:300px; height:300px; background:rgba(255,255,255,0.04); border-radius:50%;
+            content:''; 
+            position:absolute; 
+            bottom:-80px; 
+            left:-40px;
+            width:300px; 
+            height:300px; 
+            background:rgba(255,255,255,0.04); 
+            border-radius:50%;
         }
         .scan-btn {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             box-shadow: 0 8px 30px rgba(37,99,235,0.35);
             transition: all 0.2s;
         }
-        .scan-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(37,99,235,0.45); }
-        .scan-btn:active { transform: scale(0.97); }
+        .scan-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 40px rgba(37,99,235,0.45); 
+        }
+
+        .scan-btn:active { 
+            transform: scale(0.97); 
+        }
+        
         .badge-hadir  { background:#dcfce7; color:#16a34a; }
         .badge-izin   { background:#fef9c3; color:#ca8a04; }
         .badge-sakit  { background:#ffedd5; color:#ea580c; }
@@ -73,74 +90,54 @@
     </div>
 
     {{-- CONTENT --}}
-    <div class="px-4 -mt-20 max-w-lg mx-auto pb-24 relative z-20">
+    <div x-data="scannerApp()">
+        <div class="px-4 -mt-10 max-w-lg mx-auto pb-24 relative z-20">
 
-        @if(session('success'))
-            <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
-                <i class="fas fa-circle-check text-emerald-500"></i> {{ session('success') }}
-            </div>
-        @endif
+            @if(session('success'))
+                <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
+                    <i class="fas fa-circle-check text-emerald-500"></i> {{ session('success') }}
+                </div>
+            @endif
 
-        {{-- STAT CARDS --}}
-        <div class="grid grid-cols-4 gap-3 mb-5" data-aos="fade-up">
-            <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
-                <p class="text-xl font-extrabold text-emerald-600">{{ $stats['hadir'] }}</p>
-                <p class="text-xs text-slate-400 mt-0.5 font-medium">Hadir</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
-                <p class="text-xl font-extrabold text-amber-500">{{ $stats['izin'] }}</p>
-                <p class="text-xs text-slate-400 mt-0.5 font-medium">Izin</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
-                <p class="text-xl font-extrabold text-orange-500">{{ $stats['sakit'] }}</p>
-                <p class="text-xs text-slate-400 mt-0.5 font-medium">Sakit</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
-                <p class="text-xl font-extrabold text-red-500">{{ $stats['alpa'] }}</p>
-                <p class="text-xs text-slate-400 mt-0.5 font-medium">Alpa</p>
-            </div>
-        </div>
-
-        {{-- SCAN BUTTON CARD --}}
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-5 text-center" data-aos="fade-up" data-aos-delay="80" x-data="scannerApp()">
-            <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-qrcode text-4xl text-blue-600"></i>
-            </div>
-            <h2 class="text-lg font-bold text-slate-800 mb-1">Absen Sekarang</h2>
-            <p class="text-sm text-slate-500 mb-6 leading-relaxed">
-                Scan QR code yang ditampilkan guru di kelas untuk mencatat kehadiranmu hari ini.
-            </p>
-            <button @click="openScanner" class="scan-btn inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-2xl text-base w-full sm:w-auto justify-center">
-                <i class="fas fa-camera text-xl"></i>
-                Scan QR Code
-            </button>
-            <p class="text-xs text-slate-400 mt-4">
-                <i class="fas fa-info-circle mr-1"></i>Pastikan kamera aktif saat melakukan scan
-            </p>
-
-            {{-- SCANNER MODAL --}}
-            <div x-show="isScanning" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm px-4">
-                <div @click.away="closeScanner" class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative">
-                    <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
-                        <h3 class="font-bold">Scan QR Code</h3>
-                        <button @click="closeScanner" class="text-white/70 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
-                    </div>
-                    <div class="p-6">
-                        <div id="reader" class="w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[300px]"></div>
-                        
-                        <div x-show="scanStatus === 'processing'" class="mt-4 text-sm font-semibold text-blue-600 flex items-center justify-center gap-2">
-                            <i class="fas fa-spinner fa-spin"></i> Memproses barcode...
-                        </div>
-                        <div x-show="scanMessage" class="mt-4 text-sm font-semibold p-3 rounded-xl" 
-                             :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
-                            <span x-text="scanMessage"></span>
-                        </div>
-                    </div>
+            {{-- STAT CARDS --}}
+            <div class="grid grid-cols-4 gap-3 mb-5" data-aos="fade-up">
+                <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
+                    <p class="text-xl font-extrabold text-emerald-600">{{ $stats['hadir'] }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Hadir</p>
+                </div>
+                <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
+                    <p class="text-xl font-extrabold text-amber-500">{{ $stats['izin'] }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Izin</p>
+                </div>
+                <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
+                    <p class="text-xl font-extrabold text-orange-500">{{ $stats['sakit'] }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Sakit</p>
+                </div>
+                <div class="bg-white rounded-2xl p-3 shadow-sm text-center border border-slate-100">
+                    <p class="text-xl font-extrabold text-red-500">{{ $stats['alpa'] }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Alpa</p>
                 </div>
             </div>
-        </div>
 
-        {{-- RIWAYAT ABSENSI --}}
+            {{-- SCAN BUTTON CARD --}}
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-5 text-center" data-aos="fade-up" data-aos-delay="80">
+                <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-qrcode text-4xl text-blue-600"></i>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800 mb-1">Absen Sekarang</h2>
+                <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+                    Scan QR code yang ditampilkan guru di kelas untuk mencatat kehadiranmu hari ini.
+                </p>
+                <button @click="openScanner" class="scan-btn inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-2xl text-base w-full sm:w-auto justify-center">
+                    <i class="fas fa-camera text-xl"></i>
+                    Scan QR Code
+                </button>
+                <p class="text-xs text-slate-400 mt-4">
+                    <i class="fas fa-info-circle mr-1"></i>Pastikan kamera aktif saat melakukan scan
+                </p>
+            </div>
+
+            {{-- RIWAYAT ABSENSI --}}
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="140">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h3 class="font-semibold text-slate-800 text-sm">
@@ -181,6 +178,28 @@
         </div>
 
     </div>
+
+    {{-- SCANNER MODAL (Outside main container to avoid z-index/transform issues) --}}
+    <div x-show="isScanning" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm px-4">
+        <div @click.away="closeScanner" class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative">
+            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+                <h3 class="font-bold">Scan QR Code</h3>
+                <button @click="closeScanner" class="text-white/70 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <div id="reader" class="w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[300px]"></div>
+                
+                <div x-show="scanStatus === 'processing'" class="mt-4 text-sm font-semibold text-blue-600 flex items-center justify-center gap-2">
+                    <i class="fas fa-spinner fa-spin"></i> Memproses barcode...
+                </div>
+                <div x-show="scanMessage" class="mt-4 text-sm font-semibold p-3 rounded-xl" 
+                        :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
+                    <span x-text="scanMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -229,11 +248,9 @@
                 this.scanStatus = 'processing';
                 
                 // Pause scanner temporarily if scanning
-                try {
-                    if(this.html5QrcodeScanner) {
-                        this.html5QrcodeScanner.pause();
-                    }
-                } catch(e) { console.log('Scanner not in scanning state'); }
+                if (this.html5QrcodeScanner) {
+                    this.html5QrcodeScanner.pause();
+                }
 
                 fetch("{{ route('siswa.scan') }}", {
                     method: 'POST',
@@ -243,36 +260,49 @@
                     },
                     body: JSON.stringify({ token: decodedText })
                 })
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     this.scanStatus = 'done';
-                    this.scanSuccess = data.success;
-                    this.scanMessage = data.message;
-                    
-                    if(data.success) {
-                        setTimeout(() => { this.closeScanner(); }, 2000);
+                    if (data.success) {
+                        this.scanSuccess = true;
+                        this.scanMessage = "Berhasil absen! " + data.message;
+                        
+                        // Auto-reload to fetch updated real-time history
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                        
                     } else {
-                        // Resume scanner if failed so they can try again
-                        setTimeout(() => { 
+                        this.scanSuccess = false;
+                        this.scanMessage = data.message || "Gagal absen. QR tidak valid.";
+                        // Resume scanning if failed so they can try again
+                        setTimeout(() => {
                             this.scanStatus = 'idle';
                             this.scanMessage = '';
-                            try { if(this.html5QrcodeScanner) this.html5QrcodeScanner.resume(); } catch(e){}
-                        }, 3000);
+                            if (this.html5QrcodeScanner) this.html5QrcodeScanner.resume();
+                        }, 2500);
                     }
                 })
-                .catch(error => {
+                .catch(err => {
+                    console.error(err);
                     this.scanStatus = 'done';
                     this.scanSuccess = false;
-                    this.scanMessage = "Terjadi kesalahan jaringan.";
-                    setTimeout(() => { 
+                    this.scanMessage = "Terjadi kesalahan sistem. Coba lagi.";
+                    
+                    setTimeout(() => {
                         this.scanStatus = 'idle';
-                        try { if(this.html5QrcodeScanner) this.html5QrcodeScanner.resume(); } catch(e){}
-                    }, 3000);
+                        this.scanMessage = '';
+                        if (this.html5QrcodeScanner) this.html5QrcodeScanner.resume();
+                    }, 2500);
                 });
             },
 
             onScanFailure(error) {
                 // handle scan failure, usually better to ignore and keep scanning
+                if(String(error).includes("NotFoundError") || String(error).includes("NotAllowedError")) {
+                    this.scanMessage = "Kamera diblokir/tidak ditemukan. Jika menggunakan HP, pastikan website diakses menggunakan HTTPS / Ngrok.";
+                    this.scanSuccess = false;
+                }
             }
         }
     }

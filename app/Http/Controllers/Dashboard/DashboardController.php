@@ -7,6 +7,7 @@ use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\SesiAbsensi;
 use App\Models\User;
+use App\Models\LogAbsensi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,17 +47,21 @@ class DashboardController extends Controller
 
             $recentSesi = SesiAbsensi::with(['kelas', 'guru'])
                 ->latest('tanggal')->take(5)->get();
+            $sesiHariIni = null;
+            $absensiHariIni = null;
         } else {
             // Guru
+            $sesiHariIni = SesiAbsensi::with('kelas')->where('guru_id', $user->id)->where('tanggal', today())->get();
+            
+            $absensiHariIni = Absensi::with(['siswa', 'sesiAbsensi.kelas'])
+                ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
+                ->get();
+
             $stats = [
-                'total_sesi'    => SesiAbsensi::where('guru_id', $user->id)->count(),
-                'sesi_aktif'    => SesiAbsensi::where('guru_id', $user->id)->where('is_active', true)->count(),
-                'hadir_hari_ini'=> Absensi::where('status', 'hadir')
-                    ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
-                    ->count(),
-                'alpa_hari_ini' => Absensi::where('status', 'alpa')
-                    ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
-                    ->count(),
+                'sesi_hari_ini' => $sesiHariIni->count(),
+                'sesi_aktif'    => $sesiHariIni->where('is_active', true)->count(),
+                'hadir_hari_ini'=> $absensiHariIni->where('status', 'hadir')->count(),
+                'alpa_hari_ini' => $absensiHariIni->where('status', 'alpa')->count(),
             ];
             $chartLabels = $chartHadir = $chartAlpa = [];
             $recentSesi = SesiAbsensi::with(['kelas'])
@@ -65,7 +70,7 @@ class DashboardController extends Controller
         }
 
         return view('dashboard.index', compact(
-            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi'
+            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'absensiHariIni'
         ));
     }
 
@@ -87,13 +92,13 @@ class DashboardController extends Controller
         if ($request->kelas_id) {
             $query->where('kelas_id', $request->kelas_id);
         }
-        if ($request->tanggal) {
-            $query->where('tanggal', $request->tanggal);
-        }
+        // Default to today if no date provided
+        $tanggal = $request->tanggal ?? today()->toDateString();
+        $query->where('tanggal', $tanggal);
 
         $sesiList = $query->paginate(15)->withQueryString();
 
-        return view('dashboard.absensi.index', compact('sesiList', 'kelas', 'user'));
+        return view('dashboard.absensi.index', compact('sesiList', 'kelas', 'user', 'tanggal'));
     }
 
     // =========================================================
@@ -144,10 +149,49 @@ class DashboardController extends Controller
         return view('dashboard.absensi.detail', compact('sesiAbsensi'));
     }
 
+    public function exportPdf(SesiAbsensi $sesiAbsensi)
+    {
+        $sesiAbsensi->load(['kelas', 'guru', 'absensi.siswa']);
+        return view('dashboard.absensi.print', compact('sesiAbsensi'));
+    }
+
     public function closeSesi(SesiAbsensi $sesiAbsensi)
     {
         $sesiAbsensi->update(['is_active' => false]);
-        return back()->with('success', 'Sesi berhasil ditutup. Barcode tidak bisa di-scan lagi.');
+        return back()->with('success', 'Sesi absensi berhasil ditutup. Barcode sudah tidak bisa discan.');
+    }
+
+    public function resetAbsenSesi(SesiAbsensi $sesiAbsensi)
+    {
+        $this->adminOnly();
+        
+        // Hapus log perubahan terkait sesi ini
+        \App\Models\LogAbsensi::whereHas('absensi', function($q) use ($sesiAbsensi) {
+            $q->where('sesi_absensi_id', $sesiAbsensi->id);
+        })->delete();
+
+        // Reset semua absensi kembali ke alpa
+        $sesiAbsensi->absensi()->update([
+            'status' => 'alpa',
+            'waktu_scan' => null,
+            'keterangan' => null
+        ]);
+
+        return back()->with('success', 'Riwayat absensi untuk sesi kelas ini telah di-reset kembali ke Alpa.');
+    }
+
+    public function deleteAllSesi()
+    {
+        $this->adminOnly();
+        
+        // Disable foreign key checks temporarily if needed, but Eloquent delete works if we fetch or just DB::statement
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        \App\Models\LogAbsensi::truncate();
+        \App\Models\Absensi::truncate();
+        \App\Models\SesiAbsensi::truncate();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        return back()->with('success', 'Semua riwayat sesi absensi berhasil dihapus permanen.');
     }
 
     // =========================================================
@@ -367,6 +411,36 @@ class DashboardController extends Controller
         $this->adminOnly();
         $kelas->delete();
         return redirect()->route('dashboard.kelas')->with('success', 'Kelas dihapus!');
+    }
+
+    // =========================================================
+    //  LOG PERUBAHAN & RESET KELAS (ADMIN)
+    // =========================================================
+    public function logAbsensiIndex(Request $request)
+    {
+        $this->adminOnly();
+        $query = LogAbsensi::with(['absensi.siswa', 'absensi.sesiAbsensi.kelas', 'guru'])->latest();
+
+        if ($request->kelas_id) {
+            $query->whereHas('absensi.sesiAbsensi', function ($q) use ($request) {
+                $q->where('kelas_id', $request->kelas_id);
+            });
+        }
+
+        $logs = $query->paginate(15)->withQueryString();
+        $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
+        return view('dashboard.log', compact('logs', 'kelas'));
+    }
+
+    public function resetSesi()
+    {
+        $this->adminOnly();
+        // Akhiri semua sesi aktif (atau hapus yang tidak digunakan)
+        // Kita cukup set is_active = false untuk semua sesi yang masih aktif
+        SesiAbsensi::where('is_active', true)->update(['is_active' => false]);
+        
+        return redirect()->back()->with('success', 'Semua riwayat kelas/sesi yang aktif telah direset (ditutup).');
     }
 
     // =========================================================

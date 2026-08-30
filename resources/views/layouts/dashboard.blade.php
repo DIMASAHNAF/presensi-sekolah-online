@@ -147,6 +147,11 @@
                class="nav-link {{ request()->routeIs('dashboard.kelas') ? 'active' : '' }}">
                 <i class="fas fa-door-open icon"></i> Kelola Kelas
             </a>
+
+            <a href="{{ route('dashboard.log') }}"
+               class="nav-link {{ request()->routeIs('dashboard.log') ? 'active' : '' }}">
+                <i class="fas fa-history icon"></i> Log Perubahan
+            </a>
         @endif
     </nav>
 

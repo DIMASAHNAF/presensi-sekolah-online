@@ -60,7 +60,12 @@ class SiswaController extends Controller
             ->first();
 
         if (!$absensi) {
-            return response()->json(['success' => false, 'message' => 'Data absensi Anda tidak ditemukan di sesi ini.']);
+            // Jika siswa baru register setelah sesi dibuat, buatkan recordnya sekarang
+            $absensi = Absensi::create([
+                'sesi_absensi_id' => $sesi->id,
+                'siswa_id'        => $user->id,
+                'status'          => 'alpa',
+            ]);
         }
 
         if ($absensi->status === 'hadir') {
@@ -72,6 +77,7 @@ class SiswaController extends Controller
         // Update jadi hadir
         $absensi->update([
             'status' => 'hadir',
+            'waktu_scan' => now(),
             'keterangan' => 'Scan Mandiri (Sistem)',
         ]);
 

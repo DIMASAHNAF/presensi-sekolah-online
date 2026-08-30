@@ -30,10 +30,21 @@
             <h3 class="font-bold text-slate-800 text-lg">QR Code Absensi</h3>
             <p class="text-xs text-slate-500 mt-1 mb-5">Tampilkan ini di depan kelas agar siswa dapat melakukan scan.</p>
             
+            @if($sesiAbsensi->is_active)
             <button onclick="document.getElementById('barcodeModal').classList.remove('hidden')" 
-                    class="w-full btn-primary justify-center py-3 text-sm">
+                    class="w-full btn-primary justify-center py-3 text-sm mb-2">
                 Tampilkan Layar Penuh
             </button>
+            @else
+            <div class="bg-slate-100 text-slate-500 font-semibold text-sm py-3 rounded-xl mb-2 flex items-center justify-center gap-2">
+                <i class="fas fa-lock"></i> Barcode Dinonaktifkan
+            </div>
+            @endif
+
+            <a href="{{ route('dashboard.absensi.pdf', $sesiAbsensi) }}" target="_blank"
+               class="w-full btn-secondary justify-center py-3 text-sm">
+                <i class="fas fa-print"></i> Cetak Laporan
+            </a>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6" data-aos="fade-up" data-aos-delay="50">
@@ -71,6 +82,17 @@
                     @csrf @method('PATCH')
                     <button type="submit" class="w-full btn-danger justify-center py-2" onclick="return confirm('Yakin ingin menutup sesi ini? Barcode tidak bisa di-scan lagi.')">
                         <i class="fas fa-lock"></i> Tutup Sesi (Nonaktifkan)
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            @if(auth()->user()->isAdmin())
+            <div class="mt-3 pt-3 border-t border-slate-100">
+                <form action="{{ route('dashboard.absensi.reset', $sesiAbsensi) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full bg-red-100 text-red-600 hover:bg-red-200 font-bold justify-center py-2 rounded-xl text-sm transition" onclick="return confirm('BAHAYA: Yakin ingin MERESET seluruh kehadiran kelas ini? Semua siswa akan dikembalikan ke status Alpa dan log riwayat akan dihapus.')">
+                        <i class="fas fa-trash-can"></i> Reset Absensi Kelas
                     </button>
                 </form>
             </div>
@@ -196,6 +218,7 @@
 </div>
 
 {{-- MODAL FULLSCREEN BARCODE --}}
+@if($sesiAbsensi->is_active)
 <div id="barcodeModal" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4">
     <button onclick="document.getElementById('barcodeModal').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 hover:text-slate-800 transition text-4xl">
         <i class="fas fa-times"></i>
@@ -209,6 +232,7 @@
     
     <p class="mt-10 text-slate-500 font-medium text-lg">Silakan buka aplikasi absensi dan scan QR code di atas.</p>
 </div>
+@endif
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
