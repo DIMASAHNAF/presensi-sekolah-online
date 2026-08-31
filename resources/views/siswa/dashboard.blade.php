@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Siswa — Absensi Sekolah</title>
+    <title>Dashboard Siswa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -51,7 +51,7 @@
         .scan-btn:active { 
             transform: scale(0.97); 
         }
-        
+
         .badge-hadir  { background:#dcfce7; color:#16a34a; }
         .badge-izin   { background:#fef9c3; color:#ca8a04; }
         .badge-sakit  { background:#ffedd5; color:#ea580c; }

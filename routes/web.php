@@ -23,17 +23,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/guru', [AuthController::class, 'loginGuru']);
 });
 
-// ============================================================
 //  SISWA DASHBOARD
-// ============================================================
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/siswa/dashboard', [SiswaController::class, 'dashboard'])->name('siswa.dashboard');
     Route::post('/siswa/scan',     [SiswaController::class, 'scanBarcode'])->name('siswa.scan');
 });
 
-// ============================================================
 //  GURU & ADMIN DASHBOARD
-// ============================================================
 Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashboard')->group(function () {
     // Overview
     Route::get('/', [DashboardController::class, 'index'])->name('');
@@ -68,9 +64,8 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::post('/reset-sesi',    [DashboardController::class, 'resetSesi'])->name('.reset-sesi');
 });
 
-// ============================================================
+
 //  AUTH
-// ============================================================
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
