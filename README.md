@@ -6,7 +6,7 @@
   ### Sistem Presensi Sekolah Modern & Realtime Berbasis Dynamic QR Code
 
   <p align="center">
-    <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 11"></a>
+    <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12"></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
     <a href="https://alpinejs.dev"><img src="https://img.shields.io/badge/Alpine.js-Reactive-8BC0D0?style=for-the-badge&logo=alpine.js&logoColor=white" alt="Alpine.js"></a>
     <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.2"></a>
@@ -65,7 +65,7 @@
 
 | Komponen | Teknologi | Keterangan |
 |---|---|---|
-| **Framework Backend** | ![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Routing, Eloquent ORM, Controllers, Middleware |
+| **Framework Backend** | ![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Routing, Eloquent ORM, Controllers, Middleware |
 | **Bahasa Pemrograman**| ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white) | Backend engine dengan Carbon Localization ID |
 | **User Interface** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Design modern, responsif, dan clean |
 | **Reaktivitas Frontend**| ![Alpine.js](https://img.shields.io/badge/Alpine.js-3.x-8BC0D0?style=flat-square&logo=alpine.js&logoColor=white) | Modal, dropdowns, dan live polling DOM sync |
