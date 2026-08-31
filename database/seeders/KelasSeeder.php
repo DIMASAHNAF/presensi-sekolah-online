@@ -16,6 +16,8 @@ class KelasSeeder extends Seeder
             'Kecantikan' => 3,
             'Kuliner' => 6,
             'Busana' => 6,
+            'Pariwisata' => 2,
+            'ULW' => 3,
         ];
 
         $kelasData = [];

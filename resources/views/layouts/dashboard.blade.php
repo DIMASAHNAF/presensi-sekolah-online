@@ -105,8 +105,8 @@
 
     {{-- Logo --}}
     <div class="flex items-center gap-3 px-5 py-[1.125rem] border-b border-white/10 shrink-0">
-        <div class="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
-            <i class="fas fa-graduation-cap text-white"></i>
+        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo SMK" class="w-full h-full object-contain p-1">
         </div>
         <div>
             <p class="font-bold text-sm leading-tight">Absensi</p>

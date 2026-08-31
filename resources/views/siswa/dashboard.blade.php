@@ -66,10 +66,10 @@
         <div class="relative z-10 max-w-lg mx-auto">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-white/15 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-graduation-cap text-sm"></i>
+                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo SMK" class="w-full h-full object-contain p-1">
                     </div>
-                    <span class="font-semibold text-sm">Absensi Sekolah</span>
+                    <span class="font-bold text-base">Absensi Sekolah</span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -223,7 +223,12 @@
                 setTimeout(() => {
                     this.html5QrcodeScanner = new Html5QrcodeScanner(
                         "reader",
-                        { fps: 10, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 },
+                        { 
+                            fps: 10, 
+                            qrbox: {width: 250, height: 250}, 
+                            aspectRatio: 1.0,
+                            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+                        },
                         /* verbose= */ false);
                     
                     this.html5QrcodeScanner.render(this.onScanSuccess.bind(this), this.onScanFailure.bind(this));
