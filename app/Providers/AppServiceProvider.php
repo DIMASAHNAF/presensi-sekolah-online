@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
         if (str_contains(config('app.url'), 'https://')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Set Carbon locale ke Bahasa Indonesia
+        \Carbon\Carbon::setLocale('id');
     }
 }

@@ -25,4 +25,20 @@ class Kelas extends Model
     {
         return $this->hasMany(SesiAbsensi::class, 'kelas_id');
     }
+
+    /**
+     * Wali kelas — guru yang paling sering membuat sesi PAGI (tanpa mapel) di kelas ini.
+     * Jika belum ada sesi, return null.
+     */
+    public function getWaliKelasAttribute()
+    {
+        $guru = \App\Models\SesiAbsensi::where('kelas_id', $this->id)
+            ->whereNull('mapel_id')
+            ->select('guru_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->groupBy('guru_id')
+            ->orderByDesc('total')
+            ->first();
+
+        return $guru ? \App\Models\User::find($guru->guru_id) : null;
+    }
 }

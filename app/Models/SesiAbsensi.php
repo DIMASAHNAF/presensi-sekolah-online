@@ -11,6 +11,8 @@ class SesiAbsensi extends Model
     protected $fillable = [
         'guru_id',
         'kelas_id',
+        'mapel_id',
+        'jam_pelajaran',
         'tanggal',
         'barcode_token',
         'is_active',
@@ -37,5 +39,11 @@ class SesiAbsensi extends Model
     public function absensi()
     {
         return $this->hasMany(Absensi::class, 'sesi_absensi_id');
+    }
+
+    /** Mata Pelajaran sesi ini (opsional) */
+    public function mataPelajaran()
+    {
+        return $this->belongsTo(MataPelajaran::class, 'mapel_id');
     }
 }

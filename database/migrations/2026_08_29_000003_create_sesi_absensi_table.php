@@ -17,12 +17,11 @@ return new class extends Migration
                   ->constrained('kelas')
                   ->cascadeOnDelete();
             $table->date('tanggal');
+            $table->foreignId('mapel_id')->nullable()->constrained('mata_pelajarans')->nullOnDelete();
+            $table->string('jam_pelajaran')->nullable(); // Contoh: "Les 1 - 2"
             $table->string('barcode_token')->unique(); // token unik untuk QR/barcode
             $table->boolean('is_active')->default(true); // sesi aktif / ditutup guru
             $table->timestamps();
-
-            // 1 guru hanya bisa buat 1 sesi per kelas per hari
-            $table->unique(['kelas_id', 'tanggal']);
         });
     }
 

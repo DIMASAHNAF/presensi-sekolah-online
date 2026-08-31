@@ -33,12 +33,18 @@
             @if($sesiAbsensi->is_active)
             <button onclick="document.getElementById('barcodeModal').classList.remove('hidden')" 
                     class="w-full btn-primary justify-center py-3 text-sm mb-2">
-                Tampilkan Layar Penuh
+                <i class="fas fa-qrcode mr-1.5"></i> Tampilkan Layar Penuh
             </button>
             @else
-            <div class="bg-slate-100 text-slate-500 font-semibold text-sm py-3 rounded-xl mb-2 flex items-center justify-center gap-2">
-                <i class="fas fa-lock"></i> Barcode Dinonaktifkan
+            <div class="bg-slate-100 text-slate-500 font-semibold text-xs py-2.5 rounded-xl mb-2 flex items-center justify-center gap-1.5">
+                <i class="fas fa-lock"></i> Sesi Telah Ditutup
             </div>
+            <form action="{{ route('dashboard.absensi.close', $sesiAbsensi) }}" method="POST" class="mb-2">
+                @csrf @method('PATCH')
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fas fa-unlock"></i> Aktifkan / Buka Barcode
+                </button>
+            </form>
             @endif
 
             <a href="{{ route('dashboard.absensi.pdf', $sesiAbsensi) }}" target="_blank"
@@ -53,6 +59,14 @@
                 <div class="flex justify-between">
                     <span class="text-slate-500">Kelas</span>
                     <span class="font-semibold text-slate-800">{{ $sesiAbsensi->kelas->nama_kelas }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Mata Pelajaran</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel : '-' }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Jam Pelajaran</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->jam_pelajaran ?: '-' }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Pembuat Sesi</span>
@@ -76,16 +90,20 @@
                 </div>
             </div>
 
-            @if($sesiAbsensi->is_active)
             <div class="mt-5 pt-5 border-t border-slate-100">
                 <form action="{{ route('dashboard.absensi.close', $sesiAbsensi) }}" method="POST">
                     @csrf @method('PATCH')
-                    <button type="submit" class="w-full btn-danger justify-center py-2" onclick="return confirm('Yakin ingin menutup sesi ini? Barcode tidak bisa di-scan lagi.')">
-                        <i class="fas fa-lock"></i> Tutup Sesi (Nonaktifkan)
-                    </button>
+                    @if($sesiAbsensi->is_active)
+                        <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold" onclick="return confirm('Tutup sesi absensi ini? Barcode tidak bisa di-scan lagi.')">
+                            <i class="fas fa-lock mr-1"></i> Tutup Sesi (Nonaktifkan Barcode)
+                        </button>
+                    @else
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white justify-center py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1">
+                            <i class="fas fa-unlock mr-1"></i> Buka Sesi (Aktifkan Barcode)
+                        </button>
+                    @endif
                 </form>
             </div>
-            @endif
 
             @if(auth()->user()->isAdmin())
             <div class="mt-3 pt-3 border-t border-slate-100">
@@ -102,15 +120,22 @@
 
     {{-- KANAN: DAFTAR SISWA --}}
     <div class="lg:col-span-3 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col" data-aos="fade-up" data-aos-delay="100">
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
             <div>
                 <h2 class="text-lg font-extrabold text-slate-800">Daftar Kehadiran Siswa</h2>
                 <p class="text-sm text-slate-500 mt-1">
-                    Hadir: <span class="font-bold text-emerald-600">{{ $sesiAbsensi->absensi->where('status', 'hadir')->count() }}</span> |
-                    Izin: <span class="font-bold text-amber-500">{{ $sesiAbsensi->absensi->where('status', 'izin')->count() }}</span> |
-                    Sakit: <span class="font-bold text-orange-500">{{ $sesiAbsensi->absensi->where('status', 'sakit')->count() }}</span> |
-                    Alpa: <span class="font-bold text-red-500">{{ $sesiAbsensi->absensi->where('status', 'alpa')->count() }}</span>
+                    Hadir: <span id="count-hadir" class="font-bold text-emerald-600">{{ $sesiAbsensi->absensi->where('status', 'hadir')->count() }}</span> |
+                    Izin: <span id="count-izin" class="font-bold text-amber-500">{{ $sesiAbsensi->absensi->where('status', 'izin')->count() }}</span> |
+                    Sakit: <span id="count-sakit" class="font-bold text-orange-500">{{ $sesiAbsensi->absensi->where('status', 'sakit')->count() }}</span> |
+                    Alpa: <span id="count-alpa" class="font-bold text-red-500">{{ $sesiAbsensi->absensi->where('status', 'alpa')->count() }}</span>
                 </p>
+            </div>
+
+            {{-- LIVE SYNC BADGE --}}
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Realtime Live Auto-Sync
+                </span>
             </div>
         </div>
 
@@ -126,16 +151,18 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
                     @foreach($sesiAbsensi->absensi->sortBy('siswa.name') as $absen)
-                        <tr class="hover:bg-slate-50 transition group" x-data="{ openLog: false, openEdit: false }">
+                        <tr id="row-{{ $absen->id }}" class="hover:bg-slate-50 transition-colors duration-300 group" x-data="{ openLog: false, openEdit: false }">
                             <td class="px-6 py-4">
                                 <p class="font-bold text-slate-800">{{ $absen->siswa->name }}</p>
-                                <p class="text-xs text-slate-500 mt-0.5">NISN: {{ $absen->siswa->nisn }}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">NISN: {{ $absen->siswa->nisn ?: '-' }}</p>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="badge badge-{{ $absen->status }}">{{ $absen->labelStatus() }}</span>
+                                <span id="badge-{{ $absen->id }}" data-status="{{ $absen->status }}" class="badge badge-{{ $absen->status }}">
+                                    {{ $absen->labelStatus() }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 text-slate-600 italic text-xs">
-                                {{ $absen->keterangan ?: '-' }}
+                                <span id="ket-{{ $absen->id }}">{{ $absen->keterangan ?: '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-right space-x-2">
                                 @if($absen->logAbsensi->count() > 0)
@@ -218,21 +245,24 @@
 </div>
 
 {{-- MODAL FULLSCREEN BARCODE --}}
-@if($sesiAbsensi->is_active)
 <div id="barcodeModal" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4">
     <button onclick="document.getElementById('barcodeModal').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 hover:text-slate-800 transition text-4xl">
         <i class="fas fa-times"></i>
     </button>
     <h2 class="text-3xl font-extrabold text-slate-800 mb-2">{{ $sesiAbsensi->kelas->nama_kelas }}</h2>
-    <p class="text-lg text-slate-500 mb-10">{{ $sesiAbsensi->tanggal->isoFormat('dddd, D MMMM Y') }}</p>
+    <p class="text-lg text-slate-500 mb-2">{{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel . ' - ' : '' }}{{ $sesiAbsensi->tanggal->isoFormat('dddd, D MMMM Y') }}</p>
+    @if($sesiAbsensi->jam_pelajaran)
+        <p class="text-sm font-semibold text-blue-600 mb-8">{{ $sesiAbsensi->jam_pelajaran }}</p>
+    @else
+        <div class="mb-6"></div>
+    @endif
     
     <div class="bg-white p-6 rounded-3xl shadow-2xl border-4 border-blue-500">
         <div id="qrcode" class="w-64 h-64 flex items-center justify-center"></div>
     </div>
     
-    <p class="mt-10 text-slate-500 font-medium text-lg">Silakan buka aplikasi absensi dan scan QR code di atas.</p>
+    <p class="mt-8 text-slate-500 font-medium text-base">Silakan buka aplikasi absensi di HP dan scan QR code di atas.</p>
 </div>
-@endif
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -249,6 +279,57 @@
             correctLevel : QRCode.CorrectLevel.H
         });
     }
+
+    // REALTIME LIVE AUTO-SYNC (POLLING SETIAP 2 DETIK)
+    function pollLiveStatus() {
+        fetch("{{ route('dashboard.absensi.live', $sesiAbsensi) }}")
+            .then(res => res.json())
+            .then(data => {
+                if(data.success && data.stats) {
+                    // Update header counters
+                    const elHadir = document.getElementById('count-hadir');
+                    const elIzin  = document.getElementById('count-izin');
+                    const elSakit = document.getElementById('count-sakit');
+                    const elAlpa  = document.getElementById('count-alpa');
+
+                    if(elHadir) elHadir.innerText = data.stats.hadir;
+                    if(elIzin)  elIzin.innerText  = data.stats.izin;
+                    if(elSakit) elSakit.innerText = data.stats.sakit;
+                    if(elAlpa)  elAlpa.innerText  = data.stats.alpa;
+
+                    // Update student badges
+                    if(data.items) {
+                        data.items.forEach(item => {
+                            const badge = document.getElementById('badge-' + item.id);
+                            if(badge && badge.getAttribute('data-status') !== item.status) {
+                                badge.setAttribute('data-status', item.status);
+                                badge.className = 'badge badge-' + item.status + ' transition-transform duration-300 transform scale-110';
+                                badge.innerText = item.label;
+
+                                setTimeout(() => {
+                                    badge.className = 'badge badge-' + item.status + ' transition-transform duration-300';
+                                }, 600);
+
+                                const row = document.getElementById('row-' + item.id);
+                                if(row && item.status === 'hadir') {
+                                    row.classList.add('bg-emerald-50');
+                                    setTimeout(() => row.classList.remove('bg-emerald-50'), 2500);
+                                }
+                            }
+
+                            const ketEl = document.getElementById('ket-' + item.id);
+                            if(ketEl && item.keterangan) {
+                                ketEl.innerText = item.keterangan;
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(err => console.debug('Live sync poll:', err));
+    }
+
+    // Mulai polling otomatis
+    let liveSyncTimer = setInterval(pollLiveStatus, 2000);
 </script>
 @endpush
 

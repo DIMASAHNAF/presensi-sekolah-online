@@ -270,8 +270,14 @@
                     <a href="{{ route('dashboard.absensi.detail', $sesi) }}"
                        class="flex items-center justify-between px-5 py-3.5 hover:bg-blue-50 transition group">
                         <div>
-                            <p class="text-sm font-semibold text-slate-800 group-hover:text-blue-700">
+                            <p class="text-sm font-semibold text-slate-800 group-hover:text-blue-700 flex items-center gap-2">
                                 {{ optional($sesi->kelas)->nama_kelas ?? '-' }}
+                                @if($sesi->mataPelajaran)
+                                    <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded-md">{{ $sesi->mataPelajaran->nama_mapel }}</span>
+                                @endif
+                                @if($sesi->jam_pelajaran)
+                                    <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-1.5 py-0.5 rounded-md"><i class="fas fa-clock mr-1"></i>{{ $sesi->jam_pelajaran }}</span>
+                                @endif
                             </p>
                             <p class="text-xs text-slate-400 mt-0.5">
                                 <i class="fas fa-calendar-day mr-1"></i>

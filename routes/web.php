@@ -37,8 +37,12 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     // Absensi
     Route::get('/absensi',                 [DashboardController::class, 'absensiIndex'])->name('.absensi');
     Route::post('/absensi',                [DashboardController::class, 'storeSesi'])->name('.absensi.store');
-    Route::get('/absensi/{sesiAbsensi}',   [DashboardController::class, 'absensiDetail'])->name('.absensi.detail');
-    Route::get('/absensi/{sesiAbsensi}/pdf', [DashboardController::class, 'exportPdf'])->name('.absensi.pdf');
+    Route::get('/absensi/{sesiAbsensi}',         [DashboardController::class, 'absensiDetail'])->name('.absensi.detail');
+    Route::get('/absensi/{sesiAbsensi}/live',    [DashboardController::class, 'absensiLiveJson'])->name('.absensi.live');
+    Route::get('/absensi/{sesiAbsensi}/pdf',     [DashboardController::class, 'exportPdf'])->name('.absensi.pdf');
+    Route::get('/absensi/export/harian',         [DashboardController::class, 'exportPdfHarian'])->name('.absensi.pdf.harian');
+    Route::get('/absensi/export/bulanan-kelas',   [DashboardController::class, 'exportBulananKelas'])->name('.absensi.pdf.bulanan.kelas');
+    Route::get('/absensi/export/bulanan-mapel',   [DashboardController::class, 'exportBulananMapel'])->name('.absensi.pdf.bulanan.mapel');
     Route::patch('/absensi/record/{absensi}', [DashboardController::class, 'updateRecord'])->name('.absensi.record.update');
     Route::patch('/absensi/{sesiAbsensi}/close', [DashboardController::class, 'closeSesi'])->name('.absensi.close');
     Route::post('/absensi/{sesiAbsensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.absensi.reset');

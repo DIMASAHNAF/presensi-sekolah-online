@@ -15,7 +15,7 @@ class SiswaController extends Controller
         $user = auth()->user()->load('kelas');
 
         $riwayat = Absensi::where('siswa_id', $user->id)
-            ->with('sesiAbsensi.kelas')
+            ->with(['sesiAbsensi.kelas', 'sesiAbsensi.mataPelajaran'])
             ->latest()
             ->take(10)
             ->get();

@@ -162,11 +162,19 @@
                                 <p class="text-sm font-medium text-slate-800">
                                     {{ optional($item->sesiAbsensi)->tanggal?->format('d M Y') ?? '-' }}
                                 </p>
-                                <p class="text-xs text-slate-400 mt-0.5">
+                                <p class="text-xs text-slate-400 mt-0.5 flex items-center flex-wrap gap-1">
                                     <i class="fas fa-door-open mr-1"></i>
                                     {{ optional(optional($item->sesiAbsensi)->kelas)->nama_kelas ?? '-' }}
+                                    
+                                    @if(optional($item->sesiAbsensi)->mataPelajaran)
+                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiAbsensi->mataPelajaran->nama_mapel }}</span>
+                                    @endif
+                                    @if(optional($item->sesiAbsensi)->jam_pelajaran)
+                                        <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiAbsensi->jam_pelajaran }}</span>
+                                    @endif
+                                    
                                     @if($item->keterangan)
-                                        &nbsp;·&nbsp; {{ $item->keterangan }}
+                                        <span class="ml-1 text-slate-500 italic">({{ $item->keterangan }})</span>
                                     @endif
                                 </p>
                             </div>

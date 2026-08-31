@@ -50,8 +50,14 @@
             <tr>
                 <td><strong>Guru Piket/Mapel</strong></td>
                 <td>: {{ $sesiAbsensi->guru->name }}</td>
+                <td><strong>Mata Pelajaran</strong></td>
+                <td>: {{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel : '-' }}</td>
+            </tr>
+            <tr>
                 <td><strong>Status Sesi</strong></td>
                 <td>: {{ $sesiAbsensi->is_active ? 'Aktif (Sedang Berjalan)' : 'Selesai (Ditutup)' }}</td>
+                <td><strong>Jam Pelajaran</strong></td>
+                <td>: {{ $sesiAbsensi->jam_pelajaran ?: '-' }}</td>
             </tr>
         </table>
     </div>

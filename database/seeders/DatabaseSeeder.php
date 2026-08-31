@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             KelasSeeder::class,  // Harus pertama (users butuh referensi kelas)
             AdminSeeder::class,
             GuruSeeder::class,
+            MataPelajaranSeeder::class,
         ]);
     }
 }
