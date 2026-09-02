@@ -83,7 +83,7 @@
                 <td class="text-left">{{ $siswa->name }}</td>
                 @foreach($sesiList as $sesi)
                     @php
-                        $absen = $sesi->absensi->where('siswa_id', $siswa->id)->first();
+                        $absen = $sesi->presensi->where('siswa_id', $siswa->id)->first();
                         $status = $absen ? strtoupper(substr($absen->status, 0, 1)) : '-';
                     @endphp
                     <td>

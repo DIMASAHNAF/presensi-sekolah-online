@@ -4,21 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class LogAbsensi extends Model
+class LogPresensi extends Model
 {
-    protected $table = 'log_absensi';
+    protected $table = 'log_presensi';
 
     protected $fillable = [
-        'absensi_id',
+        'presensi_id',
         'guru_id',
         'status_sebelumnya',
         'status_baru',
         'keterangan',
     ];
 
-    public function absensi()
+    public function presensi()
     {
-        return $this->belongsTo(Absensi::class, 'absensi_id');
+        return $this->belongsTo(Presensi::class, 'presensi_id');
     }
 
     public function guru()

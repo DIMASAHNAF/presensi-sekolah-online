@@ -20,10 +20,10 @@ class Kelas extends Model
         return $this->hasMany(User::class, 'kelas_id')->where('role', 'siswa');
     }
 
-    /** Semua sesi absensi yang pernah dibuat untuk kelas ini */
-    public function sesiAbsensi()
+    /** Semua sesi presensi yang pernah dibuat untuk kelas ini */
+    public function sesiPresensi()
     {
-        return $this->hasMany(SesiAbsensi::class, 'kelas_id');
+        return $this->hasMany(SesiPresensi::class, 'kelas_id');
     }
 
     /**
@@ -32,7 +32,7 @@ class Kelas extends Model
      */
     public function getWaliKelasAttribute()
     {
-        $guru = \App\Models\SesiAbsensi::where('kelas_id', $this->id)
+        $guru = \App\Models\SesiPresensi::where('kelas_id', $this->id)
             ->whereNull('mapel_id')
             ->select('guru_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
             ->groupBy('guru_id')

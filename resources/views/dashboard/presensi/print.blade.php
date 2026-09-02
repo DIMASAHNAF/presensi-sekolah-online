@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Laporan Absensi - {{ $sesiAbsensi->kelas->nama_kelas }}</title>
+    <title>Cetak Laporan Presensi - {{ $sesiPresensi->kelas->nama_kelas }}</title>
     <style>
         body { font-family: sans-serif; color: #333; margin: 40px; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
@@ -43,21 +43,21 @@
         <table>
             <tr>
                 <td width="120"><strong>Kelas</strong></td>
-                <td>: {{ $sesiAbsensi->kelas->nama_kelas }}</td>
+                <td>: {{ $sesiPresensi->kelas->nama_kelas }}</td>
                 <td width="120"><strong>Tanggal</strong></td>
-                <td>: {{ $sesiAbsensi->tanggal->format('d F Y') }}</td>
+                <td>: {{ $sesiPresensi->tanggal->format('d F Y') }}</td>
             </tr>
             <tr>
                 <td><strong>Guru Piket/Mapel</strong></td>
-                <td>: {{ $sesiAbsensi->guru->name }}</td>
+                <td>: {{ $sesiPresensi->guru->name }}</td>
                 <td><strong>Mata Pelajaran</strong></td>
-                <td>: {{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel : '-' }}</td>
+                <td>: {{ $sesiPresensi->mataPelajaran ? $sesiPresensi->mataPelajaran->nama_mapel : '-' }}</td>
             </tr>
             <tr>
                 <td><strong>Status Sesi</strong></td>
-                <td>: {{ $sesiAbsensi->is_active ? 'Aktif (Sedang Berjalan)' : 'Selesai (Ditutup)' }}</td>
+                <td>: {{ $sesiPresensi->is_active ? 'Aktif (Sedang Berjalan)' : 'Selesai (Ditutup)' }}</td>
                 <td><strong>Jam Pelajaran</strong></td>
-                <td>: {{ $sesiAbsensi->jam_pelajaran ?: '-' }}</td>
+                <td>: {{ $sesiPresensi->jam_pelajaran ?: '-' }}</td>
             </tr>
         </table>
     </div>
@@ -73,7 +73,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($sesiAbsensi->absensi->sortBy('siswa.name') as $i => $abs)
+            @foreach($sesiPresensi->presensi->sortBy('siswa.name') as $i => $abs)
             <tr>
                 <td class="text-center">{{ $i + 1 }}</td>
                 <td>{{ $abs->siswa->name }}</td>

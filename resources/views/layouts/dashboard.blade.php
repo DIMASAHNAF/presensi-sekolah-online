@@ -109,7 +109,7 @@
             <img src="{{ asset('images/logo.png') }}" alt="Logo SMK" class="w-full h-full object-contain p-1">
         </div>
         <div>
-            <p class="font-bold text-sm leading-tight">Absensi</p>
+            <p class="font-bold text-sm leading-tight">Presensi</p>
             <p class="text-blue-200 text-xs">Sekolah</p>
         </div>
     </div>
@@ -122,10 +122,10 @@
             <i class="fas fa-chart-pie icon"></i> Overview
         </a>
 
-        <a href="{{ route('dashboard.absensi') }}"
-           class="nav-link {{ request()->routeIs('dashboard.absensi*') ? 'active' : '' }}">
+        <a href="{{ route('dashboard.presensi') }}"
+           class="nav-link {{ request()->routeIs('dashboard.presensi*') ? 'active' : '' }}">
             <i class="fas fa-clipboard-list icon"></i>
-            @if(auth()->user()->isAdmin()) Semua Absensi @else Kelola Absensi @endif
+            @if(auth()->user()->isAdmin()) Semua Presensi @else Kelola Presensi @endif
         </a>
 
         @if(auth()->user()->isAdmin())
@@ -256,8 +256,15 @@
     @endif
 
     {{-- Content --}}
-    <main class="flex-1 p-6">
-        @yield('content')
+    <main class="flex-1 p-6 flex flex-col">
+        <div class="flex-1">
+            @yield('content')
+        </div>
+        
+        {{-- Footer --}}
+        <footer class="mt-8 pt-4 border-t border-slate-200 text-center text-xs text-slate-500">
+            &copy; {{ date('Y') }} Presensi Sekolah. Developed by <span class="font-semibold text-slate-700">Dimas A.F</span>.
+        </footer>
     </main>
 </div>
 
@@ -280,3 +287,35 @@
 @stack('scripts')
 </body>
 </html>
+
+<script>
+    // Global Show/Hide Password Script
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInputs = document.querySelectorAll('input[type="password"]');
+        passwordInputs.forEach(input => {
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            const toggleBtn = document.createElement('span');
+            toggleBtn.innerHTML = '<i class="far fa-eye text-slate-400"></i>';
+            toggleBtn.style.position = 'absolute';
+            toggleBtn.style.right = '10px';
+            toggleBtn.style.top = '50%';
+            toggleBtn.style.transform = 'translateY(-50%)';
+            toggleBtn.style.cursor = 'pointer';
+            wrapper.appendChild(toggleBtn);
+
+            toggleBtn.addEventListener('click', function() {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggleBtn.innerHTML = '<i class="far fa-eye-slash text-blue-500"></i>';
+                } else {
+                    input.type = 'password';
+                    toggleBtn.innerHTML = '<i class="far fa-eye text-slate-400"></i>';
+                }
+            });
+        });
+    });
+</script>

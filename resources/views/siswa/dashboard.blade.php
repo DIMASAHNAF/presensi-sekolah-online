@@ -69,7 +69,7 @@
                     <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden">
                         <img src="{{ asset('images/logo.png') }}" alt="Logo SMK" class="w-full h-full object-contain p-1">
                     </div>
-                    <span class="font-bold text-base">Absensi Sekolah</span>
+                    <span class="font-bold text-base">Presensi Sekolah</span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -137,11 +137,11 @@
                 </p>
             </div>
 
-            {{-- RIWAYAT ABSENSI --}}
+            {{-- RIWAYAT PRESENSI --}}
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="140">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h3 class="font-semibold text-slate-800 text-sm">
-                    <i class="fas fa-history text-blue-500 mr-2"></i>Riwayat Absensi
+                    <i class="fas fa-history text-blue-500 mr-2"></i>Riwayat Presensi
                 </h3>
                 <span class="text-xs text-slate-400">10 terakhir</span>
             </div>
@@ -151,7 +151,7 @@
                     <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-inbox text-slate-400 text-2xl"></i>
                     </div>
-                    <p class="text-sm text-slate-500">Belum ada riwayat absensi</p>
+                    <p class="text-sm text-slate-500">Belum ada riwayat presensi</p>
                     <p class="text-xs text-slate-400 mt-1">Mulai scan QR Code untuk absen</p>
                 </div>
             @else
@@ -160,17 +160,17 @@
                         <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition">
                             <div>
                                 <p class="text-sm font-medium text-slate-800">
-                                    {{ optional($item->sesiAbsensi)->tanggal?->format('d M Y') ?? '-' }}
+                                    {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
                                 </p>
                                 <p class="text-xs text-slate-400 mt-0.5 flex items-center flex-wrap gap-1">
                                     <i class="fas fa-door-open mr-1"></i>
-                                    {{ optional(optional($item->sesiAbsensi)->kelas)->nama_kelas ?? '-' }}
+                                    {{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}
                                     
-                                    @if(optional($item->sesiAbsensi)->mataPelajaran)
-                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiAbsensi->mataPelajaran->nama_mapel }}</span>
+                                    @if(optional($item->sesiPresensi)->mataPelajaran)
+                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiPresensi->mataPelajaran->nama_mapel }}</span>
                                     @endif
-                                    @if(optional($item->sesiAbsensi)->jam_pelajaran)
-                                        <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiAbsensi->jam_pelajaran }}</span>
+                                    @if(optional($item->sesiPresensi)->jam_pelajaran)
+                                        <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiPresensi->jam_pelajaran }}</span>
                                     @endif
                                     
                                     @if($item->keterangan)

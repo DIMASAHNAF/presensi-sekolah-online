@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/images/logo.png" alt="Logo Absensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" />
+  <img src="public/images/logo.png" alt="Logo Presensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" />
 
   # ⚡ SMART QR SCHOOL ATTENDANCE SYSTEM
   ### Sistem Presensi Sekolah Modern & Realtime Berbasis Dynamic QR Code
@@ -105,8 +105,8 @@ sequenceDiagram
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/Hotwill2/absensi-sekolah.git
-cd absensi-sekolah
+git clone https://github.com/Hotwill2/presensi-sekolah.git
+cd presensi-sekolah
 ```
 
 ### 2. Install Dependencies
@@ -129,7 +129,7 @@ Pastikan pengaturan database di file `.env` sudah benar:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=absensi_sekolah
+DB_DATABASE=presensi_sekolah
 DB_USERNAME=root
 DB_PASSWORD=
 

@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('log_absensi', function (Blueprint $table) {
+        Schema::create('log_presensi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('absensi_id')->constrained('absensi')->cascadeOnDelete();
+            $table->foreignId('presensi_id')->constrained('presensi')->cascadeOnDelete();
             $table->foreignId('guru_id')->constrained('users')->cascadeOnDelete();
             $table->string('status_sebelumnya');
             $table->string('status_baru');
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('log_absensi');
+        Schema::dropIfExists('log_presensi');
     }
 };

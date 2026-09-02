@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('absensi', function (Blueprint $table) {
+        Schema::create('presensi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sesi_absensi_id')
-                  ->constrained('sesi_absensi')
+            $table->foreignId('sesi_presensi_id')
+                  ->constrained('sesi_presensi')
                   ->cascadeOnDelete();
             $table->foreignId('siswa_id')
                   ->constrained('users')
@@ -22,12 +22,12 @@ return new class extends Migration
             $table->timestamps();
 
             // 1 siswa hanya boleh absen 1x per sesi
-            $table->unique(['sesi_absensi_id', 'siswa_id']);
+            $table->unique(['sesi_presensi_id', 'siswa_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('absensi');
+        Schema::dropIfExists('presensi');
     }
 };

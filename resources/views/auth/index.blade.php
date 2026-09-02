@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Presensi Sekolah</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
             background-image:
@@ -44,9 +46,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center px-4 py-10" x-data="{ tab: 'siswa' }">
+<body class="min-h-screen flex flex-col items-center justify-center px-4 py-10" x-data="{ tab: 'siswa' }">
 
-    <div class="glass rounded-3xl shadow-2xl p-8 w-full max-w-md">
+    <div class="glass rounded-3xl shadow-2xl p-8 w-full max-w-md mb-8">
 
         <div class="text-center mb-6">
             <h1 class="text-2xl font-extrabold text-white drop-shadow-sm">Presensi SMKN 1 BERINGIN</h1>
@@ -154,7 +156,41 @@
                 Akun guru dibuat oleh admin sekolah.
             </p>
         </div>
-
     </div>
+    
+    <footer class="mt-auto pt-4 text-center text-xs text-white/80">
+        &copy; {{ date('Y') }} Presensi Sekolah. Developed by <span class="font-semibold text-white">Dimas A.F</span>.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            passwordInputs.forEach(input => {
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                const toggleBtn = document.createElement('span');
+                toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.right = '12px';
+                toggleBtn.style.top = '50%';
+                toggleBtn.style.transform = 'translateY(-50%)';
+                toggleBtn.style.cursor = 'pointer';
+                wrapper.appendChild(toggleBtn);
+
+                toggleBtn.addEventListener('click', function() {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        toggleBtn.innerHTML = '<i class="far fa-eye-slash text-gray-800"></i>';
+                    } else {
+                        input.type = 'password';
+                        toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

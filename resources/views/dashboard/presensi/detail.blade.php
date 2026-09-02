@@ -1,8 +1,8 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Detail Absensi - ' . $sesiAbsensi->kelas->nama_kelas)
-@section('page-title', 'Detail Absensi: ' . $sesiAbsensi->kelas->nama_kelas)
-@section('page-subtitle', 'Tanggal: ' . $sesiAbsensi->tanggal->isoFormat('dddd, D MMMM Y'))
+@section('title', 'Detail Presensi - ' . $sesiPresensi->kelas->nama_kelas)
+@section('page-title', 'Detail Presensi: ' . $sesiPresensi->kelas->nama_kelas)
+@section('page-subtitle', 'Tanggal: ' . $sesiPresensi->tanggal->isoFormat('dddd, D MMMM Y'))
 
 @section('content')
 
@@ -30,7 +30,7 @@
             <h3 class="font-bold text-slate-800 text-lg">QR Code Presensi</h3>
             <p class="text-xs text-slate-500 mt-1 mb-5">Tampilkan ini di depan kelas agar siswa dapat melakukan scan.</p>
             
-            @if($sesiAbsensi->is_active)
+            @if($sesiPresensi->is_active)
             <button onclick="document.getElementById('barcodeModal').classList.remove('hidden')" 
                     class="w-full btn-primary justify-center py-3 text-sm mb-2">
                 <i class="fas fa-qrcode mr-1.5"></i> Tampilkan Layar Penuh
@@ -39,7 +39,7 @@
             <div class="bg-slate-100 text-slate-500 font-semibold text-xs py-2.5 rounded-xl mb-2 flex items-center justify-center gap-1.5">
                 <i class="fas fa-lock"></i> Sesi Telah Ditutup
             </div>
-            <form action="{{ route('dashboard.absensi.close', $sesiAbsensi) }}" method="POST" class="mb-2">
+            <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST" class="mb-2">
                 @csrf @method('PATCH')
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
                     <i class="fas fa-unlock"></i> Aktifkan / Buka Barcode
@@ -47,7 +47,7 @@
             </form>
             @endif
 
-            <a href="{{ route('dashboard.absensi.pdf', $sesiAbsensi) }}" target="_blank"
+            <a href="{{ route('dashboard.presensi.pdf', $sesiPresensi) }}" target="_blank"
                class="w-full btn-secondary justify-center py-3 text-sm">
                 <i class="fas fa-print"></i> Cetak Laporan
             </a>
@@ -58,25 +58,25 @@
             <div class="space-y-3 text-sm">
                 <div class="flex justify-between">
                     <span class="text-slate-500">Kelas</span>
-                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->kelas->nama_kelas }}</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiPresensi->kelas->nama_kelas }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Mata Pelajaran</span>
-                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel : '-' }}</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiPresensi->mataPelajaran ? $sesiPresensi->mataPelajaran->nama_mapel : '-' }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Jam Pelajaran</span>
-                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->jam_pelajaran ?: '-' }}</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiPresensi->jam_pelajaran ?: '-' }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Pembuat Sesi</span>
-                    <span class="font-semibold text-slate-800">{{ $sesiAbsensi->guru->name }}</span>
+                    <span class="font-semibold text-slate-800">{{ $sesiPresensi->guru->name }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500">Status Sesi</span>
-                    @if($sesiAbsensi->is_active)
+                    @if($sesiPresensi->is_active)
                         @php
-                            $minutesDiff = now()->diffInMinutes($sesiAbsensi->created_at);
+                            $minutesDiff = now()->diffInMinutes($sesiPresensi->created_at);
                             $isExpired = $minutesDiff >= 30;
                         @endphp
                         @if($isExpired)
@@ -91,10 +91,10 @@
             </div>
 
             <div class="mt-5 pt-5 border-t border-slate-100">
-                <form action="{{ route('dashboard.absensi.close', $sesiAbsensi) }}" method="POST">
+                <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST">
                     @csrf @method('PATCH')
-                    @if($sesiAbsensi->is_active)
-                        <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold" onclick="return confirm('Tutup sesi absensi ini? Barcode tidak bisa di-scan lagi.')">
+                    @if($sesiPresensi->is_active)
+                        <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold" onclick="return confirm('Tutup sesi presensi ini? Barcode tidak bisa di-scan lagi.')">
                             <i class="fas fa-lock mr-1"></i> Tutup Sesi (Nonaktifkan Barcode)
                         </button>
                     @else
@@ -107,7 +107,7 @@
 
             @if(auth()->user()->isAdmin())
             <div class="mt-3 pt-3 border-t border-slate-100">
-                <form action="{{ route('dashboard.absensi.reset', $sesiAbsensi) }}" method="POST">
+                <form action="{{ route('dashboard.presensi.reset', $sesiPresensi) }}" method="POST">
                     @csrf
                     <button type="submit" class="w-full bg-red-100 text-red-600 hover:bg-red-200 font-bold justify-center py-2 rounded-xl text-sm transition" onclick="return confirm('BAHAYA: Yakin ingin MERESET seluruh kehadiran kelas ini? Semua siswa akan dikembalikan ke status Alpa dan log riwayat akan dihapus.')">
                         <i class="fas fa-trash-can"></i> Reset Presensi Kelas
@@ -124,10 +124,10 @@
             <div>
                 <h2 class="text-lg font-extrabold text-slate-800">Daftar Kehadiran Siswa</h2>
                 <p class="text-sm text-slate-500 mt-1">
-                    Hadir: <span id="count-hadir" class="font-bold text-emerald-600">{{ $sesiAbsensi->absensi->where('status', 'hadir')->count() }}</span> |
-                    Izin: <span id="count-izin" class="font-bold text-amber-500">{{ $sesiAbsensi->absensi->where('status', 'izin')->count() }}</span> |
-                    Sakit: <span id="count-sakit" class="font-bold text-orange-500">{{ $sesiAbsensi->absensi->where('status', 'sakit')->count() }}</span> |
-                    Alpa: <span id="count-alpa" class="font-bold text-red-500">{{ $sesiAbsensi->absensi->where('status', 'alpa')->count() }}</span>
+                    Hadir: <span id="count-hadir" class="font-bold text-emerald-600">{{ $sesiPresensi->presensi->where('status', 'hadir')->count() }}</span> |
+                    Izin: <span id="count-izin" class="font-bold text-amber-500">{{ $sesiPresensi->presensi->where('status', 'izin')->count() }}</span> |
+                    Sakit: <span id="count-sakit" class="font-bold text-orange-500">{{ $sesiPresensi->presensi->where('status', 'sakit')->count() }}</span> |
+                    Alpa: <span id="count-alpa" class="font-bold text-red-500">{{ $sesiPresensi->presensi->where('status', 'alpa')->count() }}</span>
                 </p>
             </div>
 
@@ -150,7 +150,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
-                    @foreach($sesiAbsensi->absensi->sortBy('siswa.name') as $absen)
+                    @foreach($sesiPresensi->presensi->sortBy('siswa.name') as $absen)
                         <tr id="row-{{ $absen->id }}" class="hover:bg-slate-50 transition-colors duration-300 group" x-data="{ openLog: false, openEdit: false }">
                             <td class="px-6 py-4">
                                 <p class="font-bold text-slate-800">{{ $absen->siswa->name }}</p>
@@ -165,9 +165,9 @@
                                 <span id="ket-{{ $absen->id }}">{{ $absen->keterangan ?: '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-right space-x-2">
-                                @if($absen->logAbsensi->count() > 0)
+                                @if($absen->logPresensi->count() > 0)
                                     <button @click="openLog = true" class="text-xs text-slate-400 hover:text-blue-600 transition" title="Lihat Riwayat Perubahan">
-                                        <i class="fas fa-history"></i> Log ({{ $absen->logAbsensi->count() }})
+                                        <i class="fas fa-history"></i> Log ({{ $absen->logPresensi->count() }})
                                     </button>
                                 @endif
                                 <button @click="openEdit = true" class="btn-secondary py-1.5 px-3 text-xs">
@@ -182,7 +182,7 @@
                                         <h3 class="font-bold text-lg text-slate-800 mb-1">Edit Kehadiran</h3>
                                         <p class="text-sm text-slate-500 mb-5">Siswa: <strong>{{ $absen->siswa->name }}</strong></p>
                                         
-                                        <form method="POST" action="{{ route('dashboard.absensi.record.update', $absen) }}">
+                                        <form method="POST" action="{{ route('dashboard.presensi.record.update', $absen) }}">
                                             @csrf @method('PATCH')
                                             <div class="mb-4">
                                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Status Baru</label>
@@ -217,7 +217,7 @@
                                         <p class="text-sm text-slate-500 mb-4 border-b border-slate-100 pb-4">Siswa: <strong>{{ $absen->siswa->name }}</strong></p>
                                         
                                         <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                            @foreach($absen->logAbsensi as $log)
+                                            @foreach($absen->logPresensi as $log)
                                                 <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
                                                     <div class="flex justify-between items-start mb-2">
                                                         <span class="text-xs font-semibold text-slate-400">{{ $log->created_at->format('d M Y, H:i') }}</span>
@@ -249,10 +249,10 @@
     <button onclick="document.getElementById('barcodeModal').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 hover:text-slate-800 transition text-4xl">
         <i class="fas fa-times"></i>
     </button>
-    <h2 class="text-3xl font-extrabold text-slate-800 mb-2">{{ $sesiAbsensi->kelas->nama_kelas }}</h2>
-    <p class="text-lg text-slate-500 mb-2">{{ $sesiAbsensi->mataPelajaran ? $sesiAbsensi->mataPelajaran->nama_mapel . ' - ' : '' }}{{ $sesiAbsensi->tanggal->isoFormat('dddd, D MMMM Y') }}</p>
-    @if($sesiAbsensi->jam_pelajaran)
-        <p class="text-sm font-semibold text-blue-600 mb-8">{{ $sesiAbsensi->jam_pelajaran }}</p>
+    <h2 class="text-3xl font-extrabold text-slate-800 mb-2">{{ $sesiPresensi->kelas->nama_kelas }}</h2>
+    <p class="text-lg text-slate-500 mb-2">{{ $sesiPresensi->mataPelajaran ? $sesiPresensi->mataPelajaran->nama_mapel . ' - ' : '' }}{{ $sesiPresensi->tanggal->isoFormat('dddd, D MMMM Y') }}</p>
+    @if($sesiPresensi->jam_pelajaran)
+        <p class="text-sm font-semibold text-blue-600 mb-8">{{ $sesiPresensi->jam_pelajaran }}</p>
     @else
         <div class="mb-6"></div>
     @endif
@@ -271,7 +271,7 @@
     const qrContainer = document.getElementById('qrcode');
     if(qrContainer) {
         new QRCode(qrContainer, {
-            text: "{{ $sesiAbsensi->barcode_token }}",
+            text: "{{ $sesiPresensi->barcode_token }}",
             width: 256,
             height: 256,
             colorDark : "#1e293b",
@@ -282,7 +282,7 @@
 
     // REALTIME LIVE AUTO-SYNC (POLLING SETIAP 2 DETIK)
     function pollLiveStatus() {
-        fetch("{{ route('dashboard.absensi.live', $sesiAbsensi) }}")
+        fetch("{{ route('dashboard.presensi.live', $sesiPresensi) }}")
             .then(res => res.json())
             .then(data => {
                 if(data.success && data.stats) {

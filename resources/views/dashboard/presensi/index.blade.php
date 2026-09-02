@@ -1,8 +1,8 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Kelola Absensi')
-@section('page-title', 'Kelola Absensi')
-@section('page-subtitle', 'Manajemen sesi absensi dan kehadiran harian siswa')
+@section('title', 'Kelola Presensi')
+@section('page-title', 'Kelola Presensi')
+@section('page-subtitle', 'Manajemen sesi presensi dan kehadiran harian siswa')
 
 @section('content')
 
@@ -41,7 +41,7 @@
         <h2 class="text-lg font-extrabold text-slate-800">Buat Sesi Absen</h2>
         <p class="text-sm text-slate-500 mt-1 mb-6">Pilih kelas untuk membuat sesi barcode absen hari ini.</p>
 
-        <form action="{{ route('dashboard.absensi.store') }}" method="POST" class="space-y-5">
+        <form action="{{ route('dashboard.presensi.store') }}" method="POST" class="space-y-5">
             @csrf
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Kelas</label>
@@ -98,7 +98,7 @@
         
         {{-- Filter Box --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4" data-aos="fade-up" data-aos-delay="50">
-            <form method="GET" action="{{ route('dashboard.absensi') }}" class="flex flex-col sm:flex-row items-end gap-3 flex-wrap">
+            <form method="GET" action="{{ route('dashboard.presensi') }}" class="flex flex-col sm:flex-row items-end gap-3 flex-wrap">
                 <div class="w-full sm:w-auto flex-1 min-w-[140px]">
                     <label class="block text-xs font-semibold text-slate-500 mb-1">Filter Kelas</label>
                     <select name="kelas_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
@@ -126,15 +126,15 @@
                         <i class="fas fa-filter mr-1"></i> Filter
                     </button>
                     @if(request('kelas_id') || request('mapel_id') || request('tanggal') !== today()->toDateString())
-                        <a href="{{ route('dashboard.absensi') }}" class="inline-block mt-2 sm:mt-0 text-xs text-red-500 hover:underline sm:ml-2">Reset</a>
+                        <a href="{{ route('dashboard.presensi') }}" class="inline-block mt-2 sm:mt-0 text-xs text-red-500 hover:underline sm:ml-2">Reset</a>
                     @endif
                 </div>
             </form>
             @if(auth()->user()->isAdmin())
             <div class="mt-4 pt-4 border-t border-slate-100 text-right">
-                <form action="{{ route('dashboard.absensi.delete-all') }}" method="POST" class="inline-block">
+                <form action="{{ route('dashboard.presensi.delete-all') }}" method="POST" class="inline-block">
                     @csrf @method('DELETE')
-                    <button type="submit" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" onclick="return confirm('SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi absensi dari database? Tindakan ini tidak bisa dibatalkan.')">
+                    <button type="submit" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" onclick="return confirm('SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi presensi dari database? Tindakan ini tidak bisa dibatalkan.')">
                         <i class="fas fa-trash-can mr-1"></i> Kosongkan Semua Riwayat Presensi
                     </button>
                 </form>
@@ -166,7 +166,7 @@
                                 <p class="text-xs text-slate-400">Kehadiran harian — format matriks bulanan</p>
                             </div>
                         </div>
-                        <form action="{{ route('dashboard.absensi.pdf.bulanan.kelas') }}" method="GET" target="_blank" class="space-y-3">
+                        <form action="{{ route('dashboard.presensi.pdf.bulanan.kelas') }}" method="GET" target="_blank" class="space-y-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Kelas</label>
                                 <select name="kelas_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
@@ -198,7 +198,7 @@
                                 <p class="text-xs text-slate-400">Per pertemuan mapel — format matriks bulanan</p>
                             </div>
                         </div>
-                        <form action="{{ route('dashboard.absensi.pdf.bulanan.mapel') }}" method="GET" target="_blank" class="space-y-3">
+                        <form action="{{ route('dashboard.presensi.pdf.bulanan.mapel') }}" method="GET" target="_blank" class="space-y-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Kelas</label>
                                 <select name="kelas_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
@@ -268,7 +268,7 @@
                         </p>
                     </div>
 
-                    <a href="{{ route('dashboard.absensi.detail', $sesi) }}" class="btn-primary shrink-0">
+                    <a href="{{ route('dashboard.presensi.detail', $sesi) }}" class="btn-primary shrink-0">
                         Kelola <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>

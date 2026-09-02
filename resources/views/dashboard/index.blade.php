@@ -2,7 +2,7 @@
 
 @section('title', 'Overview')
 @section('page-title', 'Overview')
-@section('page-subtitle', auth()->user()->isAdmin() ? 'Ringkasan data sistem absensi' : 'Ringkasan aktivitas Anda')
+@section('page-subtitle', auth()->user()->isAdmin() ? 'Ringkasan data sistem presensi' : 'Ringkasan aktivitas Anda')
 
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -70,7 +70,7 @@
                 <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Hari Ini</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-800">{{ $stats['sesi_hari_ini'] }}</p>
-            <p class="text-sm text-slate-500 mt-1 font-medium">Sesi Absensi</p>
+            <p class="text-sm text-slate-500 mt-1 font-medium">Sesi Presensi</p>
             <p class="text-xs text-blue-500 mt-2">Klik untuk melihat detail &rarr;</p>
         </button>
 
@@ -142,7 +142,7 @@
                                             @endif
                                         </td>
                                         <td class="p-3 text-right">
-                                            <a href="{{ route('dashboard.absensi.detail', $sesi) }}" class="text-blue-600 hover:underline">Detail</a>
+                                            <a href="{{ route('dashboard.presensi.detail', $sesi) }}" class="text-blue-600 hover:underline">Detail</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -164,7 +164,7 @@
                     <input type="text" x-model="search" placeholder="Cari nama atau kelas..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
                 <div class="overflow-y-auto p-4 flex-1">
-                    @php $listHadir = $absensiHariIni->where('status', 'hadir'); @endphp
+                    @php $listHadir = $presensiHariIni->where('status', 'hadir'); @endphp
                     @if($listHadir->isEmpty())
                         <p class="text-center text-slate-500 py-4">Belum ada siswa yang hadir hari ini.</p>
                     @else
@@ -178,9 +178,9 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($listHadir as $absen)
-                                    <tr x-show="search === '' || '{{ strtolower($absen->siswa->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($absen->sesiAbsensi->kelas->nama_kelas) }}'.includes(search.toLowerCase())">
+                                    <tr x-show="search === '' || '{{ strtolower($absen->siswa->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($absen->sesiPresensi->kelas->nama_kelas) }}'.includes(search.toLowerCase())">
                                         <td class="p-3 font-semibold">{{ $absen->siswa->name }}</td>
-                                        <td class="p-3">{{ $absen->sesiAbsensi->kelas->nama_kelas }}</td>
+                                        <td class="p-3">{{ $absen->sesiPresensi->kelas->nama_kelas }}</td>
                                         <td class="p-3">{{ $absen->waktu_scan ? \Carbon\Carbon::parse($absen->waktu_scan)->format('H:i') : '-' }}</td>
                                     </tr>
                                 @endforeach
@@ -202,7 +202,7 @@
                     <input type="text" x-model="search" placeholder="Cari nama atau kelas..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
                 </div>
                 <div class="overflow-y-auto p-4 flex-1">
-                    @php $listAlpa = $absensiHariIni->where('status', 'alpa'); @endphp
+                    @php $listAlpa = $presensiHariIni->where('status', 'alpa'); @endphp
                     @if($listAlpa->isEmpty())
                         <p class="text-center text-slate-500 py-4">Tidak ada siswa alpa hari ini!</p>
                     @else
@@ -215,9 +215,9 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($listAlpa as $absen)
-                                    <tr x-show="search === '' || '{{ strtolower($absen->siswa->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($absen->sesiAbsensi->kelas->nama_kelas) }}'.includes(search.toLowerCase())">
+                                    <tr x-show="search === '' || '{{ strtolower($absen->siswa->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($absen->sesiPresensi->kelas->nama_kelas) }}'.includes(search.toLowerCase())">
                                         <td class="p-3 font-semibold">{{ $absen->siswa->name }}</td>
-                                        <td class="p-3">{{ $absen->sesiAbsensi->kelas->nama_kelas }}</td>
+                                        <td class="p-3">{{ $absen->sesiPresensi->kelas->nama_kelas }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -254,20 +254,20 @@
     <div class="{{ auth()->user()->isAdmin() ? '' : 'xl:col-span-3' }} bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-aos="fade-up" data-aos-delay="140">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <h3 class="font-bold text-slate-800 text-sm">
-                <i class="fas fa-clock text-blue-500 mr-2"></i>Sesi Absensi Terbaru
+                <i class="fas fa-clock text-blue-500 mr-2"></i>Sesi Presensi Terbaru
             </h3>
-            <a href="{{ route('dashboard.absensi') }}" class="text-xs text-blue-600 hover:underline">Lihat semua</a>
+            <a href="{{ route('dashboard.presensi') }}" class="text-xs text-blue-600 hover:underline">Lihat semua</a>
         </div>
 
         @if($recentSesi->isEmpty())
             <div class="py-10 text-center">
                 <i class="fas fa-inbox text-slate-300 text-3xl mb-2"></i>
-                <p class="text-sm text-slate-500">Belum ada sesi absensi</p>
+                <p class="text-sm text-slate-500">Belum ada sesi presensi</p>
             </div>
         @else
             <div class="divide-y divide-slate-100">
                 @foreach($recentSesi as $sesi)
-                    <a href="{{ route('dashboard.absensi.detail', $sesi) }}"
+                    <a href="{{ route('dashboard.presensi.detail', $sesi) }}"
                        class="flex items-center justify-between px-5 py-3.5 hover:bg-blue-50 transition group">
                         <div>
                             <p class="text-sm font-semibold text-slate-800 group-hover:text-blue-700 flex items-center gap-2">

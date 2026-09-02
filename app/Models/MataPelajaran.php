@@ -12,8 +12,8 @@ class MataPelajaran extends Model
         'nama_mapel',
     ];
 
-    public function sesiAbsensi()
+    public function sesiPresensi()
     {
-        return $this->hasMany(SesiAbsensi::class, 'mapel_id');
+        return $this->hasMany(SesiPresensi::class, 'mapel_id');
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Absensi;
-use App\Models\SesiAbsensi;
-use App\Models\LogAbsensi;
+use App\Models\Presensi;
+use App\Models\SesiPresensi;
+use App\Models\LogPresensi;
 use Illuminate\Http\Request;
 
 class SiswaController extends Controller
@@ -14,17 +14,17 @@ class SiswaController extends Controller
     {
         $user = auth()->user()->load('kelas');
 
-        $riwayat = Absensi::where('siswa_id', $user->id)
-            ->with(['sesiAbsensi.kelas', 'sesiAbsensi.mataPelajaran'])
+        $riwayat = Presensi::where('siswa_id', $user->id)
+            ->with(['sesiPresensi.kelas', 'sesiPresensi.mataPelajaran'])
             ->latest()
             ->take(10)
             ->get();
 
         $stats = [
-            'hadir' => Absensi::where('siswa_id', $user->id)->where('status', 'hadir')->count(),
-            'izin'  => Absensi::where('siswa_id', $user->id)->where('status', 'izin')->count(),
-            'sakit' => Absensi::where('siswa_id', $user->id)->where('status', 'sakit')->count(),
-            'alpa'  => Absensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
+            'hadir' => Presensi::where('siswa_id', $user->id)->where('status', 'hadir')->count(),
+            'izin'  => Presensi::where('siswa_id', $user->id)->where('status', 'izin')->count(),
+            'sakit' => Presensi::where('siswa_id', $user->id)->where('status', 'sakit')->count(),
+            'alpa'  => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
         ];
 
         return view('siswa.dashboard', compact('user', 'riwayat', 'stats'));
@@ -36,7 +36,7 @@ class SiswaController extends Controller
         $user = auth()->user();
 
         // Cari sesi aktif berdasarkan token
-        $sesi = SesiAbsensi::where('barcode_token', $request->token)
+        $sesi = SesiPresensi::where('barcode_token', $request->token)
             ->where('is_active', true)
             ->first();
 
@@ -54,36 +54,36 @@ class SiswaController extends Controller
             return response()->json(['success' => false, 'message' => 'Batas waktu scan 30 menit sudah habis. Silakan hubungi guru.']);
         }
 
-        // Cari record absensi siswa
-        $absensi = Absensi::where('sesi_absensi_id', $sesi->id)
+        // Cari record presensi siswa
+        $presensi = Presensi::where('sesi_presensi_id', $sesi->id)
             ->where('siswa_id', $user->id)
             ->first();
 
-        if (!$absensi) {
+        if (!$presensi) {
             // Jika siswa baru register setelah sesi dibuat, buatkan recordnya sekarang
-            $absensi = Absensi::create([
-                'sesi_absensi_id' => $sesi->id,
+            $presensi = Presensi::create([
+                'sesi_presensi_id' => $sesi->id,
                 'siswa_id'        => $user->id,
                 'status'          => 'alpa',
             ]);
         }
 
-        if ($absensi->status === 'hadir') {
+        if ($presensi->status === 'hadir') {
             return response()->json(['success' => false, 'message' => 'Anda sudah melakukan scan absen (Hadir).']);
         }
 
-        $statusSebelumnya = $absensi->status;
+        $statusSebelumnya = $presensi->status;
 
         // Update jadi hadir
-        $absensi->update([
+        $presensi->update([
             'status' => 'hadir',
             'waktu_scan' => now(),
             'keterangan' => 'Scan Mandiri (Sistem)',
         ]);
 
         // Catat log
-        LogAbsensi::create([
-            'absensi_id' => $absensi->id,
+        LogPresensi::create([
+            'presensi_id' => $presensi->id,
             'guru_id' => $sesi->guru_id, // Atas nama pembuat sesi atau sistem
             'status_sebelumnya' => $statusSebelumnya,
             'status_baru' => 'hadir',

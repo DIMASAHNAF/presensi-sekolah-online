@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Absensi extends Model
+class Presensi extends Model
 {
-    protected $table = 'absensi';
+    protected $table = 'presensi';
 
     protected $fillable = [
-        'sesi_absensi_id',
+        'sesi_presensi_id',
         'siswa_id',
         'status',
         'waktu_scan',
@@ -20,10 +20,10 @@ class Absensi extends Model
         'waktu_scan' => 'datetime',
     ];
 
-    /** Sesi absensi tempat rekap ini berada */
-    public function sesiAbsensi()
+    /** Sesi presensi tempat rekap ini berada */
+    public function sesiPresensi()
     {
-        return $this->belongsTo(SesiAbsensi::class, 'sesi_absensi_id');
+        return $this->belongsTo(SesiPresensi::class, 'sesi_presensi_id');
     }
 
     /** Siswa yang diabsen */
@@ -50,9 +50,9 @@ class Absensi extends Model
         };
     }
 
-    /** Log perubahan absensi ini */
-    public function logAbsensi()
+    /** Log perubahan presensi ini */
+    public function logPresensi()
     {
-        return $this->hasMany(LogAbsensi::class, 'absensi_id')->latest();
+        return $this->hasMany(LogPresensi::class, 'presensi_id')->latest();
     }
 }

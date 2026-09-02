@@ -1,8 +1,8 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Log Perubahan Absensi')
-@section('page-title', 'Log Perubahan Absensi')
-@section('page-subtitle', 'Riwayat perubahan status absensi siswa oleh guru')
+@section('title', 'Log Perubahan Presensi')
+@section('page-title', 'Log Perubahan Presensi')
+@section('page-subtitle', 'Riwayat perubahan status presensi siswa oleh guru')
 
 @section('content')
 
@@ -94,20 +94,20 @@
                         <br><span class="font-semibold text-slate-700 text-sm">{{ $log->created_at->format('H:i') }}</span>
                     </td>
                     <td class="px-4 py-3 font-semibold text-slate-700">
-                        {{ optional($log->absensi->siswa)->name ?? '-' }}
+                        {{ optional($log->presensi->siswa)->name ?? '-' }}
                     </td>
                     <td class="px-4 py-3 text-slate-600">
-                        <span class="font-semibold">{{ optional($log->absensi->sesiAbsensi->kelas)->nama_kelas ?? '-' }}</span>
-                        @if(optional($log->absensi->sesiAbsensi)->mataPelajaran)
+                        <span class="font-semibold">{{ optional($log->presensi->sesiPresensi->kelas)->nama_kelas ?? '-' }}</span>
+                        @if(optional($log->presensi->sesiPresensi)->mataPelajaran)
                             <span class="text-xs ml-1 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                                <i class="fas fa-book-open mr-0.5 text-[10px]"></i>{{ $log->absensi->sesiAbsensi->mataPelajaran->nama_mapel }}
+                                <i class="fas fa-book-open mr-0.5 text-[10px]"></i>{{ $log->presensi->sesiPresensi->mataPelajaran->nama_mapel }}
                             </span>
                         @else
                             <span class="text-xs ml-1 bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">Sesi Pagi</span>
                         @endif
                         <br>
                         <span class="text-xs text-slate-400">
-                            <i class="fas fa-calendar text-[10px] mr-1"></i>{{ optional($log->absensi->sesiAbsensi)->tanggal?->format('d M Y') ?? '-' }}
+                            <i class="fas fa-calendar text-[10px] mr-1"></i>{{ optional($log->presensi->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
                         </span>
                     </td>
                     <td class="px-4 py-3 font-semibold text-blue-600">
@@ -120,9 +120,9 @@
                     </td>
                     <td class="px-4 py-3 text-slate-600">
                         {{ $log->keterangan ?: '-' }}
-                        @if(optional($log->absensi->sesiAbsensi)->jam_pelajaran)
+                        @if(optional($log->presensi->sesiPresensi)->jam_pelajaran)
                             <br><span class="text-xs text-slate-400 font-medium">
-                                <i class="fas fa-clock mr-1"></i>{{ $log->absensi->sesiAbsensi->jam_pelajaran }}
+                                <i class="fas fa-clock mr-1"></i>{{ $log->presensi->sesiPresensi->jam_pelajaran }}
                             </span>
                         @endif
                     </td>

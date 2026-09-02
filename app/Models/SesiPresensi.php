@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SesiAbsensi extends Model
+class SesiPresensi extends Model
 {
-    protected $table = 'sesi_absensi';
+    protected $table = 'sesi_presensi';
 
     protected $fillable = [
         'guru_id',
@@ -35,10 +35,10 @@ class SesiAbsensi extends Model
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
-    /** Semua rekap absensi di sesi ini */
-    public function absensi()
+    /** Semua rekap presensi di sesi ini */
+    public function presensi()
     {
-        return $this->hasMany(Absensi::class, 'sesi_absensi_id');
+        return $this->hasMany(Presensi::class, 'sesi_presensi_id');
     }
 
     /** Mata Pelajaran sesi ini (opsional) */

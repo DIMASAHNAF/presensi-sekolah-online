@@ -34,19 +34,19 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     // Overview
     Route::get('/', [DashboardController::class, 'index'])->name('');
 
-    // Absensi
-    Route::get('/absensi',                 [DashboardController::class, 'absensiIndex'])->name('.absensi');
-    Route::post('/absensi',                [DashboardController::class, 'storeSesi'])->name('.absensi.store');
-    Route::get('/absensi/{sesiAbsensi}',         [DashboardController::class, 'absensiDetail'])->name('.absensi.detail');
-    Route::get('/absensi/{sesiAbsensi}/live',    [DashboardController::class, 'absensiLiveJson'])->name('.absensi.live');
-    Route::get('/absensi/{sesiAbsensi}/pdf',     [DashboardController::class, 'exportPdf'])->name('.absensi.pdf');
-    Route::get('/absensi/export/harian',         [DashboardController::class, 'exportPdfHarian'])->name('.absensi.pdf.harian');
-    Route::get('/absensi/export/bulanan-kelas',   [DashboardController::class, 'exportBulananKelas'])->name('.absensi.pdf.bulanan.kelas');
-    Route::get('/absensi/export/bulanan-mapel',   [DashboardController::class, 'exportBulananMapel'])->name('.absensi.pdf.bulanan.mapel');
-    Route::patch('/absensi/record/{absensi}', [DashboardController::class, 'updateRecord'])->name('.absensi.record.update');
-    Route::patch('/absensi/{sesiAbsensi}/close', [DashboardController::class, 'closeSesi'])->name('.absensi.close');
-    Route::post('/absensi/{sesiAbsensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.absensi.reset');
-    Route::delete('/absensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.absensi.delete-all');
+    // Presensi
+    Route::get('/presensi',                 [DashboardController::class, 'presensiIndex'])->name('.presensi');
+    Route::post('/presensi',                [DashboardController::class, 'storeSesi'])->name('.presensi.store');
+    Route::get('/presensi/{sesiPresensi}',         [DashboardController::class, 'presensiDetail'])->name('.presensi.detail');
+    Route::get('/presensi/{sesiPresensi}/live',    [DashboardController::class, 'presensiLiveJson'])->name('.presensi.live');
+    Route::get('/presensi/{sesiPresensi}/pdf',     [DashboardController::class, 'exportPdf'])->name('.presensi.pdf');
+    Route::get('/presensi/export/harian',         [DashboardController::class, 'exportPdfHarian'])->name('.presensi.pdf.harian');
+    Route::get('/presensi/export/bulanan-kelas',   [DashboardController::class, 'exportBulananKelas'])->name('.presensi.pdf.bulanan.kelas');
+    Route::get('/presensi/export/bulanan-mapel',   [DashboardController::class, 'exportBulananMapel'])->name('.presensi.pdf.bulanan.mapel');
+    Route::patch('/presensi/record/{presensi}', [DashboardController::class, 'updateRecord'])->name('.presensi.record.update');
+    Route::patch('/presensi/{sesiPresensi}/close', [DashboardController::class, 'closeSesi'])->name('.presensi.close');
+    Route::post('/presensi/{sesiPresensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.presensi.reset');
+    Route::delete('/presensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.presensi.delete-all');
 
     // Admin-only CRUD
     Route::get('/siswa',         [DashboardController::class, 'siswaIndex'])->name('.siswa');
@@ -64,7 +64,7 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::put('/kelas/{kelas}',  [DashboardController::class, 'updateKelas'])->name('.kelas.update');
     Route::delete('/kelas/{kelas}',[DashboardController::class, 'destroyKelas'])->name('.kelas.destroy');
 
-    Route::get('/log',            [DashboardController::class, 'logAbsensiIndex'])->name('.log');
+    Route::get('/log',            [DashboardController::class, 'logPresensiIndex'])->name('.log');
     Route::post('/reset-sesi',    [DashboardController::class, 'resetSesi'])->name('.reset-sesi');
 });
 

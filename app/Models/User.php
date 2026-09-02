@@ -3,9 +3,9 @@
 
 namespace App\Models;
 
-use App\Models\Absensi;
+use App\Models\Presensi;
 use App\Models\Kelas;
-use App\Models\SesiAbsensi;
+use App\Models\SesiPresensi;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -51,15 +51,15 @@ class User extends Authenticatable
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
-    /** Sesi absensi yang dibuat guru */
-    public function sesiAbsensi()
+    /** Sesi presensi yang dibuat guru */
+    public function sesiPresensi()
     {
-        return $this->hasMany(SesiAbsensi::class, 'guru_id');
+        return $this->hasMany(SesiPresensi::class, 'guru_id');
     }
 
-    /** Rekap absensi siswa */
-    public function absensi()
+    /** Rekap presensi siswa */
+    public function presensi()
     {
-        return $this->hasMany(Absensi::class, 'siswa_id');
+        return $this->hasMany(Presensi::class, 'siswa_id');
     }
 }

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\Absensi;
+use App\Models\Presensi;
 use App\Models\Kelas;
-use App\Models\SesiAbsensi;
+use App\Models\SesiPresensi;
 use App\Models\User;
-use App\Models\LogAbsensi;
+use App\Models\LogPresensi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,8 +27,8 @@ class DashboardController extends Controller
                 'siswa'         => User::where('role', 'siswa')->count(),
                 'guru'          => User::where('role', 'guru')->count(),
                 'kelas'         => Kelas::count(),
-                'hadir_hari_ini'=> Absensi::where('status', 'hadir')
-                    ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', today()))
+                'hadir_hari_ini'=> Presensi::where('status', 'hadir')
+                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))
                     ->count(),
             ];
 
@@ -39,53 +39,53 @@ class DashboardController extends Controller
             for ($i = 6; $i >= 0; $i--) {
                 $date          = Carbon::today()->subDays($i);
                 $chartLabels[] = $date->format('d/m');
-                $chartHadir[]  = Absensi::where('status', 'hadir')
-                    ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', $date))->count();
-                $chartAlpa[]   = Absensi::where('status', 'alpa')
-                    ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', $date))->count();
+                $chartHadir[]  = Presensi::where('status', 'hadir')
+                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', $date))->count();
+                $chartAlpa[]   = Presensi::where('status', 'alpa')
+                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', $date))->count();
             }
 
-            $recentSesi = SesiAbsensi::with(['kelas', 'guru', 'mataPelajaran'])
+            $recentSesi = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
                 ->latest('tanggal')->take(5)->get();
             $sesiHariIni = null;
-            $absensiHariIni = null;
+            $presensiHariIni = null;
         } else {
             // Guru
-            $sesiHariIni = SesiAbsensi::with(['kelas', 'mataPelajaran'])->where('guru_id', $user->id)->where('tanggal', today())->get();
+            $sesiHariIni = SesiPresensi::with(['kelas', 'mataPelajaran'])->where('guru_id', $user->id)->where('tanggal', today())->get();
             
-            $absensiHariIni = Absensi::with(['siswa', 'sesiAbsensi.kelas'])
-                ->whereHas('sesiAbsensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
+            $presensiHariIni = Presensi::with(['siswa', 'sesiPresensi.kelas'])
+                ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
                 ->get();
 
             $stats = [
                 'sesi_hari_ini' => $sesiHariIni->count(),
                 'sesi_aktif'    => $sesiHariIni->where('is_active', true)->count(),
-                'hadir_hari_ini'=> $absensiHariIni->where('status', 'hadir')->count(),
-                'alpa_hari_ini' => $absensiHariIni->where('status', 'alpa')->count(),
+                'hadir_hari_ini'=> $presensiHariIni->where('status', 'hadir')->count(),
+                'alpa_hari_ini' => $presensiHariIni->where('status', 'alpa')->count(),
             ];
             $chartLabels = $chartHadir = $chartAlpa = [];
-            $recentSesi = SesiAbsensi::with(['kelas', 'mataPelajaran'])
+            $recentSesi = SesiPresensi::with(['kelas', 'mataPelajaran'])
                 ->where('guru_id', $user->id)
                 ->latest('tanggal')->take(5)->get();
         }
 
         return view('dashboard.index', compact(
-            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'absensiHariIni'
+            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'presensiHariIni'
         ));
     }
 
     // =========================================================
-    //  ABSENSI — LIST SESI
+    //  PRESENSI — LIST SESI
     // =========================================================
-    public function absensiIndex(Request $request)
+    public function presensiIndex(Request $request)
     {
         $user  = auth()->user();
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $mapel = \App\Models\MataPelajaran::orderBy('nama_mapel')->get();
 
-        $query = SesiAbsensi::with(['kelas', 'guru', 'mataPelajaran'])
-            ->withCount(['absensi as hadir_count' => fn ($q) => $q->where('status', 'hadir')])
-            ->withCount(['absensi as total_count'])
+        $query = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
+            ->withCount(['presensi as hadir_count' => fn ($q) => $q->where('status', 'hadir')])
+            ->withCount(['presensi as total_count'])
             ->latest('tanggal');
 
         // Guru dan Admin bisa melihat semua sesi (agar guru lain bisa mengedit kehadiran di hari yang sama)
@@ -102,11 +102,11 @@ class DashboardController extends Controller
 
         $sesiList = $query->paginate(15)->withQueryString();
 
-        return view('dashboard.absensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal'));
+        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal'));
     }
 
     // =========================================================
-    //  ABSENSI — BUAT SESI BARU
+    //  PRESENSI — BUAT SESI BARU
     // =========================================================
     public function storeSesi(Request $request)
     {
@@ -118,17 +118,17 @@ class DashboardController extends Controller
         ]);
 
         // Cek apakah di kelas, tanggal, mapel, dan jam tersebut sudah ada sesi yang sama
-        $existing = SesiAbsensi::where('kelas_id', $request->kelas_id)
+        $existing = SesiPresensi::where('kelas_id', $request->kelas_id)
             ->where('tanggal', $request->tanggal)
             ->where('mapel_id', $request->mapel_id)
             ->where('jam_pelajaran', $request->jam_pelajaran)
             ->first();
 
         if ($existing) {
-            return back()->with('error', 'Sesi absensi untuk kelas, mata pelajaran, dan jam ini sudah ada!');
+            return back()->with('error', 'Sesi presensi untuk kelas, mata pelajaran, dan jam ini sudah ada!');
         }
 
-        $sesi = SesiAbsensi::create([
+        $sesi = SesiPresensi::create([
             'guru_id'       => auth()->id(),
             'kelas_id'      => $request->kelas_id,
             'mapel_id'      => $request->mapel_id,
@@ -141,14 +141,14 @@ class DashboardController extends Controller
         // Cari sesi pagi (sesi utama wali kelas) untuk kelas dan tanggal yang sama jika ini sesi mapel
         $sesiPagi = null;
         if (!empty($request->mapel_id)) {
-            $sesiPagi = SesiAbsensi::with('absensi')
+            $sesiPagi = SesiPresensi::with('presensi')
                 ->where('kelas_id', $request->kelas_id)
                 ->where('tanggal', $request->tanggal)
                 ->whereNull('mapel_id')
                 ->first();
         }
 
-        // Create absensi records for all students in this kelas
+        // Create presensi records for all students in this kelas
         $siswaList = User::where('role', 'siswa')->where('kelas_id', $request->kelas_id)->get();
         
         foreach ($siswaList as $siswa) {
@@ -156,36 +156,36 @@ class DashboardController extends Controller
 
             // Jika ada sesi pagi, copy status dari sesi pagi
             if ($sesiPagi) {
-                $absenPagi = $sesiPagi->absensi->where('siswa_id', $siswa->id)->first();
+                $absenPagi = $sesiPagi->presensi->where('siswa_id', $siswa->id)->first();
                 if ($absenPagi) {
                     $status = $absenPagi->status;
                 }
             }
 
-            Absensi::create([
-                'sesi_absensi_id' => $sesi->id,
+            Presensi::create([
+                'sesi_presensi_id' => $sesi->id,
                 'siswa_id'        => $siswa->id,
                 'status'          => $status,
             ]);
         }
 
-        return redirect()->route('dashboard.absensi.detail', $sesi)
-            ->with('success', 'Sesi absensi berhasil dibuat!');
+        return redirect()->route('dashboard.presensi.detail', $sesi)
+            ->with('success', 'Sesi presensi berhasil dibuat!');
     }
 
     // =========================================================
-    //  ABSENSI — DETAIL SESI
+    //  PRESENSI — DETAIL SESI
     // =========================================================
-    public function absensiDetail(SesiAbsensi $sesiAbsensi)
+    public function presensiDetail(SesiPresensi $sesiPresensi)
     {
-        $sesiAbsensi->load(['kelas', 'guru', 'mataPelajaran', 'absensi.siswa', 'absensi.logAbsensi.guru']);
-        return view('dashboard.absensi.detail', compact('sesiAbsensi'));
+        $sesiPresensi->load(['kelas', 'guru', 'mataPelajaran', 'presensi.siswa', 'presensi.logPresensi.guru']);
+        return view('dashboard.presensi.detail', compact('sesiPresensi'));
     }
 
-    public function exportPdf(SesiAbsensi $sesiAbsensi)
+    public function exportPdf(SesiPresensi $sesiPresensi)
     {
-        $sesiAbsensi->load(['kelas', 'guru', 'mataPelajaran', 'absensi.siswa']);
-        return view('dashboard.absensi.print', compact('sesiAbsensi'));
+        $sesiPresensi->load(['kelas', 'guru', 'mataPelajaran', 'presensi.siswa']);
+        return view('dashboard.presensi.print', compact('sesiPresensi'));
     }
 
     public function exportPdfHarian(Request $request)
@@ -199,39 +199,39 @@ class DashboardController extends Controller
         $tanggal = Carbon::parse($request->tanggal);
 
         // Ambil semua sesi pada tanggal dan kelas tersebut, urutkan: Sesi Pagi (tanpa mapel) dulu, lalu Sesi Mapel
-        $sesiList = SesiAbsensi::with(['mataPelajaran', 'absensi.siswa'])
+        $sesiList = SesiPresensi::with(['mataPelajaran', 'presensi.siswa'])
             ->where('kelas_id', $kelas->id)
             ->where('tanggal', $tanggal->toDateString())
             ->orderByRaw('mapel_id IS NOT NULL, created_at ASC')
             ->get();
 
         if ($sesiList->isEmpty()) {
-            return back()->with('error', 'Tidak ada sesi absensi pada tanggal tersebut.');
+            return back()->with('error', 'Tidak ada sesi presensi pada tanggal tersebut.');
         }
 
         // Ambil daftar siswa unik dari semua sesi (berjaga-jaga jika ada siswa pindahan)
         // Biasanya ambil dari tabel User langsung
         $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->orderBy('name')->get();
 
-        return view('dashboard.absensi.print-harian', compact('kelas', 'tanggal', 'sesiList', 'siswaList'));
+        return view('dashboard.presensi.print-harian', compact('kelas', 'tanggal', 'sesiList', 'siswaList'));
     }
 
     /**
      * Live Polling Data Presensi Sesi (JSON) untuk update realtime tanpa reload
      */
-    public function absensiLiveJson(SesiAbsensi $sesiAbsensi)
+    public function presensiLiveJson(SesiPresensi $sesiPresensi)
     {
-        $sesiAbsensi->load(['absensi.siswa', 'absensi.logAbsensi.guru']);
+        $sesiPresensi->load(['presensi.siswa', 'presensi.logPresensi.guru']);
 
         $stats = [
-            'total' => $sesiAbsensi->absensi->count(),
-            'hadir' => $sesiAbsensi->absensi->where('status', 'hadir')->count(),
-            'izin'  => $sesiAbsensi->absensi->where('status', 'izin')->count(),
-            'sakit' => $sesiAbsensi->absensi->where('status', 'sakit')->count(),
-            'alpa'  => $sesiAbsensi->absensi->where('status', 'alpa')->count(),
+            'total' => $sesiPresensi->presensi->count(),
+            'hadir' => $sesiPresensi->presensi->where('status', 'hadir')->count(),
+            'izin'  => $sesiPresensi->presensi->where('status', 'izin')->count(),
+            'sakit' => $sesiPresensi->presensi->where('status', 'sakit')->count(),
+            'alpa'  => $sesiPresensi->presensi->where('status', 'alpa')->count(),
         ];
 
-        $items = $sesiAbsensi->absensi->sortBy('siswa.name')->values()->map(function ($absen) {
+        $items = $sesiPresensi->presensi->sortBy('siswa.name')->values()->map(function ($absen) {
             return [
                 'id'          => $absen->id,
                 'siswa_id'    => $absen->siswa_id,
@@ -241,13 +241,13 @@ class DashboardController extends Controller
                 'label'       => $absen->labelStatus(),
                 'keterangan'  => $absen->keterangan ?: '',
                 'waktu_scan'  => $absen->waktu_scan ? $absen->waktu_scan->format('H:i') : null,
-                'log_count'   => $absen->logAbsensi->count(),
+                'log_count'   => $absen->logPresensi->count(),
             ];
         });
 
         return response()->json([
             'success'   => true,
-            'is_active' => $sesiAbsensi->is_active,
+            'is_active' => $sesiPresensi->is_active,
             'stats'     => $stats,
             'items'     => $items,
         ]);
@@ -270,7 +270,7 @@ class DashboardController extends Controller
         $endOfMonth   = $bulanDate->copy()->endOfMonth();
 
         // Ambil semua sesi kelas pada bulan tersebut (prioritaskan sesi kelas/pagi jika ada)
-        $sesiList = SesiAbsensi::with(['absensi.siswa'])
+        $sesiList = SesiPresensi::with(['presensi.siswa'])
             ->where('kelas_id', $kelas->id)
             ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
             ->orderBy('tanggal')
@@ -296,7 +296,7 @@ class DashboardController extends Controller
         }
         foreach ($sesiList as $sesi) {
             $tglStr = is_object($sesi->tanggal) ? $sesi->tanggal->format('Y-m-d') : substr($sesi->tanggal, 0, 10);
-            foreach ($sesi->absensi as $absen) {
+            foreach ($sesi->presensi as $absen) {
                 if (!isset($matrix[$absen->siswa_id][$tglStr]) || $sesi->mapel_id === null) {
                     $matrix[$absen->siswa_id][$tglStr] = $absen->status;
                 }
@@ -318,7 +318,7 @@ class DashboardController extends Controller
             ];
         }
 
-        return view('dashboard.absensi.print-bulanan-kelas', compact(
+        return view('dashboard.presensi.print-bulanan-kelas', compact(
             'kelas', 'bulanDate', 'siswaList', 'hariList', 'activeDates', 'matrix', 'sesiList'
         ));
     }
@@ -342,7 +342,7 @@ class DashboardController extends Controller
         $endOfMonth   = $bulanDate->copy()->endOfMonth();
 
         // Ambil semua sesi mapel pada bulan tersebut
-        $sesiList = SesiAbsensi::with(['absensi.siswa', 'guru'])
+        $sesiList = SesiPresensi::with(['presensi.siswa', 'guru'])
             ->where('kelas_id', $kelas->id)
             ->where('mapel_id', $mapel->id)
             ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
@@ -365,40 +365,40 @@ class DashboardController extends Controller
             $matrix[$siswa->id] = [];
         }
         foreach ($sesiList as $sesi) {
-            foreach ($sesi->absensi as $absen) {
+            foreach ($sesi->presensi as $absen) {
                 $matrix[$absen->siswa_id][$sesi->id] = $absen->status;
             }
         }
 
-        return view('dashboard.absensi.print-bulanan-mapel', compact(
+        return view('dashboard.presensi.print-bulanan-mapel', compact(
             'kelas', 'mapel', 'bulanDate', 'sesiList', 'siswaList', 'matrix', 'guruNama', 'guruNik'
         ));
     }
 
-    public function closeSesi(SesiAbsensi $sesiAbsensi)
+    public function closeSesi(SesiPresensi $sesiPresensi)
     {
-        $sesiAbsensi->update(['is_active' => !$sesiAbsensi->is_active]);
-        $statusText = $sesiAbsensi->is_active ? 'diaktifkan kembali. Barcode sudah bisa discan.' : 'ditutup. Barcode dinonaktifkan.';
-        return back()->with('success', 'Sesi absensi berhasil ' . $statusText);
+        $sesiPresensi->update(['is_active' => !$sesiPresensi->is_active]);
+        $statusText = $sesiPresensi->is_active ? 'diaktifkan kembali. Barcode sudah bisa discan.' : 'ditutup. Barcode dinonaktifkan.';
+        return back()->with('success', 'Sesi presensi berhasil ' . $statusText);
     }
 
-    public function resetAbsenSesi(SesiAbsensi $sesiAbsensi)
+    public function resetAbsenSesi(SesiPresensi $sesiPresensi)
     {
         $this->adminOnly();
         
         // Hapus log perubahan terkait sesi ini
-        \App\Models\LogAbsensi::whereHas('absensi', function($q) use ($sesiAbsensi) {
-            $q->where('sesi_absensi_id', $sesiAbsensi->id);
+        \App\Models\LogPresensi::whereHas('presensi', function($q) use ($sesiPresensi) {
+            $q->where('sesi_presensi_id', $sesiPresensi->id);
         })->delete();
 
-        // Reset semua absensi kembali ke alpa
-        $sesiAbsensi->absensi()->update([
+        // Reset semua presensi kembali ke alpa
+        $sesiPresensi->presensi()->update([
             'status' => 'alpa',
             'waktu_scan' => null,
             'keterangan' => null
         ]);
 
-        return back()->with('success', 'Riwayat absensi untuk sesi kelas ini telah di-reset kembali ke Alpa.');
+        return back()->with('success', 'Riwayat presensi untuk sesi kelas ini telah di-reset kembali ke Alpa.');
     }
 
     public function deleteAllSesi()
@@ -407,41 +407,41 @@ class DashboardController extends Controller
         
         // Disable foreign key checks temporarily if needed, but Eloquent delete works if we fetch or just DB::statement
         \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        \App\Models\LogAbsensi::truncate();
-        \App\Models\Absensi::truncate();
-        \App\Models\SesiAbsensi::truncate();
+        \App\Models\LogPresensi::truncate();
+        \App\Models\Presensi::truncate();
+        \App\Models\SesiPresensi::truncate();
         \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        return back()->with('success', 'Semua riwayat sesi absensi berhasil dihapus permanen.');
+        return back()->with('success', 'Semua riwayat sesi presensi berhasil dihapus permanen.');
     }
 
     // =========================================================
-    //  ABSENSI — UPDATE STATUS RECORD
+    //  PRESENSI — UPDATE STATUS RECORD
     // =========================================================
-    public function updateRecord(Request $request, Absensi $absensi)
+    public function updateRecord(Request $request, Presensi $presensi)
     {
         $request->validate([
             'status'     => 'required|in:hadir,izin,sakit,alpa',
             'keterangan' => 'nullable|string|max:255',
         ]);
 
-        $statusSebelumnya = $absensi->status;
+        $statusSebelumnya = $presensi->status;
         $statusBaru = $request->status;
 
         // Cek jika ada perubahan
-        if ($statusSebelumnya !== $statusBaru || $absensi->keterangan !== $request->keterangan) {
+        if ($statusSebelumnya !== $statusBaru || $presensi->keterangan !== $request->keterangan) {
             
             // Catat log
-            \App\Models\LogAbsensi::create([
-                'absensi_id'        => $absensi->id,
+            \App\Models\LogPresensi::create([
+                'presensi_id'        => $presensi->id,
                 'guru_id'           => auth()->id(),
                 'status_sebelumnya' => $statusSebelumnya,
                 'status_baru'       => $statusBaru,
                 'keterangan'        => $request->keterangan,
             ]);
 
-            // Update absensi
-            $absensi->update([
+            // Update presensi
+            $presensi->update([
                 'status'     => $statusBaru,
                 'keterangan' => $request->keterangan,
             ]);
@@ -637,24 +637,24 @@ class DashboardController extends Controller
     // =========================================================
     //  LOG PERUBAHAN & RESET KELAS (ADMIN)
     // =========================================================
-    public function logAbsensiIndex(Request $request)
+    public function logPresensiIndex(Request $request)
     {
         $this->adminOnly();
-        $query = LogAbsensi::with([
-            'absensi.siswa',
-            'absensi.sesiAbsensi.kelas',
-            'absensi.sesiAbsensi.mataPelajaran',
+        $query = LogPresensi::with([
+            'presensi.siswa',
+            'presensi.sesiPresensi.kelas',
+            'presensi.sesiPresensi.mataPelajaran',
             'guru'
         ])->latest();
 
         if ($request->kelas_id) {
-            $query->whereHas('absensi.sesiAbsensi', function ($q) use ($request) {
+            $query->whereHas('presensi.sesiPresensi', function ($q) use ($request) {
                 $q->where('kelas_id', $request->kelas_id);
             });
         }
 
         if ($request->mapel_id) {
-            $query->whereHas('absensi.sesiAbsensi', function ($q) use ($request) {
+            $query->whereHas('presensi.sesiPresensi', function ($q) use ($request) {
                 $q->where('mapel_id', $request->mapel_id);
             });
         }
@@ -664,7 +664,7 @@ class DashboardController extends Controller
         }
 
         if ($request->tanggal) {
-            $query->whereHas('absensi.sesiAbsensi', function ($q) use ($request) {
+            $query->whereHas('presensi.sesiPresensi', function ($q) use ($request) {
                 $q->where('tanggal', $request->tanggal);
             });
         }
@@ -682,7 +682,7 @@ class DashboardController extends Controller
         $this->adminOnly();
         // Akhiri semua sesi aktif (atau hapus yang tidak digunakan)
         // Kita cukup set is_active = false untuk semua sesi yang masih aktif
-        SesiAbsensi::where('is_active', true)->update(['is_active' => false]);
+        SesiPresensi::where('is_active', true)->update(['is_active' => false]);
         
         return redirect()->back()->with('success', 'Semua riwayat kelas/sesi yang aktif telah direset (ditutup).');
     }
