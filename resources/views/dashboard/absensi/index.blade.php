@@ -135,7 +135,7 @@
                 <form action="{{ route('dashboard.absensi.delete-all') }}" method="POST" class="inline-block">
                     @csrf @method('DELETE')
                     <button type="submit" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" onclick="return confirm('SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi absensi dari database? Tindakan ini tidak bisa dibatalkan.')">
-                        <i class="fas fa-trash-can mr-1"></i> Kosongkan Semua Riwayat Absensi
+                        <i class="fas fa-trash-can mr-1"></i> Kosongkan Semua Riwayat Presensi
                     </button>
                 </form>
             </div>
@@ -278,7 +278,7 @@
                 <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-folder-open text-3xl text-slate-300"></i>
                 </div>
-                <h3 class="text-slate-700 font-bold mb-1">Belum ada sesi absensi</h3>
+                <h3 class="text-slate-700 font-bold mb-1">Belum ada sesi presensi</h3>
                 <p class="text-sm text-slate-500">Silakan buat sesi baru untuk kelas yang akan Anda ajar.</p>
             </div>
         @endforelse

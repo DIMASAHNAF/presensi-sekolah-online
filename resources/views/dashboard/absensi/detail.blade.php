@@ -27,7 +27,7 @@
             <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
                 <i class="fas fa-qrcode"></i>
             </div>
-            <h3 class="font-bold text-slate-800 text-lg">QR Code Absensi</h3>
+            <h3 class="font-bold text-slate-800 text-lg">QR Code Presensi</h3>
             <p class="text-xs text-slate-500 mt-1 mb-5">Tampilkan ini di depan kelas agar siswa dapat melakukan scan.</p>
             
             @if($sesiAbsensi->is_active)
@@ -110,7 +110,7 @@
                 <form action="{{ route('dashboard.absensi.reset', $sesiAbsensi) }}" method="POST">
                     @csrf
                     <button type="submit" class="w-full bg-red-100 text-red-600 hover:bg-red-200 font-bold justify-center py-2 rounded-xl text-sm transition" onclick="return confirm('BAHAYA: Yakin ingin MERESET seluruh kehadiran kelas ini? Semua siswa akan dikembalikan ke status Alpa dan log riwayat akan dihapus.')">
-                        <i class="fas fa-trash-can"></i> Reset Absensi Kelas
+                        <i class="fas fa-trash-can"></i> Reset Presensi Kelas
                     </button>
                 </form>
             </div>
@@ -261,7 +261,7 @@
         <div id="qrcode" class="w-64 h-64 flex items-center justify-center"></div>
     </div>
     
-    <p class="mt-8 text-slate-500 font-medium text-base">Silakan buka aplikasi absensi di HP dan scan QR code di atas.</p>
+    <p class="mt-8 text-slate-500 font-medium text-base">Silakan buka aplikasi presensi di HP dan scan QR code di atas.</p>
 </div>
 
 @push('scripts')

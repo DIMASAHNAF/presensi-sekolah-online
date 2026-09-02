@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — Absensi Sekolah</title>
-    <meta name="description" content="Sistem Absensi Sekolah — Panel Manajemen">
+    <title>@yield('title', 'Dashboard') — Presensi Sekolah</title>
+    <meta name="description" content="Sistem Presensi Sekolah — Panel Manajemen">
 
     {{-- Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">

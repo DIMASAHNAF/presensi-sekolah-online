@@ -2,14 +2,14 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Absensi Sekolah - Masuk</title>
+    <title>Presensi Sekolah - Masuk</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-green-50 min-h-screen flex items-center justify-center">
     <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-green-100">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-green-700">Sistem Absensi Sekolah</h1>
+            <h1 class="text-2xl font-bold text-green-700">Sistem Presensi Sekolah</h1>
             <p class="text-gray-500 mt-1">Pilih peran kamu untuk melanjutkan</p>
         </div>
 
