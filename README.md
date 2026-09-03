@@ -1,11 +1,12 @@
 <div align="center">
 
-  <img src="public/images/logo.png" alt="Logo Presensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" />
+  <img src="public/images/logo.png" alt="Logo Presensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;" />
 
-  # ⚡ SMART QR SCHOOL ATTENDANCE SYSTEM
-  ### Sistem Presensi Sekolah Modern & Realtime Berbasis Dynamic QR Code
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=30&pause=1000&color=10B981&center=true&vCenter=true&width=800&height=50&lines=⚡+SMART+QR+SCHOOL+ATTENDANCE;Sistem+Presensi+Realtime;Berbasis+Dynamic+QR+Code" alt="Typing SVG" />
+  </a>
 
-  <p align="center">
+  <p align="center" style="margin-top: 10px;">
     <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12"></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
     <a href="https://alpinejs.dev"><img src="https://img.shields.io/badge/Alpine.js-Reactive-8BC0D0?style=for-the-badge&logo=alpine.js&logoColor=white" alt="Alpine.js"></a>
