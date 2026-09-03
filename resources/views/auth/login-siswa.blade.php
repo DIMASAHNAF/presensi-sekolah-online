@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Login Siswa</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-green-50 min-h-screen flex items-center justify-center">
     <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-green-100">
@@ -53,5 +55,36 @@
             <a href="{{ route('choose-role') }}" class="text-gray-400 hover:underline">&larr; Kembali</a>
         </p>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            passwordInputs.forEach(input => {
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                const toggleBtn = document.createElement('span');
+                toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.right = '12px';
+                toggleBtn.style.top = '50%';
+                toggleBtn.style.transform = 'translateY(-50%)';
+                toggleBtn.style.cursor = 'pointer';
+                wrapper.appendChild(toggleBtn);
+
+                toggleBtn.addEventListener('click', function() {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        toggleBtn.innerHTML = '<i class="far fa-eye-slash text-gray-800"></i>';
+                    } else {
+                        input.type = 'password';
+                        toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

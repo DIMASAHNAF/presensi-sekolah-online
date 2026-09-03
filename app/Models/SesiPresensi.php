@@ -12,10 +12,12 @@ class SesiPresensi extends Model
         'guru_id',
         'kelas_id',
         'mapel_id',
+        'jam_pelajaran_id',
         'jam_pelajaran',
         'tanggal',
         'barcode_token',
         'is_active',
+        'tipe',
     ];
 
     protected $casts = [
@@ -45,5 +47,11 @@ class SesiPresensi extends Model
     public function mataPelajaran()
     {
         return $this->belongsTo(MataPelajaran::class, 'mapel_id');
+    }
+
+    /** Jam Pelajaran sesi ini (relasi ke DB) */
+    public function jamPelajaranRelation()
+    {
+        return $this->belongsTo(JamPelajaran::class, 'jam_pelajaran_id');
     }
 }

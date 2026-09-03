@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Dashboard Guru</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 </head>
 <body class="bg-green-50 min-h-screen">
     <div class="max-w-3xl mx-auto py-10 px-4">

@@ -134,4 +134,35 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInputs = document.querySelectorAll('input[type="password"]');
+        passwordInputs.forEach(input => {
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            const toggleBtn = document.createElement('span');
+            toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+            toggleBtn.style.position = 'absolute';
+            toggleBtn.style.right = '12px';
+            toggleBtn.style.top = '50%';
+            toggleBtn.style.transform = 'translateY(-50%)';
+            toggleBtn.style.cursor = 'pointer';
+            wrapper.appendChild(toggleBtn);
+
+            toggleBtn.addEventListener('click', function() {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggleBtn.innerHTML = '<i class="far fa-eye-slash text-gray-800"></i>';
+                } else {
+                    input.type = 'password';
+                    toggleBtn.innerHTML = '<i class="far fa-eye text-gray-500"></i>';
+                }
+            });
+        });
+    });
+</script>
 @endsection

@@ -33,7 +33,36 @@
                     @foreach($mapel as $m)
                         <option value="{{ $m->id }}" {{ request('mapel_id') == $m->id ? 'selected' : '' }}>
                             {{ $m->nama_mapel }}
-                        </option>
+                        </option>no 2 ga jadi, gw mau bahas dulu alur  gw
+
+gw  jelasin dulu  alur  project  presensi gw, 
+
+di awali dengan  form login yang ada guru dan siswa, akun guru + admin hanya bisa di buat oleh backdoor, tidak bisa public teruntuk siswa bisa di  public
+
+nah setelah siswa register, dia akan di arahkan ke  dahshboard scan (untuk sekrang kan masih barcode) , dan setiap guru di mapel pertama pagi hari, itu membuat sesi kelas, dan ada barcode nya  ntar, barcode tersebut  memiliki timeout 30 menit bawaan sistem dan bisa di matikan langsung,
+
+nah untuk kondisi sekolah, hape itu  di kumpul dari pagi sampe sore (sampe balik)
+
+nah sesuai presensi gw di project itu ada 2, yaitu presensi kelas (wali kelas) , u know lah, yang hanya  di lakukan di pagi hari doang pake buku
+
+nah kedua ada presensi mapel, yaitu presensi permapel, setiap guru kan punya presensi permapel tersendiri, untuk  kebutuhan nilai
+
+
+nah gw jelasin alur sekarang, setelah siswa scan barcode, total perkelas itu 36 murid, anggap sudah scan semua, ntar di  table sesi kelas  itu, semua murid akan hadir 36 nya, untuk sesi kelas baru dan murid yang baru register itu akan baru semua maksud nya adalah, semisal yang dateng 35, 1 orang tersebut ga masuk  di table, alias belum terdaftar, belum ada riwayat kelas lah bisa di bilang
+
+kecuali 36 sekarang besok nya jadi 35, nah sesi  besok hari, kelas langusng terisi siswa siswa dari kelas tersebut, tapi masih kondisi absen, ntar pas di scan baru hadir, yang tak hadir ini akan tetep absen, dan namanya udah ada di table karna sebelum nya dia  scan di hari sebelum nya kan
+
+oke lanjut, gw kan buat 2 rekap pdf tuh, ada rekap presensi perbulan, sama mapel nah untuk per bulan udah bagus, kan sesi nya 1 hari hanya  1 gw buat alur sistem nya
+
+jadi dia bakal rekap tuh semua sesi di satu bulan, contoh 30x (sesuai rata rata hari bulan), nah teruntuk mapel ini ada yang jaanggal
+
+kan waktu guru mau buat sesi kelas disitu tertera input mapel dan les nya, nah oke lah clear di 3 les itu habbis, ntar di  les berikut nya gimana dong, setelah les 3 mapel b indo habis, nah create mapel website nya gimana, sedangkan hape di kumpul dan kalau di create juga percuma ga  ada yang  scan, dan juga bisa ngeganggu rekap karna 1 hari ada 2 sesi
+
+nah gw mikir, di bedain aja ya form nya, ada  presensi kelas sama mapel, nah kalau kelas kan ada input mapel, itu tetep di adakan aja, karna dari pada capek, buat 2 sesi yang berbeda, contoh sesi kelas 10 pplg 3, sesi yang kelas sama mapel, kan ribet 2x, nah makanya tetep pertahankan input mapel dan les di sesi kelas, lagian di rekap pdf kelas juga ga kebawa  mapel nya
+
+nah di form baru itu khusus mapel, tapiii data nya di ambil dari table kelas hari itu,  contoh sesi pertama matematika 2 les dan 36 hadir, lalu mapel ke 2 itu print design 3 les satu siswa izin sakit balik, nah pas after mapel 1 kan hape di kumpul jadi ga bisa scan, nah mapel after pertama tinggal buat sesi kelas tapi untuk mapel dia dan les nya, jadi data di ambil dari siswa yang hadir/tidak di  hari itu dari sesi mapel pertama, ntar tinggal di edit mereka siapa yang masih hadir atau sakit, dan mapel seterus nya, jadi lebih gampang untuk rekap mapel
+
+nah itu untuk jam jam yang memungkin kan pergantian mapel, masuk  kan ke database ga papa biar singkron, dan biar  enak  juga, bebas kamu  lah, untuk cara baca nya,  hanya liat jam nya aja per les di hari senin/selasa/rabu/kamis/jumat itu habis di jam berapa aja
                     @endforeach
                 </select>
             </div>

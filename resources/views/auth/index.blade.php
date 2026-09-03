@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Presensi Sekolah</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -51,7 +52,7 @@
     <div class="glass rounded-3xl shadow-2xl p-8 w-full max-w-md mb-8">
 
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-extrabold text-white drop-shadow-sm">Presensi SMKN 1 BERINGIN</h1>
+            <h1 class="text-2xl font-extrabold text-white drop-shadow-sm">PRESENSI SMKN 1 BERINGIN</h1>
             <p class="text-green-50/90 text-sm mt-1">Masuk untuk melanjutkan</p>
         </div>
 

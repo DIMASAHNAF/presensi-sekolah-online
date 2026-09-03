@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             GuruSeeder::class,
             MataPelajaranSeeder::class,
+            JamPelajaranSeeder::class,
         ]);
     }
 }

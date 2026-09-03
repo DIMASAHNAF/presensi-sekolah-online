@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cetak Laporan Harian - {{ $kelas->nama_kelas }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <style>
         body { font-family: sans-serif; color: #333; margin: 40px; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }

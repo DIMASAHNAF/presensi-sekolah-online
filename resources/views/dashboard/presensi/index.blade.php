@@ -34,17 +34,30 @@
 <div class="flex flex-col lg:flex-row gap-6 items-start">
 
     {{-- KIRI: FORM BUAT SESI (HANYA GURU/ADMIN) --}}
-    <div class="w-full lg:w-1/3 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 lg:sticky lg:top-24 z-10" data-aos="fade-up">
+    <div class="w-full lg:w-1/3 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 lg:sticky lg:top-24 z-10" data-aos="fade-up" x-data="{ tab: 'kelas' }">
         <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
             <i class="fas fa-plus"></i>
         </div>
         <h2 class="text-lg font-extrabold text-slate-800">Buat Sesi Absen</h2>
-        <p class="text-sm text-slate-500 mt-1 mb-6">Pilih kelas untuk membuat sesi barcode absen hari ini.</p>
+        <p class="text-sm text-slate-500 mt-1 mb-4">Buat sesi presensi baru untuk hari ini.</p>
 
-        <form action="{{ route('dashboard.presensi.store') }}" method="POST" class="space-y-5">
+        <!-- Tabs -->
+        <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+            <button @click="tab = 'kelas'" :class="tab === 'kelas' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700 font-medium'" class="flex-1 py-2 rounded-lg text-sm transition-all">Sesi Kelas (Pagi)</button>
+            <button @click="tab = 'mapel'" :class="tab === 'mapel' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700 font-medium'" class="flex-1 py-2 rounded-lg text-sm transition-all">Sesi Mapel</button>
+        </div>
+
+        <!-- FORM SESI KELAS -->
+        <form x-show="tab === 'kelas'" action="{{ route('dashboard.presensi.store') }}" method="POST" class="space-y-5">
             @csrf
+            <input type="hidden" name="tipe" value="kelas">
+            
+            <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 text-xs text-blue-700 mb-4">
+                <i class="fas fa-info-circle mr-1"></i> <strong>Sesi Kelas</strong>: Digunakan oleh Wali Kelas di pagi hari. Siswa wajib scan barcode untuk hadir.
+            </div>
+
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Kelas</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Kelas <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <select name="kelas_id" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none">
                         <option value="">-- Pilih Kelas --</option>
@@ -58,9 +71,59 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Mata Pelajaran <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Mata Pelajaran <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
                 <div class="relative">
                     <select name="mapel_id" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none">
+                        <option value="">-- Kosongkan jika tidak ada --</option>
+                        @foreach($mapel as $m)
+                            <option value="{{ $m->id }}">{{ $m->nama_mapel }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-book absolute left-3.5 top-3 text-slate-400"></i>
+                    <i class="fas fa-chevron-down absolute right-3.5 top-3 text-slate-400 text-xs pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <i class="fas fa-calendar absolute left-3.5 top-3 text-slate-400"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fas fa-qrcode"></i> Buat Barcode Kelas
+            </button>
+        </form>
+
+        <!-- FORM SESI MAPEL -->
+        <form x-cloak x-show="tab === 'mapel'" action="{{ route('dashboard.presensi.store') }}" method="POST" class="space-y-5">
+            @csrf
+            <input type="hidden" name="tipe" value="mapel">
+
+            <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 text-xs text-emerald-700 mb-4">
+                <i class="fas fa-info-circle mr-1"></i> <strong>Sesi Mapel</strong>: Data kehadiran akan di-copy otomatis dari Sesi Kelas hari ini. Anda tinggal mengedit siswa yang izin/sakit.
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Kelas <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <select name="kelas_id" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-door-open absolute left-3.5 top-3 text-slate-400"></i>
+                    <i class="fas fa-chevron-down absolute right-3.5 top-3 text-slate-400 text-xs pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <select name="mapel_id" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none">
                         <option value="">-- Pilih Mapel --</option>
                         @foreach($mapel as $m)
                             <option value="{{ $m->id }}">{{ $m->nama_mapel }}</option>
@@ -72,23 +135,29 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jam Pelajaran <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jam Pelajaran (Les) <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <input type="text" name="jam_pelajaran" placeholder="Contoh: Les 1 - 2" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <select name="jam_pelajaran_id" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none">
+                        <option value="">-- Pilih Jam Pelajaran --</option>
+                        @foreach($jamPelajarans as $jp)
+                            <option value="{{ $jp->id }}">{{ $jp->label }}</option>
+                        @endforeach
+                    </select>
                     <i class="fas fa-clock absolute left-3.5 top-3 text-slate-400"></i>
+                    <i class="fas fa-chevron-down absolute right-3.5 top-3 text-slate-400 text-xs pointer-events-none"></i>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                     <i class="fas fa-calendar absolute left-3.5 top-3 text-slate-400"></i>
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-                <i class="fas fa-qrcode"></i> Buat Barcode Sesi
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Buat Sesi Mapel
             </button>
         </form>
     </div>
@@ -245,6 +314,12 @@
                     <div>
                         <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
                             {{ $sesi->kelas->nama_kelas }}
+                            @if($sesi->tipe == 'kelas')
+                                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-md border border-indigo-200">Sesi Kelas (Pagi)</span>
+                            @else
+                                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-md border border-emerald-200">Sesi Mapel</span>
+                            @endif
+
                             @if($sesi->mataPelajaran)
                                 <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-md">{{ $sesi->mataPelajaran->nama_mapel }}</span>
                             @endif

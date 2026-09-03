@@ -82,6 +82,7 @@ class DashboardController extends Controller
         $user  = auth()->user();
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $mapel = \App\Models\MataPelajaran::orderBy('nama_mapel')->get();
+        $jamPelajarans = \App\Models\JamPelajaran::orderBy('nomor')->get();
 
         $query = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
             ->withCount(['presensi as hadir_count' => fn ($q) => $q->where('status', 'hadir')])
@@ -102,7 +103,7 @@ class DashboardController extends Controller
 
         $sesiList = $query->paginate(15)->withQueryString();
 
-        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal'));
+        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal', 'jamPelajarans'));
     }
 
     // =========================================================
@@ -111,42 +112,60 @@ class DashboardController extends Controller
     public function storeSesi(Request $request)
     {
         $request->validate([
-            'kelas_id'      => 'required|exists:kelas,id',
-            'tanggal'       => 'required|date',
-            'mapel_id'      => 'nullable|exists:mata_pelajarans,id',
-            'jam_pelajaran' => 'nullable|string|max:50',
+            'tipe'             => 'required|in:kelas,mapel',
+            'kelas_id'         => 'required|exists:kelas,id',
+            'tanggal'          => 'required|date',
+            'mapel_id'         => 'nullable|exists:mata_pelajarans,id',
+            'jam_pelajaran_id' => 'nullable|exists:jam_pelajarans,id',
         ]);
 
         // Cek apakah di kelas, tanggal, mapel, dan jam tersebut sudah ada sesi yang sama
         $existing = SesiPresensi::where('kelas_id', $request->kelas_id)
             ->where('tanggal', $request->tanggal)
-            ->where('mapel_id', $request->mapel_id)
-            ->where('jam_pelajaran', $request->jam_pelajaran)
+            ->where('tipe', $request->tipe)
+            ->when($request->tipe == 'mapel', function ($q) use ($request) {
+                return $q->where('mapel_id', $request->mapel_id)
+                         ->where('jam_pelajaran_id', $request->jam_pelajaran_id);
+            })
             ->first();
 
         if ($existing) {
-            return back()->with('error', 'Sesi presensi untuk kelas, mata pelajaran, dan jam ini sudah ada!');
+            return back()->with('error', 'Sesi presensi untuk parameter tersebut sudah ada!');
+        }
+
+        // Jika tipe = mapel, pastikan sesi kelas sudah ada di hari tersebut
+        $sesiKelas = null;
+        if ($request->tipe === 'mapel') {
+            $sesiKelas = SesiPresensi::with('presensi')
+                ->where('kelas_id', $request->kelas_id)
+                ->where('tanggal', $request->tanggal)
+                ->where('tipe', 'kelas')
+                ->first();
+
+            if (!$sesiKelas) {
+                return back()->with('error', 'Tidak bisa membuat Sesi Mapel! Sesi Kelas (Presensi Pagi) untuk hari ini belum dibuat oleh Wali Kelas.');
+            }
+        }
+
+        $jamPelajaran = null;
+        if ($request->jam_pelajaran_id) {
+            $jp = \App\Models\JamPelajaran::find($request->jam_pelajaran_id);
+            if ($jp) {
+                $jamPelajaran = $jp->label_short;
+            }
         }
 
         $sesi = SesiPresensi::create([
-            'guru_id'       => auth()->id(),
-            'kelas_id'      => $request->kelas_id,
-            'mapel_id'      => $request->mapel_id,
-            'jam_pelajaran' => $request->jam_pelajaran,
-            'tanggal'       => $request->tanggal,
-            'barcode_token' => Str::random(32),
-            'is_active'     => true, // Selalu aktif agar barcode bisa langsung discan/ditampilkan
+            'guru_id'          => auth()->id(),
+            'kelas_id'         => $request->kelas_id,
+            'mapel_id'         => $request->tipe === 'mapel' ? $request->mapel_id : null,
+            'jam_pelajaran_id' => $request->jam_pelajaran_id,
+            'jam_pelajaran'    => $jamPelajaran,
+            'tanggal'          => $request->tanggal,
+            'barcode_token'    => Str::random(32),
+            'is_active'        => true,
+            'tipe'             => $request->tipe,
         ]);
-
-        // Cari sesi pagi (sesi utama wali kelas) untuk kelas dan tanggal yang sama jika ini sesi mapel
-        $sesiPagi = null;
-        if (!empty($request->mapel_id)) {
-            $sesiPagi = SesiPresensi::with('presensi')
-                ->where('kelas_id', $request->kelas_id)
-                ->where('tanggal', $request->tanggal)
-                ->whereNull('mapel_id')
-                ->first();
-        }
 
         // Create presensi records for all students in this kelas
         $siswaList = User::where('role', 'siswa')->where('kelas_id', $request->kelas_id)->get();
@@ -154,11 +173,11 @@ class DashboardController extends Controller
         foreach ($siswaList as $siswa) {
             $status = 'alpa'; // default
 
-            // Jika ada sesi pagi, copy status dari sesi pagi
-            if ($sesiPagi) {
-                $absenPagi = $sesiPagi->presensi->where('siswa_id', $siswa->id)->first();
-                if ($absenPagi) {
-                    $status = $absenPagi->status;
+            // Jika ada sesi kelas, copy status darinya
+            if ($sesiKelas) {
+                $absenKelas = $sesiKelas->presensi->where('siswa_id', $siswa->id)->first();
+                if ($absenKelas) {
+                    $status = $absenKelas->status;
                 }
             }
 
@@ -674,7 +693,7 @@ class DashboardController extends Controller
         $mapel = \App\Models\MataPelajaran::orderBy('nama_mapel')->get();
         $guruList = User::where('role', 'guru')->orderBy('name')->get();
 
-        return view('dashboard.log', compact('logs', 'kelas', 'mapel', 'guruList'));
+        return view('dashboard.log-presensi', compact('logs', 'kelas', 'mapel', 'guruList'));
     }
 
     public function resetSesi()

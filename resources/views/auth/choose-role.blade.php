@@ -5,6 +5,7 @@
     <title>Presensi Sekolah - Masuk</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 </head>
 <body class="bg-green-50 min-h-screen flex items-center justify-center">
     <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-green-100">

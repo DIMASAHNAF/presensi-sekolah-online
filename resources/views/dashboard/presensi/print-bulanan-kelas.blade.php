@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Rekap Presensi Kelas {{ $kelas->nama_kelas }} - {{ $bulanDate->translatedFormat('F Y') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <style>
         * { box-sizing: border-box; }
         body {
