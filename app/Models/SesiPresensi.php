@@ -21,7 +21,7 @@ class SesiPresensi extends Model
     ];
 
     protected $casts = [
-        'tanggal'   => 'date',
+        'tanggal' => 'date',
         'is_active' => 'boolean',
     ];
 

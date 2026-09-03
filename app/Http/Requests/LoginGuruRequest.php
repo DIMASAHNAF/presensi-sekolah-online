@@ -14,7 +14,7 @@ class LoginGuruRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nik'      => ['required', 'string', 'max:50'],
+            'nik' => ['required', 'string', 'max:50'],
             'password' => ['required', 'string'],
         ];
     }
@@ -22,7 +22,7 @@ class LoginGuruRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nik.required'      => 'NIK wajib diisi.',
+            'nik.required' => 'NIK wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ];
     }

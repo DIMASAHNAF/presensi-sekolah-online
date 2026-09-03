@@ -29,8 +29,8 @@ class KelasSeeder extends Seeder
                 for ($i = 1; $i <= $classesPerTingkat; $i++) {
                     $kelasData[] = [
                         'nama_kelas' => "$tingkat $jurusan $i",
-                        'tingkat'    => $tingkat,
-                        'jurusan'    => $jurusan,
+                        'tingkat' => $tingkat,
+                        'jurusan' => $jurusan,
                     ];
                 }
             }
@@ -40,6 +40,6 @@ class KelasSeeder extends Seeder
             Kelas::updateOrCreate(['nama_kelas' => $k['nama_kelas']], $k);
         }
 
-        $this->command->info('✅ Kelas seeded: ' . count($kelasData) . ' kelas');
+        $this->command->info('✅ Kelas seeded: '.count($kelasData).' kelas');
     }
 }

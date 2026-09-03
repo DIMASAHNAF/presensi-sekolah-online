@@ -16,11 +16,11 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['nik' => 'ADMIN001'],
             [
-                'name'     => 'Administrator',
+                'name' => 'Administrator',
                 'username' => 'admin',
-                'email'    => 'admin@sekolah.sch.id',
-                'nik'      => 'ADMIN001',
-                'role'     => 'admin',
+                'email' => 'admin@sekolah.sch.id',
+                'nik' => 'ADMIN001',
+                'role' => 'admin',
                 'password' => Hash::make('Admin@1234'),
             ]
         );

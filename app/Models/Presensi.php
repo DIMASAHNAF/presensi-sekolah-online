@@ -41,11 +41,11 @@ class Presensi extends Model
     /** Helper: label status dalam Bahasa Indonesia */
     public function labelStatus(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'hadir' => 'Hadir',
-            'izin'  => 'Izin',
+            'izin' => 'Izin',
             'sakit' => 'Sakit',
-            'alpa'  => 'Alpa',
+            'alpa' => 'Alpa',
             default => '-',
         };
     }

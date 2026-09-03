@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Kelas extends Model
 {
@@ -32,13 +33,13 @@ class Kelas extends Model
      */
     public function getWaliKelasAttribute()
     {
-        $guru = \App\Models\SesiPresensi::where('kelas_id', $this->id)
+        $guru = SesiPresensi::where('kelas_id', $this->id)
             ->whereNull('mapel_id')
-            ->select('guru_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->select('guru_id', DB::raw('COUNT(*) as total'))
             ->groupBy('guru_id')
             ->orderByDesc('total')
             ->first();
 
-        return $guru ? \App\Models\User::find($guru->guru_id) : null;
+        return $guru ? User::find($guru->guru_id) : null;
     }
 }

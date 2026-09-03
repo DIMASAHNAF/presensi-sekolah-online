@@ -15,7 +15,7 @@ class LoginSiswaRequest extends FormRequest
     {
         return [
             'identifier' => ['required', 'string', 'max:255'],
-            'password'   => ['required', 'string'],
+            'password' => ['required', 'string'],
         ];
     }
 
@@ -23,7 +23,7 @@ class LoginSiswaRequest extends FormRequest
     {
         return [
             'identifier.required' => 'Username, email, atau NISN wajib diisi.',
-            'password.required'   => 'Password wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
         ];
     }
 }

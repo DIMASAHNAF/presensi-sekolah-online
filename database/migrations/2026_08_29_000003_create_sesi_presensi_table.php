@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('sesi_presensi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('guru_id')
-                  ->constrained('users')
-                  ->cascadeOnDelete();
+                ->constrained('users')
+                ->cascadeOnDelete();
             $table->foreignId('kelas_id')
-                  ->constrained('kelas')
-                  ->cascadeOnDelete();
+                ->constrained('kelas')
+                ->cascadeOnDelete();
             $table->date('tanggal');
             $table->foreignId('mapel_id')->nullable()->constrained('mata_pelajarans')->nullOnDelete();
             $table->string('jam_pelajaran')->nullable(); // Contoh: "Les 1 - 2"

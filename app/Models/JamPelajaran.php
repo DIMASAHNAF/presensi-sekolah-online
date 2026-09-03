@@ -1,4 +1,5 @@
 <?php
+
 // app/Models/JamPelajaran.php
 
 namespace App\Models;
@@ -22,7 +23,7 @@ class JamPelajaran extends Model
     public function getLabelAttribute(): string
     {
         return "{$this->nama} ({$this->jam_mulai} – {$this->jam_selesai})"
-               . ($this->keterangan ? " — {$this->keterangan}" : '');
+               .($this->keterangan ? " — {$this->keterangan}" : '');
     }
 
     public function getLabelShortAttribute(): string

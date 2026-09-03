@@ -1,18 +1,16 @@
 <?php
+
 // app/Models/User.php
 
 namespace App\Models;
 
-use App\Models\Presensi;
-use App\Models\Kelas;
-use App\Models\SesiPresensi;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'name', 'username', 'email', 'nisn', 'nik', 'password', 'role', 'kelas_id',

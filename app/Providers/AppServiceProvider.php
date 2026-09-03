@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,10 +22,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (str_contains(config('app.url'), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         // Set Carbon locale ke Bahasa Indonesia
-        \Carbon\Carbon::setLocale('id');
+        Carbon::setLocale('id');
     }
 }

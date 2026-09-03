@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kelas;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'identifier' => ['required', 'string'], // username / email / NISN
-            'password'   => ['required', 'string'],
+            'password' => ['required', 'string'],
         ], [
             'identifier.required' => 'Username, email, atau NISN wajib diisi.',
         ]);
@@ -62,7 +63,7 @@ class AuthController extends Controller
     public function loginGuru(Request $request)
     {
         $request->validate([
-            'nik'      => ['required', 'string'],
+            'nik' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
@@ -86,17 +87,18 @@ class AuthController extends Controller
     // ==== REGISTER SISWA (PUBLIC) ====
     public function showRegisterSiswa()
     {
-        $kelas = \App\Models\Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
         return view('auth.register-siswa', compact('kelas'));
     }
 
     public function registerSiswa(Request $request)
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
-            'email'    => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
-            'nisn'     => ['required', 'string', 'digits:10', 'unique:users,nisn'],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
+            'nisn' => ['required', 'string', 'digits:10', 'unique:users,nisn'],
             'kelas_id' => ['required', 'exists:kelas,id'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ], [
@@ -105,12 +107,12 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
+            'name' => $validated['name'],
             'username' => $validated['username'],
-            'email'    => $validated['email'],
-            'nisn'     => $validated['nisn'],
+            'email' => $validated['email'],
+            'nisn' => $validated['nisn'],
             'kelas_id' => $validated['kelas_id'],
-            'role'     => 'siswa',
+            'role' => 'siswa',
             'password' => Hash::make($validated['password']),
         ]);
 

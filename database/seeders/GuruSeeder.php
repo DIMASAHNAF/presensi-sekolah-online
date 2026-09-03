@@ -12,17 +12,17 @@ class GuruSeeder extends Seeder
     {
         $gurus = [
             [
-                'name'     => 'Budi Santoso, S.Pd',
+                'name' => 'Budi Santoso, S.Pd',
                 'username' => 'budi.guru',
-                'nik'      => '3201010101800001',
-                'email'    => 'budi@sekolah.sch.id',
+                'nik' => '3201010101800001',
+                'email' => 'budi@sekolah.sch.id',
                 'password' => Hash::make('Guru@1234'),
             ],
             [
-                'name'     => 'Siti Rahayu, M.Pd',
+                'name' => 'Siti Rahayu, M.Pd',
                 'username' => 'siti.guru',
-                'nik'      => '3201010101850002',
-                'email'    => 'siti@sekolah.sch.id',
+                'nik' => '3201010101850002',
+                'email' => 'siti@sekolah.sch.id',
                 'password' => Hash::make('Guru@1234'),
             ],
         ];
@@ -34,6 +34,6 @@ class GuruSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Guru seeded: ' . count($gurus) . ' akun | Default password: Guru@1234');
+        $this->command->info('✅ Guru seeded: '.count($gurus).' akun | Default password: Guru@1234');
     }
 }

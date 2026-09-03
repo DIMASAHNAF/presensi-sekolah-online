@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // FK ke tabel kelas — hanya untuk siswa, guru/admin null
             $table->foreignId('kelas_id')
-                  ->nullable()
-                  ->after('role')
-                  ->constrained('kelas')
-                  ->nullOnDelete();
+                ->nullable()
+                ->after('role')
+                ->constrained('kelas')
+                ->nullOnDelete();
         });
     }
 

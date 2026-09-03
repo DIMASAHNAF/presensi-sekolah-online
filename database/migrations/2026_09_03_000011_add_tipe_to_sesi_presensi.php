@@ -13,10 +13,10 @@ return new class extends Migration
             $table->enum('tipe', ['kelas', 'mapel'])->default('kelas')->after('is_active');
             // FK ke jam_pelajarans (nullable, optional)
             $table->foreignId('jam_pelajaran_id')
-                  ->nullable()
-                  ->after('jam_pelajaran')
-                  ->constrained('jam_pelajarans')
-                  ->nullOnDelete();
+                ->nullable()
+                ->after('jam_pelajaran')
+                ->constrained('jam_pelajarans')
+                ->nullOnDelete();
         });
     }
 
