@@ -2,9 +2,8 @@
 
   <img src="public/images/logo.png" alt="Logo Presensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;" />
 
-  <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=30&pause=1000&color=10B981&center=true&vCenter=true&width=800&height=50&lines=⚡+SMART+QR+SCHOOL+ATTENDANCE;Sistem+Presensi+Realtime;Berbasis+Dynamic+QR+Code" alt="Typing SVG" />
-  </a>
+  # <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/High%20Voltage.png" alt="High Voltage" width="35" height="35" /> SMART QR SCHOOL ATTENDANCE SYSTEM
+  ### Sistem Presensi Sekolah Modern & Realtime Berbasis Dynamic QR Code
 
   <p align="center" style="margin-top: 10px;">
     <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12"></a>
@@ -22,7 +21,7 @@
   ---
 </div>
 
-## 🌟 Fitur Unggulan (Gacor & Family Friendly)
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Star-Struck.png" alt="Star-Struck" width="25" height="25" /> Fitur Unggulan (Gacor & Family Friendly)
 
 ```
   ┌───────────────────────┐       SCAN QR        ┌───────────────────────┐
@@ -35,34 +34,34 @@
   └──────────────────────────────────────────────────────────────────────┘
 ```
 
-### ⚡ 1. Realtime Live Auto-Sync (Tanpa Reload Halaman)
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/High%20Voltage.png" alt="High Voltage" width="20" height="20" /> 1. Realtime Live Auto-Sync (Tanpa Reload Halaman)
 * 🟢 **Instant Update**: Guru membuka QR Code di laptop/proyektor kelas, saat siswa scan dari HP mereka, status siswa di tabel langsung otomatis berganti menjadi **HADIR** dengan animasi pulse hijau lembut.
 * 📊 **Live Counter**: Statistik total Hadir, Sakit, Izin, dan Alpa di kartu ringkasan ter-update otomatis seketika setiap 2 detik.
 
-### 📱 2. Smart QR Code Scanner & Anti-Cheat System
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Mobile%20Phone.png" alt="Mobile Phone" width="20" height="20" /> 2. Smart QR Code Scanner & Anti-Cheat System
 * 🔒 **Token 32-Karakter Acak**: Setiap sesi memiliki token kriptografi unik yang mustahil ditebak.
 * ⏳ **Auto-Expire 30 Menit**: Barcode otomatis kedaluwarsa setelah 30 menit untuk mencegah siswa yang terlambat atau titip absen.
 * 🔐 **Kunci / Buka Sesi Fleksibel**: Guru dapat mengunci barcode saat kelas dimulai dan mengaktifkannya kembali kapan saja jika diperlukan.
 
-### 📚 3. Integrasi Master Mata Pelajaran (40+ Mapel)
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Books.png" alt="Books" width="20" height="20" /> 3. Integrasi Master Mata Pelajaran (40+ Mapel)
 * 🎓 **Sesi Kelas & Sesi Mapel**: Membedakan antara **Sesi Pagi (Presensi Harian Wali Kelas)** dan **Sesi Mapel (Presensi Guru Mata Pelajaran)**.
 * ⏰ **Jadwal & Jam Pelajaran**: Pencatatan jam pelajaran spesifik (contoh: *07.30 - 09.00 WIB*).
 * 📋 **Auto-Copy Presensi Pagi**: Saat guru mapel membuat sesi, status kehadiran otomatis disinkronkan dari data sesi pagi wali kelas sehingga siswa tidak perlu scan berulang kali saat HP sudah dikumpulkan.
 
-### 📄 4. Generator Rekap PDF Cerdas & Rapi
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Page%20Facing%20Up.png" alt="Page Facing Up" width="20" height="20" /> 4. Generator Rekap PDF Cerdas & Rapi
 | Jenis Rekap | Deskripsi & Format |
 |---|---|
 | 👨‍🏫 **Rekap Bulanan Wali Kelas** | Menampilkan tanggal-tanggal aktif yang ada kegiatan sesi, total rekapitulasi `H`, `S`, `I`, `A`, perhitungan persentase kehadiran nyata, dan status evaluasi siswa. |
 | 📖 **Rekap Bulanan Guru Mapel** | Menampilkan format per **Pertemuan Tatap Muka** (`P.1`, `P.2`, `P.3`, dst) lengkap dengan jam pelajaran & status ketuntasan mapel (*TUNTAS / TUGAS TAMBAHAN / REMEDIAL*). |
 | 🕒 **Rekap Harian & Detail Sesi** | Format cetak cepat per pertemuan yang siap di-print kapan saja dalam format portrait/landscape. |
 
-### 🛡️ 5. Log Perubahan & Audit Trail Lengkap
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Shield.png" alt="Shield" width="20" height="20" /> 5. Log Perubahan & Audit Trail Lengkap
 * 📜 **Catatan Transparan**: Setiap perubahan manual status siswa (misal: dari *Alpa* diubah ke *Sakit* atau *Izin*) dicatat secara permanen.
 * 🔍 **Multi-Filter Cepat**: Riwayat log dapat difilter berdasarkan **Kelas**, **Mata Pelajaran**, **Guru Pembuat/Pengubah**, dan **Tanggal**.
 
 ---
 
-## 🛠️ Stack Teknologi
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.png" alt="Hammer and Wrench" width="25" height="25" /> Stack Teknologi
 
 | Komponen | Teknologi | Keterangan |
 |---|---|---|
@@ -75,7 +74,7 @@
 
 ---
 
-## 🔄 Alur Kerja Sistem (Workflow Diagram)
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Counterclockwise%20Arrows%20Button.png" alt="Counterclockwise Arrows" width="25" height="25" /> Alur Kerja Sistem (Workflow Diagram)
 
 ```mermaid
 sequenceDiagram
@@ -102,7 +101,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Panduan Instalasi Cepat
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="25" height="25" /> Panduan Instalasi Cepat
 
 ### 1. Clone Repository
 ```bash
@@ -156,7 +155,7 @@ Buka browser dan akses: `http://localhost:8000`
 
 ---
 
-## 🔐 Akun Demo Default
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Locked%20with%20Key.png" alt="Locked with Key" width="25" height="25" /> Akun Demo Default
 
 | Role | Username / NIK / NISN | Password | Keterangan |
 |---|---|---|---|
