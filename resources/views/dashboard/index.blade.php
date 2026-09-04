@@ -18,10 +18,10 @@
         {{-- Admin stats --}}
         <div class="stat-card" data-aos="fade-up" data-aos-delay="0">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-users text-blue-600 text-lg"></i>
+                <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center border border-slate-200">
+                    <i class="fas fa-users text-slate-700 text-xl"></i>
                 </div>
-                <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Total</span>
+                <span class="text-[0.65rem] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">Total</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-800">{{ $stats['siswa'] }}</p>
             <p class="text-sm text-slate-500 mt-1 font-medium">Total Siswa</p>
@@ -29,10 +29,10 @@
 
         <div class="stat-card" data-aos="fade-up" data-aos-delay="60">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-11 h-11 bg-indigo-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-chalkboard-user text-indigo-600 text-lg"></i>
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100">
+                    <i class="fas fa-chalkboard-user text-indigo-600 text-xl"></i>
                 </div>
-                <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Total</span>
+                <span class="text-[0.65rem] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">Total</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-800">{{ $stats['guru'] }}</p>
             <p class="text-sm text-slate-500 mt-1 font-medium">Total Guru</p>
@@ -40,10 +40,10 @@
 
         <div class="stat-card" data-aos="fade-up" data-aos-delay="120">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-door-open text-violet-600 text-lg"></i>
+                <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center border border-sky-100">
+                    <i class="fas fa-door-open text-sky-600 text-xl"></i>
                 </div>
-                <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Total</span>
+                <span class="text-[0.65rem] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">Total</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-800">{{ $stats['kelas'] }}</p>
             <p class="text-sm text-slate-500 mt-1 font-medium">Total Kelas</p>
@@ -51,10 +51,10 @@
 
         <div class="stat-card" data-aos="fade-up" data-aos-delay="180">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-11 h-11 bg-emerald-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
+                <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100">
+                    <i class="fas fa-circle-check text-teal-600 text-xl"></i>
                 </div>
-                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Hari ini</span>
+                <span class="text-[0.65rem] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1 rounded-full uppercase tracking-wider">Hari ini</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-800">{{ $stats['hadir_hari_ini'] }}</p>
             <p class="text-sm text-slate-500 mt-1 font-medium">Hadir Hari Ini</p>
@@ -252,11 +252,11 @@
 
     {{-- RECENT SESI --}}
     <div class="{{ auth()->user()->isAdmin() ? '' : 'xl:col-span-3' }} bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-aos="fade-up" data-aos-delay="140">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 text-sm">
-                <i class="fas fa-clock text-blue-500 mr-2"></i>Sesi Presensi Terbaru
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center">
+                <i class="fas fa-clock text-teal-600 mr-2.5"></i>Sesi Presensi Terbaru
             </h3>
-            <a href="{{ route('dashboard.presensi') }}" class="text-xs text-blue-600 hover:underline">Lihat semua</a>
+            <a href="{{ route('dashboard.presensi') }}" class="text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm transition">Lihat semua</a>
         </div>
 
         @if($recentSesi->isEmpty())
@@ -268,12 +268,12 @@
             <div class="divide-y divide-slate-100">
                 @foreach($recentSesi as $sesi)
                     <a href="{{ route('dashboard.presensi.detail', $sesi) }}"
-                       class="flex items-center justify-between px-5 py-3.5 hover:bg-blue-50 transition group">
+                       class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition duration-200 group">
                         <div>
-                            <p class="text-sm font-semibold text-slate-800 group-hover:text-blue-700 flex items-center gap-2">
+                            <p class="text-sm font-semibold text-slate-800 group-hover:text-teal-700 transition flex items-center gap-2">
                                 {{ optional($sesi->kelas)->nama_kelas ?? '-' }}
                                 @if($sesi->mataPelajaran)
-                                    <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded-md">{{ $sesi->mataPelajaran->nama_mapel }}</span>
+                                    <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200">{{ $sesi->mataPelajaran->nama_mapel }}</span>
                                 @endif
                                 @if($sesi->jam_pelajaran)
                                     <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-1.5 py-0.5 rounded-md"><i class="fas fa-clock mr-1"></i>{{ $sesi->jam_pelajaran }}</span>
@@ -313,13 +313,13 @@ new Chart(ctx, {
             {
                 label: 'Hadir',
                 data: @json($chartHadir),
-                backgroundColor: 'rgba(37,99,235,0.8)',
+                backgroundColor: 'rgba(20, 184, 166, 0.85)',
                 borderRadius: 6, borderSkipped: false,
             },
             {
                 label: 'Alpa',
                 data: @json($chartAlpa),
-                backgroundColor: 'rgba(248,113,113,0.8)',
+                backgroundColor: 'rgba(239, 68, 68, 0.85)',
                 borderRadius: 6, borderSkipped: false,
             }
         ]

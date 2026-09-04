@@ -23,54 +23,58 @@
         * { font-family: 'Inter', sans-serif; }
 
         .sidebar-bg {
-            background: linear-gradient(175deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%);
+            background: linear-gradient(175deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
         }
 
         .nav-link {
             display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.625rem 1rem; border-radius: 0.75rem;
+            padding: 0.75rem 1rem; border-radius: 0.75rem;
             font-size: 0.875rem; font-weight: 500;
-            color: rgba(255,255,255,0.8);
-            transition: all 0.2s;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s ease-in-out;
         }
-        .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .nav-link.active { background: rgba(255,255,255,0.18); color: #fff; }
-        .nav-link .icon { width: 1.25rem; text-align: center; color: rgba(147,197,253,0.9); }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; transform: translateX(4px); }
+        .nav-link.active { background: rgba(20, 184, 166, 0.15); color: #2dd4bf; font-weight: 600; border-right: 3px solid #2dd4bf; border-radius: 0.75rem 0 0 0.75rem; }
+        .nav-link .icon { width: 1.25rem; text-align: center; color: rgba(255,255,255,0.5); transition: color 0.2s; }
+        .nav-link.active .icon { color: #2dd4bf; }
+        .nav-link:hover .icon { color: #fff; }
 
         .stat-card {
             background: #fff;
-            border-radius: 1rem;
+            border-radius: 1.25rem;
             padding: 1.5rem;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.1); }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
 
         .btn-primary {
-            background: #2563eb; color: #fff; border-radius: 0.75rem;
+            background: #0f766e; color: #fff; border-radius: 0.75rem;
             padding: 0.625rem 1.25rem; font-size: 0.875rem; font-weight: 600;
             display: inline-flex; align-items: center; gap: 0.5rem;
-            transition: background 0.2s, transform 0.1s;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
         }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary:hover { background: #0f172a; box-shadow: 0 6px 12px -2px rgba(15, 23, 42, 0.3); }
+        .btn-primary:active { transform: scale(0.98); }
 
         .btn-danger {
-            background: #fee2e2; color: #dc2626; border-radius: 0.75rem;
+            background: #fef2f2; color: #ef4444; border-radius: 0.75rem;
             padding: 0.5rem 0.875rem; font-size: 0.8125rem; font-weight: 600;
             display: inline-flex; align-items: center; gap: 0.4rem;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
-        .btn-danger:hover { background: #fecaca; }
+        .btn-danger:hover { background: #fee2e2; color: #b91c1c; }
 
         .btn-secondary {
-            background: #eff6ff; color: #2563eb; border-radius: 0.75rem;
+            background: #f8fafc; color: #475569; border-radius: 0.75rem;
             padding: 0.5rem 0.875rem; font-size: 0.8125rem; font-weight: 600;
             display: inline-flex; align-items: center; gap: 0.4rem;
-            transition: background 0.2s;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
-        .btn-secondary:hover { background: #dbeafe; }
+        .btn-secondary:hover { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
 
         .badge-hadir  { background:#dcfce7; color:#16a34a; }
         .badge-izin   { background:#fef9c3; color:#ca8a04; }
@@ -105,13 +109,13 @@
        x-cloak>
 
     {{-- Logo --}}
-    <div class="flex items-center gap-3 px-5 py-[1.125rem] border-b border-white/10 shrink-0">
-        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo SMK" class="w-full h-full object-contain p-1">
+    <div class="flex items-center gap-3 px-5 py-[1.125rem] border-b border-white/5 shrink-0">
+        <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/30">
+            <i class="fas fa-school text-white text-lg"></i>
         </div>
         <div>
-            <p class="font-bold text-sm leading-tight">Presensi</p>
-            <p class="text-blue-200 text-xs">Sekolah</p>
+            <p class="font-bold text-sm text-white tracking-wide">Presensi</p>
+            <p class="text-teal-400 text-xs font-medium uppercase tracking-widest">Sekolah</p>
         </div>
     </div>
 
@@ -130,8 +134,8 @@
         </a>
 
         @if(auth()->user()->isAdmin())
-            <div class="pt-4 pb-1 px-1">
-                <p class="text-xs text-blue-300 font-semibold uppercase tracking-widest">Manajemen</p>
+            <div class="pt-6 pb-2 px-3">
+                <p class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-widest">Manajemen Master</p>
             </div>
 
             <a href="{{ route('dashboard.siswa') }}"
@@ -157,14 +161,14 @@
     </nav>
 
     {{-- User Info --}}
-    <div class="p-3 border-t border-white/10 shrink-0">
-        <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/10 transition">
-            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+    <div class="p-4 border-t border-white/5 shrink-0 bg-slate-900/50">
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition border border-transparent hover:border-white/10 cursor-pointer">
+            <div class="w-9 h-9 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl flex items-center justify-center text-sm font-bold shrink-0">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-semibold truncate">{{ auth()->user()->name }}</p>
-                <p class="text-blue-300 text-xs capitalize">{{ auth()->user()->role }}</p>
+                <p class="text-xs font-bold text-white truncate">{{ auth()->user()->name }}</p>
+                <p class="text-slate-400 text-[0.65rem] uppercase tracking-wider mt-0.5">{{ auth()->user()->role }}</p>
             </div>
         </div>
     </div>
@@ -181,10 +185,10 @@
          class="fixed inset-0 bg-slate-900/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
     {{-- Header --}}
-    <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div class="flex items-center gap-4">
             <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-teal-600 hover:bg-teal-50 transition border border-transparent hover:border-teal-100">
                 <i class="fas fa-bars"></i>
             </button>
             <div>
@@ -193,18 +197,18 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <span class="text-xs text-slate-500 hidden md:flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                <span><i class="far fa-calendar-alt text-slate-400 mr-1.5"></i>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+        <div class="flex items-center gap-5">
+            <span class="text-xs text-slate-500 hidden md:flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                <span><i class="far fa-calendar-alt text-teal-500 mr-2"></i>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
                 <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-                <span class="font-bold text-slate-700" id="realtimeClock">--:--:--</span>
+                <span class="font-bold text-slate-700 font-mono tracking-tight" id="realtimeClock">--:--:--</span>
             </span>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="flex items-center gap-2 text-sm text-slate-500 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition">
+                        class="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 px-4 py-2 rounded-xl transition shadow-sm">
                     <i class="fas fa-right-from-bracket"></i>
-                    <span class="hidden sm:inline">Logout</span>
+                    <span class="hidden sm:inline">Keluar</span>
                 </button>
             </form>
         </div>
@@ -288,35 +292,3 @@
 @stack('scripts')
 </body>
 </html>
-
-<script>
-    // Global Show/Hide Password Script
-    document.addEventListener('DOMContentLoaded', function() {
-        const passwordInputs = document.querySelectorAll('input[type="password"]');
-        passwordInputs.forEach(input => {
-            const wrapper = document.createElement('div');
-            wrapper.style.position = 'relative';
-            input.parentNode.insertBefore(wrapper, input);
-            wrapper.appendChild(input);
-
-            const toggleBtn = document.createElement('span');
-            toggleBtn.innerHTML = '<i class="far fa-eye text-slate-400"></i>';
-            toggleBtn.style.position = 'absolute';
-            toggleBtn.style.right = '10px';
-            toggleBtn.style.top = '50%';
-            toggleBtn.style.transform = 'translateY(-50%)';
-            toggleBtn.style.cursor = 'pointer';
-            wrapper.appendChild(toggleBtn);
-
-            toggleBtn.addEventListener('click', function() {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    toggleBtn.innerHTML = '<i class="far fa-eye-slash text-blue-500"></i>';
-                } else {
-                    input.type = 'password';
-                    toggleBtn.innerHTML = '<i class="far fa-eye text-slate-400"></i>';
-                }
-            });
-        });
-    });
-</script>

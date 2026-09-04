@@ -16,28 +16,30 @@
         [x-cloak] { display: none !important; }
 
         .hero-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%), url('{{ asset('images/bg-sekolah.jpg') }}');
+            background-size: cover;
+            background-position: center;
             position: relative;
             overflow: hidden;
         }
         .hero-bg::before {
             content:''; position:absolute; top:-60px; right:-60px;
-            width:250px; height:250px; background:rgba(255,255,255,0.06); border-radius:50%;
+            width:250px; height:250px; background:rgba(20, 184, 166, 0.15); border-radius:50%; filter: blur(40px);
         }
         .hero-bg::after {
             content:''; position:absolute; bottom:-80px; left:-40px;
-            width:300px; height:300px; background:rgba(255,255,255,0.04); border-radius:50%;
+            width:300px; height:300px; background:rgba(16, 185, 129, 0.15); border-radius:50%; filter: blur(40px);
         }
 
         /* ── Scan Face Button ── */
         .scan-btn {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            box-shadow: 0 8px 30px rgba(37,99,235,0.35);
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            box-shadow: 0 8px 30px rgba(13, 148, 136, 0.35);
             transition: all 0.22s;
         }
-        .scan-btn:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(37,99,235,0.45); }
+        .scan-btn:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(13, 148, 136, 0.45); }
         .scan-btn:active { transform: scale(0.97); }
-        .scan-btn.success-state { background: linear-gradient(135deg,#16a34a,#15803d); }
+        .scan-btn.success-state { background: linear-gradient(135deg,#059669,#047857); }
 
         /* ── Badges ── */
         .badge-hadir { background:#dcfce7; color:#16a34a; }
@@ -48,16 +50,23 @@
 
         /* ── Sesi Active Card ── */
         .sesi-card {
-            background: linear-gradient(135deg,#0f172a,#1e3a8a);
-            border: 1px solid rgba(99,179,237,0.2);
+            background: linear-gradient(135deg, #0f172a, #064e3b);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .sesi-card::before {
+            content:''; position:absolute; top:0; right:0; width:150px; height:150px; 
+            background:radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(20,184,166,0) 70%);
+            border-radius:50%;
         }
         .pulse-dot {
-            width:10px; height:10px; border-radius:50%; background:#4ade80;
+            width:10px; height:10px; border-radius:50%; background:#34d399;
             animation: sesi-pulse 1.5s ease infinite;
         }
         @keyframes sesi-pulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
-            50%      { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+            0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.6); }
+            50%      { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
         }
 
         /* ── Face Modal Styles ── */
@@ -113,18 +122,21 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="text-xs text-blue-200 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition">
+                    <button type="submit" class="text-xs text-teal-100 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition backdrop-blur-sm border border-transparent hover:border-white/20">
                         <i class="fas fa-right-from-bracket mr-1"></i> Keluar
                     </button>
                 </form>
             </div>
-            <p class="text-blue-200 text-sm">Selamat datang 👋</p>
-            <h1 class="text-2xl font-extrabold mt-1">{{ $user->name }}</h1>
-            <p class="text-blue-200/80 text-sm mt-1">
-                <i class="fas fa-door-open text-xs mr-1"></i>
-                {{ $user->kelas ? $user->kelas->nama_kelas : 'Belum ada kelas' }}
-                &nbsp;·&nbsp;
-                <i class="fas fa-id-card text-xs mr-1"></i>NISN: {{ $user->nisn ?? '-' }}
+            <p class="text-teal-100 text-sm font-medium">Selamat datang 👋</p>
+            <h1 class="text-3xl font-extrabold mt-1 tracking-tight">{{ $user->name }}</h1>
+            <p class="text-teal-50/80 text-sm mt-2 flex items-center gap-3">
+                <span class="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-door-open text-xs"></i>
+                    {{ $user->kelas ? $user->kelas->nama_kelas : 'Belum ada kelas' }}
+                </span>
+                <span class="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-id-card text-xs"></i> NISN: {{ $user->nisn ?? '-' }}
+                </span>
             </p>
             @if(!$user->isFaceEnrolled())
                 <div class="mt-3 bg-amber-400/20 border border-amber-400/40 text-amber-100 rounded-xl px-4 py-3 text-sm flex items-start gap-3">
@@ -175,9 +187,9 @@
             {{-- SESI AKTIF CARD (polling) --}}
             <div class="mb-5" data-aos="fade-up" data-aos-delay="60">
                 {{-- Loading State --}}
-                <div x-show="sesiLoading" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex items-center justify-center gap-3">
-                    <i class="fas fa-circle-notch fa-spin text-blue-400"></i>
-                    <span class="text-sm text-slate-500">Mengecek sesi presensi...</span>
+                <div x-show="sesiLoading" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 flex flex-col items-center justify-center gap-3">
+                    <i class="fas fa-circle-notch fa-spin text-teal-500 text-3xl"></i>
+                    <span class="text-sm font-medium text-slate-500">Mengecek sesi presensi...</span>
                 </div>
 
                 {{-- Ada sesi aktif, sudah hadir --}}
@@ -187,10 +199,10 @@
                         <div>
                             <div class="flex items-center gap-2 mb-1">
                                 <div class="pulse-dot"></div>
-                                <span class="text-xs font-bold text-green-400 uppercase tracking-wide">Sesi Aktif</span>
+                                <span class="text-xs font-bold text-teal-400 uppercase tracking-widest">Sesi Aktif</span>
                             </div>
-                            <p x-text="sesiData?.kelas" class="font-extrabold text-lg"></p>
-                            <p x-text="'Guru: ' + sesiData?.guru" class="text-blue-200 text-sm mt-0.5"></p>
+                            <p x-text="sesiData?.kelas" class="font-extrabold text-xl tracking-tight text-white mt-1"></p>
+                            <p x-text="'Guru: ' + sesiData?.guru" class="text-teal-100 text-sm mt-1 font-medium"></p>
                         </div>
                         <div class="bg-green-500/20 rounded-2xl px-3 py-2 text-center border border-green-400/30">
                             <i class="fas fa-check-circle text-green-400 text-xl"></i>
@@ -210,11 +222,11 @@
                         <div>
                             <div class="flex items-center gap-2 mb-1">
                                 <div class="pulse-dot"></div>
-                                <span class="text-xs font-bold text-green-400 uppercase tracking-wide">Sesi Aktif</span>
+                                <span class="text-xs font-bold text-teal-400 uppercase tracking-widest">Sesi Aktif</span>
                             </div>
-                            <p x-text="sesiData?.kelas" class="font-extrabold text-lg"></p>
-                            <p x-text="sesiData?.tanggal" class="text-blue-200 text-sm mt-0.5"></p>
-                            <p x-text="'Dibuat oleh: ' + sesiData?.guru" class="text-blue-300 text-xs mt-0.5"></p>
+                            <p x-text="sesiData?.kelas" class="font-extrabold text-xl tracking-tight text-white mt-1"></p>
+                            <p x-text="sesiData?.tanggal" class="text-teal-100 text-sm mt-1 font-medium"></p>
+                            <p x-text="'Dibuat oleh: ' + sesiData?.guru" class="text-teal-200/70 text-xs mt-1"></p>
                         </div>
                         <div class="bg-orange-500/20 rounded-2xl px-3 py-2 text-center border border-orange-400/30">
                             <i class="fas fa-clock text-orange-400 text-xl"></i>
@@ -240,13 +252,12 @@
                 </div>
             </div>
 
-            {{-- RIWAYAT PRESENSI --}}
             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="140">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                    <h3 class="font-semibold text-slate-800 text-sm">
-                        <i class="fas fa-history text-blue-500 mr-2"></i>Riwayat Presensi
+                <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center">
+                        <i class="fas fa-history text-teal-600 mr-2.5"></i>Riwayat Presensi
                     </h3>
-                    <span class="text-xs text-slate-400">10 terakhir</span>
+                    <span class="text-xs font-medium text-slate-400 bg-white px-2 py-1 rounded-md border border-slate-200">10 terakhir</span>
                 </div>
 
                 @if($riwayat->isEmpty())
@@ -260,7 +271,7 @@
                 @else
                     <div class="divide-y divide-slate-100">
                         @foreach($riwayat as $item)
-                            <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition">
+                            <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition duration-200 cursor-pointer">
                                 <div>
                                     <p class="text-sm font-medium text-slate-800">
                                         {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
@@ -270,7 +281,7 @@
                                         {{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}
 
                                         @if(optional($item->sesiPresensi)->mataPelajaran)
-                                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiPresensi->mataPelajaran->nama_mapel }}</span>
+                                            <span class="bg-teal-50 text-teal-700 border border-teal-100 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiPresensi->mataPelajaran->nama_mapel }}</span>
                                         @endif
                                         @if(optional($item->sesiPresensi)->jam_pelajaran)
                                             <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiPresensi->jam_pelajaran }}</span>
@@ -298,10 +309,10 @@
             <div @click.away="closeFaceScanner()" class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
 
                 {{-- Header --}}
-                <div class="bg-gradient-to-r from-blue-700 to-blue-500 px-5 py-4 flex justify-between items-center text-white">
+                <div class="bg-gradient-to-r from-teal-700 to-teal-500 px-5 py-4 flex justify-between items-center text-white">
                     <div>
                         <h3 class="font-bold text-base">Verifikasi Wajah</h3>
-                        <p class="text-blue-100 text-xs mt-0.5">Posisikan wajah dalam bingkai oval</p>
+                        <p class="text-teal-100 text-xs mt-0.5">Posisikan wajah dalam bingkai oval</p>
                     </div>
                     <button @click="closeFaceScanner()" class="text-white/70 hover:text-white transition text-xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">
                         <i class="fas fa-times"></i>
@@ -332,10 +343,10 @@
                             <i class="fas fa-check mr-1"></i> Siap! Tahan sebentar...
                         </div>
                     </div>
-                    <div x-show="scanState === 'processing'" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div x-show="scanState === 'processing'" class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
                         <div class="text-center text-white">
-                            <i class="fas fa-circle-notch fa-spin text-3xl text-blue-400"></i>
-                            <p class="mt-2 text-sm font-semibold">Memverifikasi wajah...</p>
+                            <i class="fas fa-circle-notch fa-spin text-4xl text-teal-400"></i>
+                            <p class="mt-3 text-sm font-semibold tracking-wide">Memverifikasi wajah...</p>
                         </div>
                     </div>
                     <div x-show="scanState === 'success'" class="absolute inset-0 bg-green-900/60 flex items-center justify-center">
@@ -361,8 +372,8 @@
 
                     <button @click="manualTrigger()"
                             x-show="scanState === 'detecting' || scanState === 'detected'"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fas fa-face-viewfinder"></i> Scan Sekarang
+                            class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30">
+                        <i class="fas fa-face-viewfinder text-lg"></i> Scan Sekarang
                     </button>
 
                     <button @click="retryScan()"
