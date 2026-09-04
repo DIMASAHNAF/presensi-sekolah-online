@@ -56,8 +56,10 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     // Admin-only CRUD
     Route::get('/siswa', [DashboardController::class, 'siswaIndex'])->name('.siswa');
     Route::post('/siswa', [DashboardController::class, 'storeSiswa'])->name('.siswa.store');
+    Route::post('/siswa/reset-all-faces', [DashboardController::class, 'resetAllFaces'])->name('.siswa.reset-all-faces');
     Route::put('/siswa/{siswa}', [DashboardController::class, 'updateSiswa'])->name('.siswa.update');
     Route::delete('/siswa/{siswa}', [DashboardController::class, 'destroySiswa'])->name('.siswa.destroy');
+    Route::post('/siswa/{siswa}/reset-face', [DashboardController::class, 'resetFaceSiswa'])->name('.siswa.reset-face');
 
     Route::get('/guru', [DashboardController::class, 'guruIndex'])->name('.guru');
     Route::post('/guru', [DashboardController::class, 'storeGuru'])->name('.guru.store');

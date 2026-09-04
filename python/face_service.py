@@ -238,7 +238,13 @@ def main():
         error_exit(f"Mode '{mode}' membutuhkan payload JSON sebagai argumen kedua.")
     
     try:
-        payload = json.loads(sys.argv[2])
+        payload_arg = sys.argv[2]
+        import os
+        if os.path.isfile(payload_arg):
+            with open(payload_arg, 'r') as f:
+                payload = json.load(f)
+        else:
+            payload = json.loads(payload_arg)
     except json.JSONDecodeError as e:
         error_exit(f"Payload JSON tidak valid: {e}")
     

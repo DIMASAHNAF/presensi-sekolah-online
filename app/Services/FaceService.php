@@ -67,13 +67,16 @@ class FaceService
         }
 
         $escapedScript  = escapeshellarg($this->scriptPath);
-        $escapedMode    = escapeshellarg($mode);
-        $escapedPayload = $payloadJson ? escapeshellarg($payloadJson) : '';
+        $escapedMode = escapeshellarg($mode);
+        $tempFile    = null;
+        $cmd         = "{$this->pythonBin} {$escapedScript} {$escapedMode} 2>&1";
 
         if ($payloadJson) {
-            $cmd = "{$this->pythonBin} {$escapedScript} {$escapedMode} {$escapedPayload} 2>&1";
-        } else {
-            $cmd = "{$this->pythonBin} {$escapedScript} {$escapedMode} 2>&1";
+            // Tulis payload ke file temporary untuk menghindari limit panjang argumen shell (ARG_MAX)
+            $tempFile = tempnam(sys_get_temp_dir(), 'face_payload_');
+            file_put_contents($tempFile, $payloadJson);
+            $escapedPayloadFile = escapeshellarg($tempFile);
+            $cmd = "{$this->pythonBin} {$escapedScript} {$escapedMode} {$escapedPayloadFile} 2>&1";
         }
 
         $output     = null;
@@ -81,6 +84,11 @@ class FaceService
 
         exec($cmd, $outputLines, $returnCode);
         $output = implode("\n", $outputLines);
+
+        // Hapus file temporary setelah selesai
+        if ($tempFile && file_exists($tempFile)) {
+            unlink($tempFile);
+        }
 
         // Ambil baris JSON terakhir (Python mungkin print warning dulu)
         $lines = array_filter(array_map('trim', $outputLines));

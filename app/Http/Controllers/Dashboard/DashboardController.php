@@ -549,6 +549,32 @@ class DashboardController extends Controller
         return redirect()->route('dashboard.siswa')->with('success', 'Siswa dihapus!');
     }
 
+    public function resetFaceSiswa(User $siswa)
+    {
+        $this->adminOnly();
+        abort_if($siswa->role !== 'siswa', 403);
+        
+        $siswa->update([
+            'face_descriptor' => null,
+            'face_enrolled_at' => null
+        ]);
+
+        return redirect()->route('dashboard.siswa')->with('success', "Wajah siswa {$siswa->name} berhasil direset!");
+    }
+
+    public function resetAllFaces()
+    {
+        $this->adminOnly();
+        
+        User::where('role', 'siswa')->update([
+            'face_descriptor' => null,
+            'face_enrolled_at' => null
+        ]);
+
+        return redirect()->route('dashboard.siswa')->with('success', 'Semua data wajah siswa berhasil direset. Siswa harus scan ulang!');
+    }
+
+
     // =========================================================
     //  KELOLA GURU (ADMIN)
     // =========================================================

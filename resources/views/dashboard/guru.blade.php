@@ -54,15 +54,17 @@
                         <td class="px-4 py-3">{{ $guru->nik }}</td>
                         <td class="px-4 py-3">{{ $guru->username }}</td>
                         <td class="px-4 py-3 text-center">
-                            <button @click="openEdit = true; editData = { id: {{ $guru->id }}, nama: '{{ $guru->name }}', nik: '{{ $guru->nik }}', username: '{{ $guru->username }}', email: '{{ $guru->email }}' }" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus guru ini?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded">
-                                    <i class="fas fa-trash"></i>
+                            <div class="flex justify-center gap-2">
+                                <button @click="openEdit = true; editData = { id: {{ $guru->id }}, nama: '{{ $guru->name }}', nik: '{{ $guru->nik }}', username: '{{ $guru->username }}', email: '{{ $guru->email }}' }" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                            </form>
+                                <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST" onsubmit="return confirm('Hapus guru {{ $guru->name }} secara permanen?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-red-100 transition-colors" title="Hapus Guru">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
