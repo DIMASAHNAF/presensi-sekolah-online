@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LogPresensi;
 use App\Models\Presensi;
 use App\Models\SesiPresensi;
+use App\Services\FaceService;
 use Illuminate\Http\Request;
 
 class SiswaController extends Controller
@@ -22,74 +23,171 @@ class SiswaController extends Controller
 
         $stats = [
             'hadir' => Presensi::where('siswa_id', $user->id)->where('status', 'hadir')->count(),
-            'izin' => Presensi::where('siswa_id', $user->id)->where('status', 'izin')->count(),
+            'izin'  => Presensi::where('siswa_id', $user->id)->where('status', 'izin')->count(),
             'sakit' => Presensi::where('siswa_id', $user->id)->where('status', 'sakit')->count(),
-            'alpa' => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
+            'alpa'  => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
         ];
 
         return view('siswa.dashboard', compact('user', 'riwayat', 'stats'));
     }
 
-    public function scanBarcode(Request $request)
+    // ──────────────────────────────────────────────────────────────
+    //  GET /siswa/sesi-aktif
+    //  Polling endpoint: return sesi aktif untuk kelas siswa ini
+    // ──────────────────────────────────────────────────────────────
+    public function getSesiAktif()
     {
-        $request->validate(['token' => 'required|string']);
         $user = auth()->user();
 
-        // Cari sesi aktif berdasarkan token
-        $sesi = SesiPresensi::where('barcode_token', $request->token)
+        if (!$user->kelas_id) {
+            return response()->json([
+                'success' => true,
+                'sesi'    => null,
+                'message' => 'Anda belum terdaftar di kelas manapun.',
+            ]);
+        }
+
+        // Hanya sesi kelas (pagi) hari ini yang aktif milik kelas siswa
+        $sesi = SesiPresensi::where('kelas_id', $user->kelas_id)
+            ->where('tipe', 'kelas')
+            ->where('is_active', true)
+            ->where('tanggal', today())
+            ->with(['guru', 'kelas', 'mataPelajaran'])
+            ->first();
+
+        if (!$sesi) {
+            return response()->json(['success' => true, 'sesi' => null]);
+        }
+
+        // Cek apakah siswa ini sudah absen di sesi ini
+        $presensi   = Presensi::where('sesi_presensi_id', $sesi->id)
+            ->where('siswa_id', $user->id)
+            ->first();
+        $sudahHadir = $presensi && $presensi->status === 'hadir';
+
+        return response()->json([
+            'success' => true,
+            'sesi'    => [
+                'id'         => $sesi->id,
+                'kelas'      => $sesi->kelas->nama_kelas,
+                'guru'       => $sesi->guru->name,
+                'tanggal'    => $sesi->tanggal->isoFormat('dddd, D MMMM Y'),
+                'jam'        => $sesi->jam_pelajaran ?? '-',
+                'mapel'      => $sesi->mataPelajaran?->nama_mapel,
+                'created_at' => $sesi->created_at->toISOString(),
+            ],
+            'sudah_hadir'   => $sudahHadir,
+            'face_enrolled' => $user->isFaceEnrolled(),
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  POST /siswa/scan-wajah
+    //  Terima base64 foto + sesi_id → verify via Python → catat hadir
+    // ──────────────────────────────────────────────────────────────
+    public function scanWajah(Request $request)
+    {
+        $request->validate([
+            'sesi_id'    => 'required|integer',
+            'face_image' => 'required|string', // base64 JPEG/PNG
+        ]);
+
+        $user = auth()->user();
+
+        // 1. Cek siswa sudah enroll wajah
+        if (!$user->isFaceEnrolled()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum mendaftarkan wajah. Silakan hubungi admin atau daftar ulang.',
+            ]);
+        }
+
+        // 2. Cari sesi
+        $sesi = SesiPresensi::where('id', $request->sesi_id)
             ->where('is_active', true)
             ->first();
 
-        if (! $sesi) {
-            return response()->json(['success' => false, 'message' => 'Barcode tidak valid atau sesi sudah ditutup.']);
+        if (!$sesi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi presensi tidak ditemukan atau sudah ditutup.',
+            ]);
         }
 
-        // Cek kelas
+        // 3. Cek kelas siswa cocok dengan kelas sesi
         if ($sesi->kelas_id !== $user->kelas_id) {
-            return response()->json(['success' => false, 'message' => 'Ini bukan barcode kelas Anda.']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi ini bukan untuk kelas Anda.',
+            ]);
         }
 
-        // Cek expired (30 menit)
-        if (now()->diffInMinutes($sesi->created_at) >= 30) {
-            return response()->json(['success' => false, 'message' => 'Batas waktu scan 30 menit sudah habis. Silakan hubungi guru.']);
-        }
-
-        // Cari record presensi siswa
+        // 4. Cek/buat presensi record
         $presensi = Presensi::where('sesi_presensi_id', $sesi->id)
             ->where('siswa_id', $user->id)
             ->first();
 
-        if (! $presensi) {
-            // Jika siswa baru register setelah sesi dibuat, buatkan recordnya sekarang
+        if (!$presensi) {
             $presensi = Presensi::create([
                 'sesi_presensi_id' => $sesi->id,
-                'siswa_id' => $user->id,
-                'status' => 'alpa',
+                'siswa_id'         => $user->id,
+                'status'           => 'alpa',
             ]);
         }
 
         if ($presensi->status === 'hadir') {
-            return response()->json(['success' => false, 'message' => 'Anda sudah melakukan scan absen (Hadir).']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah tercatat HADIR di sesi ini.',
+            ]);
         }
 
+        // 5. Panggil Python FaceService untuk compare
+        $faceService = new FaceService();
+        $result      = $faceService->compare($user->face_descriptor, $request->face_image);
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses gambar: ' . ($result['error'] ?? 'Error tidak diketahui.'),
+            ]);
+        }
+
+        if (!$result['match']) {
+            return response()->json([
+                'success'    => false,
+                'message'    => 'Wajah tidak dikenali. Pastikan wajah terlihat jelas dan cahaya cukup.',
+                'distance'   => $result['distance'] ?? null,
+                'confidence' => $result['confidence'] ?? null,
+            ]);
+        }
+
+        // 6. Update jadi HADIR
         $statusSebelumnya = $presensi->status;
 
-        // Update jadi hadir
         $presensi->update([
-            'status' => 'hadir',
+            'status'     => 'hadir',
             'waktu_scan' => now(),
-            'keterangan' => 'Scan Mandiri (Sistem)',
+            'keterangan' => 'Scan Wajah (Sistem)',
         ]);
 
-        // Catat log
+        // 7. Catat log
         LogPresensi::create([
-            'presensi_id' => $presensi->id,
-            'guru_id' => $sesi->guru_id, // Atas nama pembuat sesi atau sistem
+            'presensi_id'       => $presensi->id,
+            'guru_id'           => $sesi->guru_id,
             'status_sebelumnya' => $statusSebelumnya,
-            'status_baru' => 'hadir',
-            'keterangan' => 'Siswa melakukan scan barcode mandiri',
+            'status_baru'       => 'hadir',
+            'keterangan'        => sprintf(
+                'Siswa melakukan scan wajah mandiri (confidence: %s, distance: %.4f)',
+                $result['confidence'] ?? 'N/A',
+                $result['distance'] ?? 0
+            ),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Berhasil! Anda tercatat HADIR hari ini.']);
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Berhasil! Anda tercatat HADIR hari ini.',
+            'confidence' => $result['confidence'] ?? null,
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\User;
+use App\Services\FaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -92,33 +93,87 @@ class AuthController extends Controller
         return view('auth.register-siswa', compact('kelas'));
     }
 
+    /**
+     * Step 1 — simpan data siswa ke session lalu arahkan ke step face scan.
+     * Step 2 — terima foto wajah, enroll via Python, buat akun, login.
+     */
     public function registerSiswa(Request $request)
     {
+        // ── STEP 2: Proses foto wajah + buat akun ──────────────────────────
+        if ($request->has('face_images')) {
+            // Ambil data yang sudah disimpan di session dari step 1
+            $data = $request->session()->get('register_data');
+            if (!$data) {
+                return redirect()->route('register.siswa')
+                    ->withErrors(['general' => 'Session habis. Silakan ulangi pendaftaran.']);
+            }
+
+            $images = $request->input('face_images'); // JSON string array base64
+            try {
+                $imagesArray = json_decode($images, true);
+            } catch (\Throwable $e) {
+                return back()->withErrors(['face' => 'Data gambar tidak valid.']);
+            }
+
+            if (!is_array($imagesArray) || count($imagesArray) < 3) {
+                return back()->withErrors(['face' => 'Minimal 3 foto wajah diperlukan. Silakan ulangi scan.']);
+            }
+
+            // Panggil Python untuk enroll (rata-rata descriptor dari multi-angle)
+            $faceService = new FaceService();
+            $result      = $faceService->enroll($imagesArray);
+
+            if (!$result['success']) {
+                return back()->withErrors([
+                    'face' => 'Gagal mendaftarkan wajah: ' . ($result['error'] ?? 'Coba foto ulang dengan pencahayaan lebih baik.'),
+                ]);
+            }
+
+            // Buat akun user
+            $user = User::create([
+                'name'             => $data['name'],
+                'username'         => $data['username'],
+                'email'            => $data['email'] ?? null,
+                'nisn'             => $data['nisn'],
+                'kelas_id'         => $data['kelas_id'],
+                'role'             => 'siswa',
+                'password'         => Hash::make($data['password']),
+                'face_descriptor'  => $result['descriptor'],
+                'face_enrolled_at' => now(),
+            ]);
+
+            $request->session()->forget('register_data');
+            Auth::login($user);
+
+            return redirect()->route('siswa.dashboard')
+                ->with('success', 'Registrasi berhasil! Wajah Anda telah terdaftar. 👋');
+        }
+
+        // ── STEP 1: Validasi data, simpan ke session, redirect ke step scan wajah ─
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name'     => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
-            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
-            'nisn' => ['required', 'string', 'digits:10', 'unique:users,nisn'],
+            'email'    => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
+            'nisn'     => ['required', 'string', 'digits:10', 'unique:users,nisn'],
             'kelas_id' => ['required', 'exists:kelas,id'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ], [
-            'nisn.digits' => 'NISN harus terdiri dari 10 digit angka.',
+            'nisn.digits'         => 'NISN harus terdiri dari 10 digit angka.',
             'username.alpha_dash' => 'Username hanya boleh huruf, angka, strip, dan underscore.',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
+        // Simpan data form ke session (belum buat user dulu — tunggu wajah berhasil)
+        $request->session()->put('register_data', [
+            'name'     => $validated['name'],
             'username' => $validated['username'],
-            'email' => $validated['email'],
-            'nisn' => $validated['nisn'],
+            'email'    => $validated['email'] ?? null,
+            'nisn'     => $validated['nisn'],
             'kelas_id' => $validated['kelas_id'],
-            'role' => 'siswa',
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'], // plain — di-hash nanti saat buat user
         ]);
 
-        Auth::login($user);
-
-        return redirect()->route('siswa.dashboard')->with('success', 'Registrasi berhasil!');
+        // Redirect ke halaman yang sama dengan flag step=2 (scan wajah)
+        return redirect()->route('register.siswa')->with('step', 2);
     }
 
     // ==== LOGOUT ====

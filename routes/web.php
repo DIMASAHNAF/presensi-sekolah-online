@@ -27,7 +27,8 @@ Route::middleware('guest')->group(function () {
 //  SISWA DASHBOARD
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/siswa/dashboard', [SiswaController::class, 'dashboard'])->name('siswa.dashboard');
-    Route::post('/siswa/scan', [SiswaController::class, 'scanBarcode'])->name('siswa.scan');
+    Route::get('/siswa/sesi-aktif', [SiswaController::class, 'getSesiAktif'])->name('siswa.sesiaktif');
+    Route::post('/siswa/scan-wajah', [SiswaController::class, 'scanWajah'])->name('siswa.scanwajah');
 });
 
 //  GURU & ADMIN DASHBOARD

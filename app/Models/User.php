@@ -14,18 +14,30 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'username', 'email', 'nisn', 'nik', 'password', 'role', 'kelas_id',
+        'face_descriptor', 'face_enrolled_at',
     ];
 
     protected $hidden = [
         'password', 'remember_token',
+        'face_descriptor', // Jangan ekspos descriptor di API response
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'email_verified_at'  => 'datetime',
+            'password'           => 'hashed',
+            'face_descriptor'    => 'array',   // JSON ↔ PHP array otomatis
+            'face_enrolled_at'   => 'datetime',
         ];
+    }
+
+    /**
+     * Apakah siswa sudah mendaftarkan wajah (enroll)?
+     */
+    public function isFaceEnrolled(): bool
+    {
+        return !is_null($this->face_descriptor) && count((array) $this->face_descriptor) === 128;
     }
 
     public function isSiswa(): bool

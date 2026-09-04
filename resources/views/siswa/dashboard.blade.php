@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">  
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <title>Dashboard Siswa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,50 +14,89 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
         [x-cloak] { display: none !important; }
+
         .hero-bg {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-            position: relative; 
+            position: relative;
             overflow: hidden;
         }
-      .hero-bg::before {
-            content:''; 
-            position:absolute;
-            top:-60px;
-            right:-60px;
-            width:250px; 
-            height:250px; 
-            background:rgba(255,255,255,0.06); 
-            border-radius:50%;
+        .hero-bg::before {
+            content:''; position:absolute; top:-60px; right:-60px;
+            width:250px; height:250px; background:rgba(255,255,255,0.06); border-radius:50%;
         }
         .hero-bg::after {
-            content:''; 
-            position:absolute; 
-            bottom:-80px; 
-            left:-40px;
-            width:300px; 
-            height:300px; 
-            background:rgba(255,255,255,0.04); 
-            border-radius:50%;
+            content:''; position:absolute; bottom:-80px; left:-40px;
+            width:300px; height:300px; background:rgba(255,255,255,0.04); border-radius:50%;
         }
+
+        /* ── Scan Face Button ── */
         .scan-btn {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             box-shadow: 0 8px 30px rgba(37,99,235,0.35);
-            transition: all 0.2s;
+            transition: all 0.22s;
         }
-        .scan-btn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 12px 40px rgba(37,99,235,0.45); 
-        }
+        .scan-btn:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(37,99,235,0.45); }
+        .scan-btn:active { transform: scale(0.97); }
+        .scan-btn.success-state { background: linear-gradient(135deg,#16a34a,#15803d); }
 
-        .scan-btn:active { 
-            transform: scale(0.97); 
-        }
-
-        .badge-hadir  { background:#dcfce7; color:#16a34a; }
-        .badge-izin   { background:#fef9c3; color:#ca8a04; }
-        .badge-sakit  { background:#ffedd5; color:#ea580c; }
-        .badge-alpa   { background:#fee2e2; color:#dc2626; }
+        /* ── Badges ── */
+        .badge-hadir { background:#dcfce7; color:#16a34a; }
+        .badge-izin  { background:#fef9c3; color:#ca8a04; }
+        .badge-sakit { background:#ffedd5; color:#ea580c; }
+        .badge-alpa  { background:#fee2e2; color:#dc2626; }
         .badge { display:inline-block; padding:0.2rem 0.625rem; border-radius:9999px; font-size:0.75rem; font-weight:600; }
+
+        /* ── Sesi Active Card ── */
+        .sesi-card {
+            background: linear-gradient(135deg,#0f172a,#1e3a8a);
+            border: 1px solid rgba(99,179,237,0.2);
+        }
+        .pulse-dot {
+            width:10px; height:10px; border-radius:50%; background:#4ade80;
+            animation: sesi-pulse 1.5s ease infinite;
+        }
+        @keyframes sesi-pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+            50%      { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+        }
+
+        /* ── Face Modal Styles ── */
+        .face-oval {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -55%);
+            width: 200px; height: 250px;
+            border-radius: 50% / 45%;
+            border: 3px solid rgba(255,255,255,0.5);
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 5;
+            transition: border-color .3s, box-shadow .3s;
+        }
+        .face-oval.detected {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 20px rgba(74,222,128,0.5);
+        }
+        .face-oval.success {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 9999px rgba(0,100,0,0.6), 0 0 30px rgba(74,222,128,0.8);
+        }
+
+        #video-scan { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+
+        @keyframes checkmark-pop {
+            0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+            60%  { transform: scale(1.2) rotate(5deg);  opacity: 1; }
+            100% { transform: scale(1) rotate(0deg);  opacity: 1; }
+        }
+        .checkmark-pop { animation: checkmark-pop .5s cubic-bezier(.17,.67,.4,1.2) forwards; }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-6px); }
+            40%,80% { transform: translateX(6px); }
+        }
+        .shake { animation: shake .4s ease; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -87,11 +126,17 @@
                 &nbsp;·&nbsp;
                 <i class="fas fa-id-card text-xs mr-1"></i>NISN: {{ $user->nisn ?? '-' }}
             </p>
+            @if(!$user->isFaceEnrolled())
+                <div class="mt-3 bg-yellow-400/20 border border-yellow-400/40 text-yellow-200 rounded-xl px-4 py-2 text-xs flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                    Wajah belum terdaftar. Hubungi admin untuk re-enroll.
+                </div>
+            @endif
         </div>
     </div>
 
     {{-- CONTENT --}}
-    <div x-data="scannerApp()">
+    <div x-data="dashboardApp()" x-init="init()">
         <div class="px-4 -mt-10 max-w-lg mx-auto pb-24 relative z-20">
 
             @if(session('success'))
@@ -120,205 +165,371 @@
                 </div>
             </div>
 
-            {{-- SCAN BUTTON CARD --}}
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-5 text-center" data-aos="fade-up" data-aos-delay="80">
-                <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-qrcode text-4xl text-blue-600"></i>
+            {{-- SESI AKTIF CARD (polling) --}}
+            <div class="mb-5" data-aos="fade-up" data-aos-delay="60">
+                {{-- Loading State --}}
+                <div x-show="sesiLoading" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex items-center justify-center gap-3">
+                    <i class="fas fa-circle-notch fa-spin text-blue-400"></i>
+                    <span class="text-sm text-slate-500">Mengecek sesi presensi...</span>
                 </div>
-                <h2 class="text-lg font-bold text-slate-800 mb-1">Absen Sekarang</h2>
-                <p class="text-sm text-slate-500 mb-6 leading-relaxed">
-                    Scan QR code yang ditampilkan guru di kelas untuk mencatat kehadiranmu hari ini.
-                </p>
-                <button @click="openScanner" class="scan-btn inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-2xl text-base w-full sm:w-auto justify-center">
-                    <i class="fas fa-camera text-xl"></i>
-                    Scan QR Code
-                </button>
-                <p class="text-xs text-slate-400 mt-4">
-                    <i class="fas fa-info-circle mr-1"></i>Pastikan kamera aktif saat melakukan scan
-                </p>
+
+                {{-- Ada sesi aktif, sudah hadir --}}
+                <div x-show="!sesiLoading && sesiData && sudahHadir" x-cloak
+                     class="sesi-card rounded-3xl shadow-lg p-5 text-white">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="pulse-dot"></div>
+                                <span class="text-xs font-bold text-green-400 uppercase tracking-wide">Sesi Aktif</span>
+                            </div>
+                            <p x-text="sesiData?.kelas" class="font-extrabold text-lg"></p>
+                            <p x-text="'Guru: ' + sesiData?.guru" class="text-blue-200 text-sm mt-0.5"></p>
+                        </div>
+                        <div class="bg-green-500/20 rounded-2xl px-3 py-2 text-center border border-green-400/30">
+                            <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                            <p class="text-green-300 text-xs font-bold mt-0.5">HADIR</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-green-500/10 border border-green-400/20 rounded-xl px-4 py-2.5 text-sm text-green-300 flex items-center gap-2">
+                        <i class="fas fa-face-smile"></i>
+                        Absensi hari ini sudah tercatat. Selamat belajar! 🎉
+                    </div>
+                </div>
+
+                {{-- Ada sesi aktif, belum hadir --}}
+                <div x-show="!sesiLoading && sesiData && !sudahHadir" x-cloak
+                     class="sesi-card rounded-3xl shadow-lg p-5 text-white">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="pulse-dot"></div>
+                                <span class="text-xs font-bold text-green-400 uppercase tracking-wide">Sesi Aktif</span>
+                            </div>
+                            <p x-text="sesiData?.kelas" class="font-extrabold text-lg"></p>
+                            <p x-text="sesiData?.tanggal" class="text-blue-200 text-sm mt-0.5"></p>
+                            <p x-text="'Dibuat oleh: ' + sesiData?.guru" class="text-blue-300 text-xs mt-0.5"></p>
+                        </div>
+                        <div class="bg-orange-500/20 rounded-2xl px-3 py-2 text-center border border-orange-400/30">
+                            <i class="fas fa-clock text-orange-400 text-xl"></i>
+                            <p class="text-orange-300 text-xs font-bold mt-0.5">BELUM</p>
+                        </div>
+                    </div>
+                    <button @click="openFaceScanner()"
+                            class="scan-btn w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-base">
+                        <i class="fas fa-face-viewfinder text-xl"></i>
+                        Absen Wajah Sekarang
+                    </button>
+                </div>
+
+                {{-- Tidak ada sesi aktif --}}
+                <div x-show="!sesiLoading && !sesiData" x-cloak
+                     class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hourglass-half text-slate-400 text-2xl"></i>
+                    </div>
+                    <h2 class="text-base font-bold text-slate-700 mb-1">Belum Ada Sesi Presensi</h2>
+                    <p class="text-sm text-slate-500">Menunggu guru membuat sesi kelas pagi ini.</p>
+                    <p class="text-xs text-slate-400 mt-1">Halaman ini otomatis update setiap 5 detik.</p>
+                </div>
             </div>
 
             {{-- RIWAYAT PRESENSI --}}
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="140">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <h3 class="font-semibold text-slate-800 text-sm">
-                    <i class="fas fa-history text-blue-500 mr-2"></i>Riwayat Presensi
-                </h3>
-                <span class="text-xs text-slate-400">10 terakhir</span>
-            </div>
-
-            @if($riwayat->isEmpty())
-                <div class="py-12 text-center">
-                    <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-inbox text-slate-400 text-2xl"></i>
-                    </div>
-                    <p class="text-sm text-slate-500">Belum ada riwayat presensi</p>
-                    <p class="text-xs text-slate-400 mt-1">Mulai scan QR Code untuk absen</p>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="140">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-slate-800 text-sm">
+                        <i class="fas fa-history text-blue-500 mr-2"></i>Riwayat Presensi
+                    </h3>
+                    <span class="text-xs text-slate-400">10 terakhir</span>
                 </div>
-            @else
-                <div class="divide-y divide-slate-100">
-                    @foreach($riwayat as $item)
-                        <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition">
-                            <div>
-                                <p class="text-sm font-medium text-slate-800">
-                                    {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
-                                </p>
-                                <p class="text-xs text-slate-400 mt-0.5 flex items-center flex-wrap gap-1">
-                                    <i class="fas fa-door-open mr-1"></i>
-                                    {{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}
-                                    
-                                    @if(optional($item->sesiPresensi)->mataPelajaran)
-                                        <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiPresensi->mataPelajaran->nama_mapel }}</span>
-                                    @endif
-                                    @if(optional($item->sesiPresensi)->jam_pelajaran)
-                                        <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiPresensi->jam_pelajaran }}</span>
-                                    @endif
-                                    
-                                    @if($item->keterangan)
-                                        <span class="ml-1 text-slate-500 italic">({{ $item->keterangan }})</span>
-                                    @endif
-                                </p>
-                            </div>
-                            <span class="badge badge-{{ $item->status }}">{{ $item->labelStatus() }}</span>
+
+                @if($riwayat->isEmpty())
+                    <div class="py-12 text-center">
+                        <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-inbox text-slate-400 text-2xl"></i>
                         </div>
-                    @endforeach
-                </div>
-            @endif
+                        <p class="text-sm text-slate-500">Belum ada riwayat presensi</p>
+                        <p class="text-xs text-slate-400 mt-1">Lakukan absen wajah saat ada sesi aktif</p>
+                    </div>
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach($riwayat as $item)
+                            <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-800">
+                                        {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-0.5 flex items-center flex-wrap gap-1">
+                                        <i class="fas fa-door-open mr-1"></i>
+                                        {{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}
+
+                                        @if(optional($item->sesiPresensi)->mataPelajaran)
+                                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">{{ $item->sesiPresensi->mataPelajaran->nama_mapel }}</span>
+                                        @endif
+                                        @if(optional($item->sesiPresensi)->jam_pelajaran)
+                                            <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"><i class="fas fa-clock mr-1"></i>{{ $item->sesiPresensi->jam_pelajaran }}</span>
+                                        @endif
+
+                                        @if($item->keterangan)
+                                            <span class="ml-1 text-slate-500 italic">({{ $item->keterangan }})</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <span class="badge badge-{{ $item->status }}">{{ $item->labelStatus() }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
         </div>
 
-    </div>
+        {{-- ──────────────────────────────────────────── --}}
+        {{-- FACE SCANNER MODAL --}}
+        {{-- ──────────────────────────────────────────── --}}
+        <div x-show="isScanning" x-cloak
+             class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/85 backdrop-blur-sm px-4">
+            <div @click.away="closeFaceScanner()" class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
 
-    {{-- SCANNER MODAL (Outside main container to avoid z-index/transform issues) --}}
-    <div x-show="isScanning" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm px-4">
-        <div @click.away="closeScanner" class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative">
-            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
-                <h3 class="font-bold">Scan QR Code</h3>
-                <button @click="closeScanner" class="text-white/70 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <div class="p-6">
-                <div id="reader" class="w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[300px]"></div>
-                
-                <div x-show="scanStatus === 'processing'" class="mt-4 text-sm font-semibold text-blue-600 flex items-center justify-center gap-2">
-                    <i class="fas fa-spinner fa-spin"></i> Memproses barcode...
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-blue-700 to-blue-500 px-5 py-4 flex justify-between items-center text-white">
+                    <div>
+                        <h3 class="font-bold text-base">Verifikasi Wajah</h3>
+                        <p class="text-blue-100 text-xs mt-0.5">Posisikan wajah dalam bingkai oval</p>
+                    </div>
+                    <button @click="closeFaceScanner()" class="text-white/70 hover:text-white transition text-xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div x-show="scanMessage" class="mt-4 text-sm font-semibold p-3 rounded-xl" 
-                        :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
-                    <span x-text="scanMessage"></span>
+
+                {{-- Camera Area --}}
+                <div class="relative bg-slate-900" style="height: 300px;">
+                    <video id="video-scan" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
+                    <canvas id="canvas-scan" class="hidden"></canvas>
+
+                    {{-- Oval guide --}}
+                    <div class="face-oval" :class="scanState === 'detected' ? 'detected' : (scanState === 'success' ? 'success' : '')"></div>
+
+                    {{-- State overlays --}}
+                    <div x-show="scanState === 'idle'" class="absolute bottom-3 left-0 right-0 flex justify-center">
+                        <div class="bg-black/60 text-white text-xs px-4 py-1.5 rounded-full flex items-center gap-2">
+                            <i class="fas fa-circle-notch fa-spin"></i> Mengarahkan kamera...
+                        </div>
+                    </div>
+                    <div x-show="scanState === 'detecting'" class="absolute bottom-3 left-0 right-0 flex justify-center">
+                        <div class="bg-black/60 text-white text-xs px-4 py-1.5 rounded-full">
+                            Posisikan wajah dalam bingkai
+                        </div>
+                    </div>
+                    <div x-show="scanState === 'detected'" class="absolute bottom-3 left-0 right-0 flex justify-center">
+                        <div class="bg-green-500/80 text-white text-xs px-4 py-1.5 rounded-full font-semibold">
+                            <i class="fas fa-check mr-1"></i> Siap! Tahan sebentar...
+                        </div>
+                    </div>
+                    <div x-show="scanState === 'processing'" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i class="fas fa-circle-notch fa-spin text-3xl text-blue-400"></i>
+                            <p class="mt-2 text-sm font-semibold">Memverifikasi wajah...</p>
+                        </div>
+                    </div>
+                    <div x-show="scanState === 'success'" class="absolute inset-0 bg-green-900/60 flex items-center justify-center">
+                        <div class="text-center text-white checkmark-pop">
+                            <i class="fas fa-circle-check text-5xl text-green-400"></i>
+                            <p class="mt-2 font-extrabold text-lg">HADIR ✓</p>
+                        </div>
+                    </div>
+                    <div x-show="scanState === 'failed'" class="absolute inset-0 bg-red-900/60 flex items-center justify-center">
+                        <div class="text-center text-white shake">
+                            <i class="fas fa-face-frown text-5xl text-red-400"></i>
+                            <p class="mt-2 font-bold">Wajah tidak dikenali</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bottom info / message --}}
+                <div class="p-4">
+                    <div x-show="scanMessage" class="text-sm font-semibold p-3 rounded-xl mb-3 text-center"
+                         :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
+                        <span x-text="scanMessage"></span>
+                    </div>
+
+                    <button @click="manualTrigger()"
+                            x-show="scanState === 'detecting' || scanState === 'detected'"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fas fa-face-viewfinder"></i> Scan Sekarang
+                    </button>
+
+                    <button @click="retryScan()"
+                            x-show="scanState === 'failed'"
+                            class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fas fa-rotate-right"></i> Coba Lagi
+                    </button>
+
+                    <p x-show="scanState === 'idle' || scanState === 'detecting'" class="text-xs text-slate-400 text-center mt-2">
+                        <i class="fas fa-info-circle mr-1"></i> Pastikan pencahayaan cukup & wajah terlihat jelas
+                    </p>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+
+    </div>{{-- end x-data --}}
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
     AOS.init({ once: true, duration: 400, offset: 20 });
 
-    function scannerApp() {
+    function dashboardApp() {
         return {
+            // ── Sesi polling state ──
+            sesiLoading: true,
+            sesiData: null,
+            sudahHadir: false,
+            currentSesiId: null,
+            pollInterval: null,
+
+            // ── Face scanner state ──
             isScanning: false,
-            scanStatus: 'idle', // idle, processing, done
+            scanState: 'idle',   // idle | detecting | detected | processing | success | failed
             scanMessage: '',
             scanSuccess: false,
-            html5QrcodeScanner: null,
+            videoStream: null,
+            autoScanTimer: null,
 
-            openScanner() {
-                this.isScanning = true;
-                this.scanStatus = 'idle';
-                this.scanMessage = '';
-                
-                // Initialize scanner after modal opens
-                setTimeout(() => {
-                    this.html5QrcodeScanner = new Html5QrcodeScanner(
-                        "reader",
-                        { 
-                            fps: 10, 
-                            qrbox: {width: 250, height: 250}, 
-                            aspectRatio: 1.0,
-                            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-                        },
-                        /* verbose= */ false);
-                    
-                    this.html5QrcodeScanner.render(this.onScanSuccess.bind(this), this.onScanFailure.bind(this));
-                }, 300);
+            init() {
+                this.pollSesiAktif();
+                this.pollInterval = setInterval(() => this.pollSesiAktif(), 5000);
             },
 
-            closeScanner() {
-                this.isScanning = false;
-                if (this.html5QrcodeScanner) {
-                    this.html5QrcodeScanner.clear().catch(error => {
-                        console.error("Failed to clear html5QrcodeScanner. ", error);
+            // ── Polling sesi aktif dari server ──
+            pollSesiAktif() {
+                fetch('{{ route('siswa.sesiaktif') }}')
+                    .then(r => r.json())
+                    .then(data => {
+                        this.sesiLoading = false;
+                        if (data.success && data.sesi) {
+                            this.sesiData      = data.sesi;
+                            this.currentSesiId = data.sesi.id;
+                            this.sudahHadir    = data.sudah_hadir;
+                        } else {
+                            this.sesiData      = null;
+                            this.currentSesiId = null;
+                            this.sudahHadir    = false;
+                        }
+                    })
+                    .catch(() => { this.sesiLoading = false; });
+            },
+
+            // ── Open face scanner modal ──
+            async openFaceScanner() {
+                this.isScanning   = true;
+                this.scanState    = 'idle';
+                this.scanMessage  = '';
+                this.scanSuccess  = false;
+
+                try {
+                    this.videoStream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+                        audio: false
                     });
-                }
-                if (this.scanSuccess) {
-                    window.location.reload();
+                    const video = document.getElementById('video-scan');
+                    video.srcObject = this.videoStream;
+                    await video.play();
+
+                    setTimeout(() => {
+                        if (this.isScanning) this.scanState = 'detecting';
+                    }, 600);
+
+                    // Simulate face detection ready after ~1.5s
+                    setTimeout(() => {
+                        if (this.isScanning && this.scanState === 'detecting') {
+                            this.scanState = 'detected';
+                        }
+                    }, 1800);
+
+                } catch (err) {
+                    this.scanMessage = 'Kamera tidak dapat diakses. Pastikan menggunakan HTTPS dan izinkan akses kamera.';
+                    this.scanState = 'failed';
                 }
             },
 
-            onScanSuccess(decodedText, decodedResult) {
-                if(this.scanStatus === 'processing' || this.scanStatus === 'done') return;
-                
-                this.scanStatus = 'processing';
-                
-                // Pause scanner temporarily if scanning
-                if (this.html5QrcodeScanner) {
-                    this.html5QrcodeScanner.pause();
-                }
+            manualTrigger() {
+                if (this.scanState !== 'detecting' && this.scanState !== 'detected') return;
+                this.captureAndSend();
+            },
 
-                fetch("{{ route('siswa.scan') }}", {
+            captureAndSend() {
+                const video  = document.getElementById('video-scan');
+                const canvas = document.getElementById('canvas-scan');
+                canvas.width  = video.videoWidth  || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                ctx.restore();
+
+                const imageB64 = canvas.toDataURL('image/jpeg', 0.85);
+
+                this.scanState = 'processing';
+
+                fetch('{{ route('siswa.scanwajah') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ token: decodedText })
+                    body: JSON.stringify({
+                        sesi_id:    this.currentSesiId,
+                        face_image: imageB64,
+                    })
                 })
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
-                    this.scanStatus = 'done';
                     if (data.success) {
+                        this.scanState   = 'success';
                         this.scanSuccess = true;
-                        this.scanMessage = "Berhasil absen! " + data.message;
-                        
-                        // Auto-reload to fetch updated real-time history
+                        this.scanMessage = '🎉 Berhasil! Anda tercatat HADIR.';
+                        this.sudahHadir  = true;
+                        this.stopCamera();
                         setTimeout(() => {
+                            this.isScanning = false;
                             window.location.reload();
-                        }, 1500);
-                        
+                        }, 2000);
                     } else {
+                        this.scanState   = 'failed';
                         this.scanSuccess = false;
-                        this.scanMessage = data.message || "Gagal absen. QR tidak valid.";
-                        // Resume scanning if failed so they can try again
-                        setTimeout(() => {
-                            this.scanStatus = 'idle';
-                            this.scanMessage = '';
-                            if (this.html5QrcodeScanner) this.html5QrcodeScanner.resume();
-                        }, 2500);
+                        this.scanMessage = data.message || 'Wajah tidak dikenali.';
                     }
                 })
-                .catch(err => {
-                    console.error(err);
-                    this.scanStatus = 'done';
-                    this.scanSuccess = false;
-                    this.scanMessage = "Terjadi kesalahan sistem. Coba lagi.";
-                    
-                    setTimeout(() => {
-                        this.scanStatus = 'idle';
-                        this.scanMessage = '';
-                        if (this.html5QrcodeScanner) this.html5QrcodeScanner.resume();
-                    }, 2500);
+                .catch(() => {
+                    this.scanState   = 'failed';
+                    this.scanMessage = 'Terjadi kesalahan koneksi. Coba lagi.';
                 });
             },
 
-            onScanFailure(error) {
-                // handle scan failure, usually better to ignore and keep scanning
-                if(String(error).includes("NotFoundError") || String(error).includes("NotAllowedError")) {
-                    this.scanMessage = "Kamera diblokir/tidak ditemukan. Jika menggunakan HP, pastikan website diakses menggunakan HTTPS / Ngrok.";
-                    this.scanSuccess = false;
+            retryScan() {
+                this.scanState   = 'detecting';
+                this.scanMessage = '';
+                // Give face detection time
+                setTimeout(() => {
+                    if (this.isScanning && this.scanState === 'detecting') {
+                        this.scanState = 'detected';
+                    }
+                }, 1500);
+            },
+
+            closeFaceScanner() {
+                this.isScanning = false;
+                this.stopCamera();
+                if (this.scanSuccess) window.location.reload();
+            },
+
+            stopCamera() {
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(t => t.stop());
+                    this.videoStream = null;
                 }
-            }
-        }
+            },
+        };
     }
 </script>
 </body>

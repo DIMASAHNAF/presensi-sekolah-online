@@ -53,7 +53,7 @@
             <input type="hidden" name="tipe" value="kelas">
             
             <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 text-xs text-blue-700 mb-4">
-                <i class="fas fa-info-circle mr-1"></i> <strong>Sesi Kelas</strong>: Digunakan oleh Wali Kelas di pagi hari. Siswa wajib scan barcode untuk hadir.
+                <i class="fas fa-info-circle mr-1"></i> <strong>Sesi Kelas</strong>: Digunakan oleh Wali Kelas di pagi hari. Siswa wajib <strong>scan wajah</strong> untuk hadir.
             </div>
 
             <div>
@@ -93,7 +93,7 @@
             </div>
 
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-                <i class="fas fa-qrcode"></i> Buat Barcode Kelas
+                <i class="fas fa-face-smile"></i> Buat Sesi Absen Kelas
             </button>
         </form>
 

@@ -25,27 +25,15 @@
     <div class="lg:col-span-1 space-y-6">
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 text-center" data-aos="fade-up">
             <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
-                <i class="fas fa-qrcode"></i>
+                <i class="fas fa-face-viewfinder"></i>
             </div>
-            <h3 class="font-bold text-slate-800 text-lg">QR Code Presensi</h3>
-            <p class="text-xs text-slate-500 mt-1 mb-5">Tampilkan ini di depan kelas agar siswa dapat melakukan scan.</p>
-            
-            @if($sesiPresensi->is_active)
-            <button onclick="document.getElementById('barcodeModal').classList.remove('hidden')" 
-                    class="w-full btn-primary justify-center py-3 text-sm mb-2">
-                <i class="fas fa-qrcode mr-1.5"></i> Tampilkan Layar Penuh
-            </button>
-            @else
-            <div class="bg-slate-100 text-slate-500 font-semibold text-xs py-2.5 rounded-xl mb-2 flex items-center justify-center gap-1.5">
-                <i class="fas fa-lock"></i> Sesi Telah Ditutup
+            <h3 class="font-bold text-slate-800 text-lg">Presensi Wajah</h3>
+            <p class="text-xs text-slate-500 mt-1 mb-5">Siswa melakukan absen dengan scan wajah dari dashboard mereka.</p>
+
+            <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700 text-left mb-4">
+                <i class="fas fa-info-circle mr-1.5"></i>
+                Absensi berjalan otomatis saat siswa scan wajah. Data hadir tampil secara real-time di bawah.
             </div>
-            <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST" class="mb-2">
-                @csrf @method('PATCH')
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-                    <i class="fas fa-unlock"></i> Aktifkan / Buka Barcode
-                </button>
-            </form>
-            @endif
 
             <a href="{{ route('dashboard.presensi.pdf', $sesiPresensi) }}" target="_blank"
                class="w-full btn-secondary justify-center py-3 text-sm">
@@ -90,20 +78,30 @@
                 </div>
             </div>
 
+            {{-- Tutup Sesi: HANYA tampil untuk sesi tipe kelas (pagi) --}}
+            @if($sesiPresensi->tipe === 'kelas')
             <div class="mt-5 pt-5 border-t border-slate-100">
                 <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST">
                     @csrf @method('PATCH')
                     @if($sesiPresensi->is_active)
-                        <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold" onclick="return confirm('Tutup sesi presensi ini? Barcode tidak bisa di-scan lagi.')">
-                            <i class="fas fa-lock mr-1"></i> Tutup Sesi (Nonaktifkan Barcode)
+                        <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold" onclick="return confirm('Tutup sesi presensi ini? Siswa tidak bisa scan wajah lagi.')">
+                            <i class="fas fa-lock mr-1"></i> Tutup Sesi (Nonaktifkan Absensi)
                         </button>
                     @else
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white justify-center py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1">
-                            <i class="fas fa-unlock mr-1"></i> Buka Sesi (Aktifkan Barcode)
+                            <i class="fas fa-unlock mr-1"></i> Buka Sesi (Aktifkan Kembali)
                         </button>
                     @endif
                 </form>
             </div>
+            @else
+            <div class="mt-5 pt-5 border-t border-slate-100">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-500 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                    Sesi Mapel tidak memiliki tombol tutup. Edit kehadiran langsung dari tabel siswa.
+                </div>
+            </div>
+            @endif
 
             @if(auth()->user()->isAdmin())
             <div class="mt-3 pt-3 border-t border-slate-100">
@@ -244,49 +242,14 @@
     </div>
 </div>
 
-{{-- MODAL FULLSCREEN BARCODE --}}
-<div id="barcodeModal" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4">
-    <button onclick="document.getElementById('barcodeModal').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 hover:text-slate-800 transition text-4xl">
-        <i class="fas fa-times"></i>
-    </button>
-    <h2 class="text-3xl font-extrabold text-slate-800 mb-2">{{ $sesiPresensi->kelas->nama_kelas }}</h2>
-    <p class="text-lg text-slate-500 mb-2">{{ $sesiPresensi->mataPelajaran ? $sesiPresensi->mataPelajaran->nama_mapel . ' - ' : '' }}{{ $sesiPresensi->tanggal->isoFormat('dddd, D MMMM Y') }}</p>
-    @if($sesiPresensi->jam_pelajaran)
-        <p class="text-sm font-semibold text-blue-600 mb-8">{{ $sesiPresensi->jam_pelajaran }}</p>
-    @else
-        <div class="mb-6"></div>
-    @endif
-    
-    <div class="bg-white p-6 rounded-3xl shadow-2xl border-4 border-blue-500">
-        <div id="qrcode" class="w-64 h-64 flex items-center justify-center"></div>
-    </div>
-    
-    <p class="mt-8 text-slate-500 font-medium text-base">Silakan buka aplikasi presensi di HP dan scan QR code di atas.</p>
-</div>
-
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-    // Generate QR Code
-    const qrContainer = document.getElementById('qrcode');
-    if(qrContainer) {
-        new QRCode(qrContainer, {
-            text: "{{ $sesiPresensi->barcode_token }}",
-            width: 256,
-            height: 256,
-            colorDark : "#1e293b",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-    }
-
     // REALTIME LIVE AUTO-SYNC (POLLING SETIAP 2 DETIK)
     function pollLiveStatus() {
         fetch("{{ route('dashboard.presensi.live', $sesiPresensi) }}")
             .then(res => res.json())
             .then(data => {
                 if(data.success && data.stats) {
-                    // Update header counters
                     const elHadir = document.getElementById('count-hadir');
                     const elIzin  = document.getElementById('count-izin');
                     const elSakit = document.getElementById('count-sakit');
@@ -297,7 +260,6 @@
                     if(elSakit) elSakit.innerText = data.stats.sakit;
                     if(elAlpa)  elAlpa.innerText  = data.stats.alpa;
 
-                    // Update student badges
                     if(data.items) {
                         data.items.forEach(item => {
                             const badge = document.getElementById('badge-' + item.id);
@@ -328,7 +290,6 @@
             .catch(err => console.debug('Live sync poll:', err));
     }
 
-    // Mulai polling otomatis
     let liveSyncTimer = setInterval(pollLiveStatus, 2000);
 </script>
 @endpush
