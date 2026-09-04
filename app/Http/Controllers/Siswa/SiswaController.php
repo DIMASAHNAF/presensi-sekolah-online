@@ -190,4 +190,57 @@ class SiswaController extends Controller
             'confidence' => $result['confidence'] ?? null,
         ]);
     }
+
+    // ──────────────────────────────────────────────────────────────
+    //  GET /siswa/enroll-wajah
+    //  Halaman pendaftaran wajah untuk siswa existing (belum enroll)
+    // ──────────────────────────────────────────────────────────────
+    public function showEnrollWajah()
+    {
+        $user = auth()->user();
+        return view('siswa.enroll-wajah', compact('user'));
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  POST /siswa/enroll-wajah
+    //  Proses foto wajah + simpan descriptor untuk siswa existing
+    // ──────────────────────────────────────────────────────────────
+    public function enrollWajah(Request $request)
+    {
+        $request->validate([
+            'face_images' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+
+        try {
+            $imagesArray = json_decode($request->face_images, true);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Data gambar tidak valid.']);
+        }
+
+        if (!is_array($imagesArray) || count($imagesArray) < 3) {
+            return response()->json(['success' => false, 'message' => 'Minimal 3 foto diperlukan.']);
+        }
+
+        $faceService = new FaceService();
+        $result      = $faceService->enroll($imagesArray);
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses wajah: ' . ($result['error'] ?? 'Coba lagi dengan pencahayaan lebih baik.'),
+            ]);
+        }
+
+        $user->update([
+            'face_descriptor'  => $result['descriptor'],
+            'face_enrolled_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Wajah berhasil didaftarkan! Anda sekarang bisa absen dengan scan wajah.',
+        ]);
+    }
 }

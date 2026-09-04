@@ -127,9 +127,16 @@
                 <i class="fas fa-id-card text-xs mr-1"></i>NISN: {{ $user->nisn ?? '-' }}
             </p>
             @if(!$user->isFaceEnrolled())
-                <div class="mt-3 bg-yellow-400/20 border border-yellow-400/40 text-yellow-200 rounded-xl px-4 py-2 text-xs flex items-center gap-2">
-                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
-                    Wajah belum terdaftar. Hubungi admin untuk re-enroll.
+                <div class="mt-3 bg-amber-400/20 border border-amber-400/40 text-amber-100 rounded-xl px-4 py-3 text-sm flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-amber-400 mt-0.5 shrink-0"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold text-amber-200">Wajah belum terdaftar!</p>
+                        <p class="text-xs opacity-80 mt-0.5">Daftarkan wajah kamu untuk bisa absen mandiri.</p>
+                        <a href="{{ route('siswa.enroll') }}"
+                           class="inline-block mt-2 bg-amber-400 hover:bg-amber-500 text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg transition">
+                            <i class="fas fa-face-smile mr-1"></i> Daftarkan Wajah Sekarang
+                        </a>
+                    </div>
                 </div>
             @endif
         </div>
