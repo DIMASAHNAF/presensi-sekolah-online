@@ -18,5 +18,6 @@
             </form>
         </div>
     </div>
+    <x-page-loader />
 </body>
 </html>

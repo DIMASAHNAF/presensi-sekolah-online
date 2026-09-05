@@ -119,6 +119,8 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
 
+    <x-page-loader />
+
     {{-- HERO HEADER --}}
     <div class="hero-bg text-white px-6 pt-10 pb-28 relative z-10">
         <div class="relative z-10 max-w-lg mx-auto">
@@ -426,11 +428,8 @@
                             <i class="fas fa-check mr-1"></i> Kedipan Terdeteksi!
                         </div>
                     </div>
-                    <div x-show="scanState === 'processing'" class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                        <div class="text-center text-white">
-                            <i class="fas fa-circle-notch fa-spin text-4xl text-teal-400"></i>
-                            <p class="mt-3 text-sm font-semibold tracking-wide">Memverifikasi wajah...</p>
-                        </div>
+                    <div x-show="scanState === 'processing'" class="absolute inset-0 bg-slate-950/85 flex items-center justify-center backdrop-blur-md z-30">
+                        <x-loading-school />
                     </div>
                     <div x-show="scanState === 'success'" class="absolute inset-0 bg-green-900/60 flex items-center justify-center">
                         <div class="text-center text-white checkmark-pop">

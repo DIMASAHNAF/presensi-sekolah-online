@@ -395,5 +395,6 @@
         };
     }
 </script>
+    <x-page-loader />
 </body>
 </html>

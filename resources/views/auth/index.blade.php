@@ -98,6 +98,8 @@
 <body class="min-h-screen w-screen bg-[#030712] relative overflow-x-hidden flex flex-col items-center justify-center p-4 selection:bg-teal-500 selection:text-white"
       x-data="loginCardApp()">
 
+    <x-page-loader />
+
     {{-- Background Glow Layer --}}
     <div class="absolute inset-0 bg-gradient-to-b from-teal-950/40 via-[#030712] to-black pointer-events-none"></div>
     <div class="absolute inset-0 noise-bg opacity-[0.035] mix-blend-soft-light pointer-events-none"></div>
