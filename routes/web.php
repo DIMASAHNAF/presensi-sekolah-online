@@ -73,6 +73,10 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
 
     Route::get('/log', [DashboardController::class, 'logPresensiIndex'])->name('.log');
     Route::post('/reset-sesi', [DashboardController::class, 'resetSesi'])->name('.reset-sesi');
+
+    // Pengaturan Lokasi & Geofencing
+    Route::get('/pengaturan-lokasi', [DashboardController::class, 'lokasiIndex'])->name('.lokasi');
+    Route::post('/pengaturan-lokasi', [DashboardController::class, 'updateLokasi'])->name('.lokasi.update');
 });
 
 //  AUTH

@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <!-- PWA Settings -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Presensi">
+    <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
     <title>Dashboard Siswa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -159,6 +167,29 @@
     <div x-data="dashboardApp()" x-init="init()">
         <div class="px-4 -mt-10 max-w-lg mx-auto pb-24 relative z-20">
 
+            {{-- PWA Install Banner --}}
+            <div x-show="showInstallPrompt" x-cloak
+                 class="mb-4 bg-gradient-to-r from-teal-700 to-emerald-700 rounded-2xl p-3.5 text-white shadow-lg shadow-teal-900/20 flex items-center justify-between gap-3 border border-teal-500/30"
+                 data-aos="fade-down">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="fas fa-mobile-screen-button text-teal-200 text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-xs">Jadikan Aplikasi di Layar HP</p>
+                        <p class="text-[11px] text-teal-100/90">Akses presensi instan tanpa buka browser</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button @click="installApp()" class="bg-white hover:bg-teal-50 text-teal-800 text-xs font-bold px-3 py-1.5 rounded-xl shadow transition">
+                        Install
+                    </button>
+                    <button @click="showInstallPrompt = false" class="text-white/70 hover:text-white text-xs p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
             @if(session('success'))
                 <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
                     <i class="fas fa-circle-check text-emerald-500"></i> {{ session('success') }}
@@ -219,7 +250,7 @@
                 {{-- Ada sesi aktif, belum hadir --}}
                 <div x-show="!sesiLoading && sesiData && !sudahHadir" x-cloak
                      class="sesi-card rounded-3xl shadow-lg p-5 text-white">
-                    <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-start justify-between mb-3">
                         <div>
                             <div class="flex items-center gap-2 mb-1">
                                 <div class="pulse-dot"></div>
@@ -234,10 +265,61 @@
                             <p class="text-orange-300 text-xs font-bold mt-0.5">BELUM</p>
                         </div>
                     </div>
+
+                    {{-- Geofencing GPS Status Indicator --}}
+                    <div x-show="geofencingActive" class="my-3 pt-3 border-t border-white/10">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-teal-200/80 font-medium flex items-center gap-1.5">
+                                <i class="fas fa-satellite-dish text-[11px] text-teal-400"></i> Radar Lokasi GPS:
+                            </span>
+                            <button type="button" @click="checkLocation(true)" title="Perbarui titik GPS"
+                                    class="text-teal-300 hover:text-white text-xs px-2 py-0.5 rounded-lg hover:bg-white/10 transition flex items-center gap-1 font-medium">
+                                <i class="fas fa-arrows-rotate text-[10px]" :class="isRequestingGeo ? 'fa-spin' : ''"></i> Refresh GPS
+                            </button>
+                        </div>
+
+                        {{-- Checking --}}
+                        <div x-show="geoStatus === 'checking'" class="bg-teal-950/40 border border-teal-500/20 rounded-xl px-3 py-2 text-xs text-teal-200 flex items-center gap-2">
+                            <i class="fas fa-circle-notch fa-spin text-teal-400"></i>
+                            <span>Menentukan jarak GPS ke sekolah...</span>
+                        </div>
+
+                        {{-- Valid / In Radius --}}
+                        <div x-show="geoStatus === 'valid'" class="bg-emerald-950/50 border border-emerald-400/30 rounded-xl px-3 py-2 text-xs text-emerald-200 flex items-center gap-2">
+                            <i class="fas fa-circle-check text-emerald-400 text-sm"></i>
+                            <span>Di Area Sekolah (Jarak: <strong x-text="geoDistance + ' m'"></strong>, Maks: <span x-text="schoolRadius + 'm'"></span>)</span>
+                        </div>
+
+                        {{-- Outside Radius Warning --}}
+                        <div x-show="geoStatus === 'outside'" class="bg-rose-950/60 border border-rose-400/40 rounded-xl px-3 py-2.5 text-xs text-rose-200 space-y-1">
+                            <div class="flex items-center gap-2 font-bold text-rose-300">
+                                <i class="fas fa-triangle-exclamation text-rose-400"></i>
+                                <span>Di Luar Radius Sekolah (<span x-text="formatDistance(geoDistance)"></span>)</span>
+                            </div>
+                            <p class="text-[11px] text-rose-200/80 leading-relaxed">
+                                Presensi hanya dapat dilakukan di dalam lingkungan sekolah (maksimal <span x-text="schoolRadius"></span> meter).
+                            </p>
+                        </div>
+
+                        {{-- GPS Error / Permission Required --}}
+                        <div x-show="geoStatus === 'error'" class="bg-amber-950/60 border border-amber-400/40 rounded-xl px-3 py-2 text-xs text-amber-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-location-slash text-amber-400"></i>
+                                <span>Akses GPS belum diizinkan.</span>
+                            </div>
+                            <button type="button" @click="checkLocation(true)" class="underline font-bold text-white hover:text-amber-200">
+                                Aktifkan
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Scan Button with Geofence check --}}
                     <button @click="openFaceScanner()"
-                            class="scan-btn w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-base">
-                        <i class="fas fa-face-viewfinder text-xl"></i>
-                        Absen Wajah Sekarang
+                            :disabled="geofencingActive && geoStatus === 'outside'"
+                            :class="geofencingActive && geoStatus === 'outside' ? 'opacity-60 cursor-not-allowed bg-slate-700/80 shadow-none' : 'scan-btn'"
+                            class="w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-base shadow-lg transition">
+                        <i class="fas" :class="geofencingActive && geoStatus === 'outside' ? 'fa-lock' : 'fa-face-viewfinder text-xl'"></i>
+                        <span x-text="geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Absen Wajah Sekarang'"></span>
                     </button>
                 </div>
 
@@ -390,6 +472,91 @@
 <script>
     AOS.init({ once: true, duration: 400, offset: 20 });
 
+    // ── Web Audio API Synthesizer (No external MP3 files needed) ──
+    const audioFx = {
+        ctx: null,
+        getCtx() {
+            if (!this.ctx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) this.ctx = new AudioCtx();
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+            return this.ctx;
+        },
+        // Quick high pop when blink is detected
+        playBlink() {
+            try {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(750, now);
+                osc.frequency.exponentialRampToValueAtTime(1250, now + 0.07);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.07);
+            } catch (e) { console.warn(e); }
+        },
+        // Pleasant modern dual-tone chime on successful attendance
+        playSuccess() {
+            try {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                
+                // Tone 1: E5 (659.25Hz)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, now);
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.3);
+
+                // Tone 2: A5 (880Hz) with gentle delay
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880, now + 0.1);
+                gain2.gain.setValueAtTime(0.35, now + 0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.1);
+                osc2.stop(now + 0.6);
+            } catch (e) { console.warn(e); }
+        },
+        // Low tone cue on error / warning
+        playError() {
+            try {
+                const ctx = this.getCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(160, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) { console.warn(e); }
+        }
+    };
+
     function dashboardApp() {
         return {
             // ── Sesi polling state ──
@@ -398,6 +565,21 @@
             sudahHadir: false,
             currentSesiId: null,
             pollInterval: null,
+
+            // ── Geofencing state ──
+            schoolLat: {{ $schoolSetting->latitude }},
+            schoolLng: {{ $schoolSetting->longitude }},
+            schoolRadius: {{ $schoolSetting->radius_meters }},
+            geofencingActive: {{ $schoolSetting->is_geofencing_active ? 'true' : 'false' }},
+            userLat: null,
+            userLng: null,
+            geoDistance: null,
+            geoStatus: 'checking', // 'checking' | 'valid' | 'outside' | 'error'
+            isRequestingGeo: false,
+
+            // ── PWA install prompt ──
+            showInstallPrompt: false,
+            deferredPrompt: null,
 
             // ── Face scanner state ──
             isScanning: false,
@@ -411,6 +593,88 @@
             init() {
                 this.pollSesiAktif();
                 this.pollInterval = setInterval(() => this.pollSesiAktif(), 5000);
+                if (this.geofencingActive) {
+                    this.checkLocation();
+                } else {
+                    this.geoStatus = 'disabled';
+                }
+
+                // PWA Service Worker Registration
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('/sw.js').catch(console.warn);
+                    });
+                }
+
+                // PWA Install Prompt Listener
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.showInstallPrompt = true;
+                });
+            },
+
+            // ── Install PWA Mobile App ──
+            installApp() {
+                if (!this.deferredPrompt) return;
+                this.deferredPrompt.prompt();
+                this.deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        this.showInstallPrompt = false;
+                    }
+                    this.deferredPrompt = null;
+                });
+            },
+
+            // ── Hitung Jarak GPS Siswa ke Sekolah (Haversine) ──
+            checkLocation(force = false) {
+                if (!this.geofencingActive && !force) {
+                    this.geoStatus = 'disabled';
+                    return;
+                }
+
+                if (!navigator.geolocation) {
+                    this.geoStatus = 'error';
+                    return;
+                }
+
+                this.isRequestingGeo = true;
+                if (force) this.geoStatus = 'checking';
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        this.isRequestingGeo = false;
+                        this.userLat = pos.coords.latitude;
+                        this.userLng = pos.coords.longitude;
+
+                        const R = 6371000; // meter
+                        const dLat = (this.schoolLat - this.userLat) * Math.PI / 180;
+                        const dLon = (this.schoolLng - this.userLng) * Math.PI / 180;
+                        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                  Math.cos(this.userLat * Math.PI / 180) * Math.cos(this.schoolLat * Math.PI / 180) *
+                                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        this.geoDistance = Math.round(R * c);
+
+                        if (!this.geofencingActive || this.geoDistance <= this.schoolRadius) {
+                            this.geoStatus = 'valid';
+                        } else {
+                            this.geoStatus = 'outside';
+                        }
+                    },
+                    (err) => {
+                        this.isRequestingGeo = false;
+                        this.geoStatus = 'error';
+                        console.warn('Geolocation error:', err);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+                );
+            },
+
+            formatDistance(m) {
+                if (!m && m !== 0) return '-';
+                if (m >= 1000) return (m / 1000).toFixed(1) + ' km';
+                return m + ' meter';
             },
 
             // ── Polling sesi aktif dari server ──
@@ -428,12 +692,31 @@
                             this.currentSesiId = null;
                             this.sudahHadir    = false;
                         }
+
+                        // Sinkronkan geofencing jika ada pembaruan dari admin
+                        if (data.geofencing) {
+                            this.geofencingActive = data.geofencing.active;
+                            this.schoolLat = data.geofencing.latitude;
+                            this.schoolLng = data.geofencing.longitude;
+                            this.schoolRadius = data.geofencing.radius_meters;
+                        }
                     })
                     .catch(() => { this.sesiLoading = false; });
             },
 
             // ── Open face scanner modal ──
             async openFaceScanner() {
+                // Validasi geofencing sebelum menyalakan kamera
+                if (this.geofencingActive && this.geoStatus === 'outside') {
+                    audioFx.playError();
+                    alert(`Presensi ditolak: Anda berada di luar radius sekolah (${this.formatDistance(this.geoDistance)}). Batas maksimal: ${this.schoolRadius} meter.`);
+                    return;
+                }
+
+                if (this.geofencingActive && !this.userLat) {
+                    this.checkLocation(true);
+                }
+
                 this.isScanning   = true;
                 this.scanState    = 'idle';
                 this.scanMessage  = 'Memuat Model AI...';
@@ -466,6 +749,7 @@
                     this.startDetectionLoop(video);
 
                 } catch (err) {
+                    audioFx.playError();
                     this.scanMessage = 'Gagal mengakses kamera/AI: ' + err.message;
                     this.scanState = 'failed';
                 }
@@ -500,7 +784,8 @@
                             if (avgEAR < 0.27) {
                                 this.blinkState = 'closed';
                             } else if (avgEAR > 0.28 && this.blinkState === 'closed') {
-                                // Blink detected!
+                                // Blink detected! Bunyikan audio pop
+                                audioFx.playBlink();
                                 this.blinkState = 'open';
                                 this.scanState = 'detected';
                                 clearInterval(this.detectionInterval);
@@ -512,8 +797,6 @@
                     }
                 }, 150);
             },
-
-
 
             captureAndSend() {
                 const video  = document.getElementById('video-scan');
@@ -539,11 +822,14 @@
                     body: JSON.stringify({
                         sesi_id:    this.currentSesiId,
                         face_image: imageB64,
+                        latitude:   this.userLat,
+                        longitude:  this.userLng,
                     })
                 })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        audioFx.playSuccess();
                         this.scanState   = 'success';
                         this.scanSuccess = true;
                         this.scanMessage = '🎉 Berhasil! Anda tercatat HADIR.';
@@ -554,12 +840,14 @@
                             window.location.reload();
                         }, 2000);
                     } else {
+                        audioFx.playError();
                         this.scanState   = 'failed';
                         this.scanSuccess = false;
                         this.scanMessage = data.message || 'Wajah tidak dikenali.';
                     }
                 })
                 .catch(() => {
+                    audioFx.playError();
                     this.scanState   = 'failed';
                     this.scanMessage = 'Terjadi kesalahan koneksi. Coba lagi.';
                 });

@@ -8,6 +8,7 @@ use App\Models\Kelas;
 use App\Models\LogPresensi;
 use App\Models\MataPelajaran;
 use App\Models\Presensi;
+use App\Models\SchoolSetting;
 use App\Models\SesiPresensi;
 use App\Models\User;
 use Carbon\Carbon;
@@ -740,6 +741,38 @@ class DashboardController extends Controller
         SesiPresensi::where('is_active', true)->update(['is_active' => false]);
 
         return redirect()->back()->with('success', 'Semua riwayat kelas/sesi yang aktif telah direset (ditutup).');
+    }
+
+    // =========================================================
+    //  PENGATURAN LOKASI & GEOFENCING (ADMIN ONLY)
+    // =========================================================
+    public function lokasiIndex()
+    {
+        $this->adminOnly();
+        $setting = SchoolSetting::getSettings();
+        return view('dashboard.pengaturan.lokasi', compact('setting'));
+    }
+
+    public function updateLokasi(Request $request)
+    {
+        $this->adminOnly();
+        $request->validate([
+            'school_name' => 'required|string|max:100',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'radius_meters' => 'required|integer|min:10|max:5000',
+        ]);
+
+        $setting = SchoolSetting::getSettings();
+        $setting->update([
+            'school_name' => $request->school_name,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'radius_meters' => $request->radius_meters,
+            'is_geofencing_active' => $request->has('is_geofencing_active'),
+        ]);
+
+        return redirect()->back()->with('success', 'Pengaturan lokasi sekolah & radius geofencing berhasil diperbarui.');
     }
 
     // =========================================================

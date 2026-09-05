@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Siswa;
 use App\Http\Controllers\Controller;
 use App\Models\LogPresensi;
 use App\Models\Presensi;
+use App\Models\SchoolSetting;
 use App\Models\SesiPresensi;
 use App\Services\FaceService;
 use Illuminate\Http\Request;
@@ -28,7 +29,9 @@ class SiswaController extends Controller
             'alpa'  => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
         ];
 
-        return view('siswa.dashboard', compact('user', 'riwayat', 'stats'));
+        $schoolSetting = SchoolSetting::getSettings();
+
+        return view('siswa.dashboard', compact('user', 'riwayat', 'stats', 'schoolSetting'));
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -65,19 +68,28 @@ class SiswaController extends Controller
             ->first();
         $sudahHadir = $presensi && $presensi->status === 'hadir';
 
+        $schoolSetting = SchoolSetting::getSettings();
+
         return response()->json([
             'success' => true,
             'sesi'    => [
                 'id'         => $sesi->id,
                 'kelas'      => $sesi->kelas->nama_kelas,
                 'guru'       => $sesi->guru->name,
-                'tanggal'    => $sesi->tanggal->isoFormat('dddd, D MMMM Y'),
+                'tanggal'    => \Carbon\Carbon::parse($sesi->tanggal)->isoFormat('dddd, D MMMM Y'),
                 'jam'        => $sesi->jam_pelajaran ?? '-',
                 'mapel'      => $sesi->mataPelajaran?->nama_mapel,
                 'created_at' => $sesi->created_at->toISOString(),
             ],
             'sudah_hadir'   => $sudahHadir,
             'face_enrolled' => $user->isFaceEnrolled(),
+            'geofencing'    => [
+                'active'        => $schoolSetting->is_geofencing_active,
+                'school_name'   => $schoolSetting->school_name,
+                'latitude'      => $schoolSetting->latitude,
+                'longitude'     => $schoolSetting->longitude,
+                'radius_meters' => $schoolSetting->radius_meters,
+            ],
         ]);
     }
 
@@ -90,7 +102,39 @@ class SiswaController extends Controller
         $request->validate([
             'sesi_id'    => 'required|integer',
             'face_image' => 'required|string', // base64 JPEG/PNG
+            'latitude'   => 'nullable|numeric',
+            'longitude'  => 'nullable|numeric',
         ]);
+
+        // Cek Geofencing jika aktif
+        $schoolSetting = SchoolSetting::getSettings();
+        if ($schoolSetting->is_geofencing_active) {
+            if (!$request->filled('latitude') || !$request->filled('longitude')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koordinat GPS perangkat Anda diperlukan untuk memverifikasi lokasi presensi.',
+                ]);
+            }
+
+            $distance = $this->calculateDistance(
+                (float) $request->latitude,
+                (float) $request->longitude,
+                (float) $schoolSetting->latitude,
+                (float) $schoolSetting->longitude
+            );
+
+            if ($distance > $schoolSetting->radius_meters) {
+                return response()->json([
+                    'success'  => false,
+                    'message'  => sprintf(
+                        'Presensi ditolak: Anda berada di luar radius sekolah. Jarak: %d meter (Batas: %d meter).',
+                        round($distance),
+                        $schoolSetting->radius_meters
+                    ),
+                    'distance' => round($distance),
+                ]);
+            }
+        }
 
         $user = auth()->user();
 
@@ -242,5 +286,25 @@ class SiswaController extends Controller
             'success' => true,
             'message' => 'Wajah berhasil didaftarkan! Anda sekarang bisa absen dengan scan wajah.',
         ]);
+    }
+
+    /**
+     * Hitung jarak dua titik koordinat bumi (Haversine Formula) dalam meter.
+     */
+    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371000; // meter
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo = deg2rad($lat2);
+        $lonTo = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return $angle * $earthRadius;
     }
 }
