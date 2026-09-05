@@ -22,7 +22,7 @@ class AuthController extends Controller
     // ==== LOGIN SISWA ====
     public function showLoginSiswa()
     {
-        return view('auth.login-siswa');
+        return view('auth.index', ['initialTab' => 'siswa']);
     }
 
     public function loginSiswa(Request $request)
@@ -58,7 +58,7 @@ class AuthController extends Controller
     // ==== LOGIN GURU ====
     public function showLoginGuru()
     {
-        return view('auth.login-guru');
+        return view('auth.index', ['initialTab' => 'guru']);
     }
 
     public function loginGuru(Request $request)
