@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Tambahkan face-api.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
@@ -36,11 +38,15 @@
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
             pointer-events: none;
             z-index: 10;
-            transition: border-color .3s;
+            transition: border-color .3s, box-shadow .3s;
         }
         .face-ring.detected {
             border-color: #4ade80;
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 20px rgba(74,222,128,0.5);
+        }
+        .face-ring.success-pulse {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 30px rgba(59,130,246,0.8);
         }
         #video-enroll { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
 
@@ -64,43 +70,49 @@
             </div>
             <h1 class="text-xl font-extrabold text-white">Daftarkan Wajah</h1>
             <p class="text-green-50/70 text-xs mt-1">
-                Halo, <strong class="text-white">{{ $user->name }}</strong>! Daftarkan wajah kamu agar bisa absen.
+                Halo, <strong class="text-white">{{ $user->name }}</strong>! Ikuti instruksi liveness di bawah.
             </p>
         </div>
 
         {{-- Status message --}}
         <div x-show="message" x-cloak class="rounded-xl px-4 py-3 text-sm font-semibold text-center mb-4 transition-all"
-             :class="isSuccess ? 'bg-emerald-500/20 border border-emerald-400/50 text-emerald-100' : 'bg-red-500/20 border border-red-400/50 text-red-100'">
-            <span x-text="message"></span>
+             :class="isSuccess ? 'bg-emerald-500/20 border border-emerald-400/50 text-emerald-100' : 'bg-blue-500/20 border border-blue-400/50 text-blue-100'">
+            <i class="fas fa-info-circle mr-1"></i> <span x-text="message"></span>
         </div>
 
         {{-- Instruksi --}}
-        <div x-show="!isSuccess" class="bg-white/10 rounded-2xl px-4 py-2.5 text-center mb-4">
-            <p class="text-white/60 text-xs uppercase tracking-wider font-semibold">Instruksi</p>
-            <p x-text="currentInstruction" class="text-white font-bold text-base mt-0.5"></p>
+        <div x-show="!isSuccess" class="bg-white/10 rounded-2xl px-4 py-3 text-center mb-4 border border-white/20 shadow-inner">
+            <p class="text-white/60 text-[0.65rem] uppercase tracking-widest font-bold mb-1" x-text="isLoadingModels ? 'Mempersiapkan AI...' : 'Tugas Liveness'"></p>
+            <p x-text="currentInstruction" class="text-white font-extrabold text-base"></p>
         </div>
 
         {{-- Progress --}}
         <div x-show="!isSuccess" class="flex justify-center gap-2 mb-4">
             <template x-for="i in 5" :key="i">
-                <div class="h-2 rounded-full transition-all duration-300"
-                     :class="capturedImages.length >= i ? 'bg-green-400 w-8' : 'bg-white/20 w-8'"></div>
+                <div class="h-2.5 rounded-full transition-all duration-500"
+                     :class="capturedImages.length >= i ? 'bg-green-400 w-8 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'bg-white/20 w-8'"></div>
             </template>
         </div>
 
         {{-- Camera --}}
-        <div x-show="!isSuccess" class="relative bg-black rounded-2xl overflow-hidden mb-4" style="height:260px;">
+        <div x-show="!isSuccess" class="relative bg-black rounded-2xl overflow-hidden mb-4 shadow-lg border border-white/10" style="height:260px;">
             <video id="video-enroll" autoplay playsinline muted></video>
             <canvas id="canvas-enroll" class="hidden"></canvas>
-            <div class="face-ring" :class="capturedImages.length < 5 ? 'detected' : ''"></div>
+            <div class="face-ring" :class="{ 'detected': isFaceCentered, 'success-pulse': showPulse }"></div>
+
+            <div class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm" x-show="isLoadingModels">
+                <div class="text-center">
+                    <i class="fas fa-circle-notch fa-spin text-3xl text-blue-400 mb-2"></i>
+                    <p class="text-white text-xs font-semibold mt-2">Memuat Model AI...</p>
+                </div>
+            </div>
 
             <div class="absolute bottom-3 left-0 right-0 flex justify-center">
-                <div x-show="capturedImages.length < 5" class="bg-green-500/80 text-white text-xs px-3 py-1.5 rounded-full font-semibold">
-                    <i class="fas fa-camera mr-1"></i>
-                    <span x-text="'Foto ' + (capturedImages.length + 1) + ' / 5'"></span>
+                <div x-show="capturedImages.length < 5 && !isLoadingModels" class="bg-black/60 backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full font-bold border border-white/10">
+                    <span x-text="'Langkah ' + (capturedImages.length + 1) + ' / 5'"></span>
                 </div>
-                <div x-show="capturedImages.length >= 5" class="bg-blue-500/80 text-white text-xs px-3 py-1.5 rounded-full font-semibold">
-                    <i class="fas fa-check mr-1"></i> Semua foto berhasil!
+                <div x-show="capturedImages.length >= 5" class="bg-green-500/80 backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full font-bold border border-green-400/50">
+                    <i class="fas fa-check mr-1"></i> Semua selesai!
                 </div>
             </div>
         </div>
@@ -112,8 +124,8 @@
                      :class="capturedImages.length >= i ? 'border-green-400' : 'border-white/20 bg-white/10'">
                     <template x-if="capturedImages[i-1]">
                         <div class="relative w-full h-full">
-                            <img :src="capturedImages[i-1]" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-green-400/50 flex items-center justify-center text-white text-xs">
+                            <img :src="capturedImages[i-1]" class="w-full h-full object-cover" style="transform: scaleX(-1);">
+                            <div class="absolute inset-0 bg-green-400/30 flex items-center justify-center text-white text-xs backdrop-blur-[1px]">
                                 <i class="fas fa-check"></i>
                             </div>
                         </div>
@@ -132,49 +144,25 @@
             <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-green-400">
                 <i class="fas fa-check text-4xl text-green-400"></i>
             </div>
-            <h2 class="text-xl font-extrabold text-white mb-2">Wajah Terdaftar! 🎉</h2>
-            <p class="text-green-100/70 text-sm">Kamu sekarang bisa absen dengan scan wajah dari dashboard.</p>
+            <h2 class="text-2xl font-extrabold text-white mb-2">Wajah Terdaftar! 🎉</h2>
+            <p class="text-green-100/70 text-sm">Kamu sekarang bisa absen menggunakan fitur Face ID.</p>
             <a href="{{ route('siswa.dashboard') }}"
-               class="mt-6 inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-xl transition">
-                <i class="fas fa-arrow-right mr-2"></i>Ke Dashboard
+               class="mt-6 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition shadow-[0_0_15px_rgba(22,163,74,0.4)]">
+                Ke Dashboard <i class="fas fa-arrow-right"></i>
             </a>
         </div>
 
-        {{-- Buttons --}}
-        <div x-show="!isSuccess">
-            {{-- Ambil foto manual --}}
-            <button @click="captureFrame()"
-                    x-show="capturedImages.length < 5"
-                    :disabled="isProcessing"
-                    class="w-full mb-3 bg-white/20 hover:bg-white/30 text-white font-semibold py-3 rounded-xl transition border border-white/30 flex items-center justify-center gap-2">
-                <i class="fas fa-camera"></i>
-                <span x-text="'Ambil Foto ' + (capturedImages.length + 1) + ' / 5'"></span>
-            </button>
-
-            {{-- Simpan wajah --}}
-            <button @click="submitEnroll()"
-                    x-show="capturedImages.length >= 5"
-                    :disabled="isProcessing"
-                    :class="isProcessing ? 'bg-white/20 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 cursor-pointer'"
-                    class="w-full text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2">
-                <template x-if="!isProcessing">
-                    <span><i class="fas fa-user-check mr-2"></i>Simpan & Daftarkan Wajah</span>
-                </template>
-                <template x-if="isProcessing">
-                    <span><i class="fas fa-spinner fa-spin mr-2"></i>Memproses wajah...</span>
-                </template>
-            </button>
-
-            {{-- Ulangi --}}
-            <button @click="resetCapture()"
-                    x-show="capturedImages.length > 0 && capturedImages.length < 5"
-                    class="w-full mt-3 text-white/50 text-sm hover:text-white/80 transition text-center">
-                <i class="fas fa-rotate-right mr-1"></i> Ulangi dari awal
+        {{-- Buttons (Loading/Processing fallback) --}}
+        <div x-show="!isSuccess && (isProcessing || capturedImages.length >= 5)" class="mt-4">
+            <button disabled
+                    class="w-full text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 bg-white/20 cursor-not-allowed backdrop-blur-sm border border-white/20">
+                <i class="fas fa-spinner fa-spin text-lg"></i>
+                <span>Menyimpan data wajah...</span>
             </button>
         </div>
 
-        <a href="{{ route('siswa.dashboard') }}" class="block text-center text-white/40 text-xs hover:text-white/70 mt-4 transition">
-            Lewati dulu &rarr;
+        <a href="{{ route('siswa.dashboard') }}" x-show="!isSuccess && !isProcessing" class="block text-center text-white/50 text-xs hover:text-white mt-5 transition font-medium">
+            Lewati pendaftaran &rarr;
         </a>
     </div>
 
@@ -184,23 +172,35 @@
             capturedImages: [],
             isProcessing: false,
             isSuccess: false,
+            isLoadingModels: true,
             message: '',
             videoStream: null,
-
-            instructions: [
-                'Hadap ke depan',
-                'Miringkan kepala ke KIRI',
-                'Miringkan kepala ke KANAN',
-                'Tengadah sedikit ke ATAS',
-                'Tundukkan sedikit ke BAWAH',
-            ],
+            detectionInterval: null,
+            
+            // UI States
+            isFaceCentered: false,
+            showPulse: false,
+            
+            // Liveness States
+            blinkState: 'open',
+            turnedDirection: null,
 
             get currentInstruction() {
-                const idx = Math.min(this.capturedImages.length, 4);
-                return this.instructions[idx];
+                if (this.isLoadingModels) return 'Mohon tunggu...';
+                if (this.capturedImages.length === 5) return 'Memproses Wajah...';
+                
+                const instructions = [
+                    'Hadap ke depan, wajah di tengah',
+                    'Kedipkan mata Anda',
+                    'Tengok ke KIRI atau KANAN',
+                    'Sekarang tengok ke arah SEBALIKNYA',
+                    'Tersenyumlah (Buka mulut sedikit)'
+                ];
+                return instructions[this.capturedImages.length];
             },
 
             async startCamera() {
+                this.message = 'Meminta akses kamera...';
                 try {
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
                         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
@@ -208,22 +208,152 @@
                     });
                     const video = document.getElementById('video-enroll');
                     video.srcObject = this.videoStream;
+                    
+                    this.message = 'Mengunduh AI Model (2MB)...';
+                    // Load face-api models from CDN
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/model/';
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+                    ]);
+                    
+                    this.isLoadingModels = false;
+                    this.message = '';
+                    
+                    video.onloadedmetadata = () => {
+                        video.width = video.videoWidth;
+                        video.height = video.videoHeight;
+                    };
+                    
                     await video.play();
+                    this.startDetectionLoop(video);
                 } catch (err) {
-                    this.message = 'Kamera tidak dapat diakses: ' + err.message;
+                    this.message = 'Gagal mengakses kamera. Izinkan akses kamera di browser.';
                 }
+            },
+            
+            startDetectionLoop(video) {
+                this.detectionInterval = setInterval(async () => {
+                    if (this.isProcessing || this.isSuccess || this.isLoadingModels) return;
+                    if (this.capturedImages.length >= 5) {
+                        clearInterval(this.detectionInterval);
+                        this.submitEnroll();
+                        return;
+                    }
+                    
+                    // Detect face and landmarks
+                    const detections = await faceapi.detectSingleFace(
+                        video, 
+                        new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 })
+                    ).withFaceLandmarks();
+                    
+                    if (detections) {
+                        this.isFaceCentered = true;
+                        const landmarks = detections.landmarks;
+                        const step = this.capturedImages.length;
+                        let passed = false;
+                        
+                        if (step === 0) {
+                            // Step 0: Center face
+                            const box = detections.detection.box;
+                            // Ensure face is reasonably large (width > 80px)
+                            if (box.width > 80) {
+                                passed = true;
+                            }
+                        } 
+                        else if (step === 1) {
+                            // Step 1: Blink
+                            const leftEye = landmarks.getLeftEye();
+                            const rightEye = landmarks.getRightEye();
+                            const earL = this.getEAR(leftEye);
+                            const earR = this.getEAR(rightEye);
+                            const avgEAR = (earL + earR) / 2;
+                            
+                            if (avgEAR < 0.25) {
+                                this.blinkState = 'closed';
+                            } else if (avgEAR > 0.28 && this.blinkState === 'closed') {
+                                this.blinkState = 'open';
+                                passed = true;
+                            }
+                        }
+                        else if (step === 2) {
+                            // Step 2: Turn Left or Right
+                            const nose = landmarks.getNose()[3];
+                            const leftJaw = landmarks.getJawOutline()[0];
+                            const rightJaw = landmarks.getJawOutline()[16];
+                            const distLeft = Math.abs(nose.x - leftJaw.x);
+                            const distRight = Math.abs(nose.x - rightJaw.x);
+                            
+                            if (distLeft > distRight * 1.4) {
+                                this.turnedDirection = 'left';
+                                passed = true;
+                            } else if (distRight > distLeft * 1.4) {
+                                this.turnedDirection = 'right';
+                                passed = true;
+                            }
+                        }
+                        else if (step === 3) {
+                            // Step 3: Turn Opposite
+                            const nose = landmarks.getNose()[3];
+                            const leftJaw = landmarks.getJawOutline()[0];
+                            const rightJaw = landmarks.getJawOutline()[16];
+                            const distLeft = Math.abs(nose.x - leftJaw.x);
+                            const distRight = Math.abs(nose.x - rightJaw.x);
+                            
+                            if (this.turnedDirection === 'left' && distRight > distLeft * 1.4) {
+                                passed = true;
+                            } else if (this.turnedDirection === 'right' && distLeft > distRight * 1.4) {
+                                passed = true;
+                            }
+                        }
+                        else if (step === 4) {
+                            // Step 4: Smile (Mouth Aspect Ratio)
+                            const mouth = landmarks.getMouth();
+                            const width = Math.hypot(mouth[0].x - mouth[6].x, mouth[0].y - mouth[6].y);
+                            const jawWidth = Math.abs(landmarks.getJawOutline()[0].x - landmarks.getJawOutline()[16].x);
+                            
+                            // Smile widens the mouth relative to jaw
+                            if (width / jawWidth > 0.38) {
+                                passed = true;
+                            }
+                        }
+                        
+                        if (passed) {
+                            this.triggerPulse();
+                            this.captureFrame();
+                            
+                            if (this.capturedImages.length === 5) {
+                                clearInterval(this.detectionInterval);
+                                setTimeout(() => this.submitEnroll(), 500);
+                            }
+                        }
+                    } else {
+                        this.isFaceCentered = false;
+                    }
+                }, 150);
+            },
+            
+            getEAR(eye) {
+                // Calculate Eye Aspect Ratio
+                const width = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+                const h1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+                const h2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+                return (h1 + h2) / (2.0 * width);
+            },
+            
+            triggerPulse() {
+                this.showPulse = true;
+                setTimeout(() => this.showPulse = false, 300);
             },
 
             captureFrame() {
-                if (this.capturedImages.length >= 5 || this.isProcessing) return;
-
                 const video  = document.getElementById('video-enroll');
                 const canvas = document.getElementById('canvas-enroll');
                 canvas.width  = video.videoWidth  || 640;
                 canvas.height = video.videoHeight || 480;
                 const ctx = canvas.getContext('2d');
                 ctx.save();
-                ctx.scale(-1, 1);
+                ctx.scale(-1, 1); // mirror for backend processing/saving
                 ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
                 ctx.restore();
 
@@ -231,15 +361,10 @@
                 this.capturedImages.push(dataUrl);
             },
 
-            resetCapture() {
-                this.capturedImages = [];
-                this.message = '';
-            },
-
             async submitEnroll() {
-                if (this.capturedImages.length < 5 || this.isProcessing) return;
+                if (this.isProcessing) return;
                 this.isProcessing = true;
-                this.message = '';
+                this.message = 'Menyimpan profil wajah...';
 
                 try {
                     const resp = await fetch('{{ route('siswa.enroll.store') }}', {
@@ -254,17 +379,16 @@
 
                     if (data.success) {
                         this.isSuccess = true;
-                        this.message = data.message;
+                        this.message = '';
                         if (this.videoStream) {
                             this.videoStream.getTracks().forEach(t => t.stop());
                         }
                     } else {
-                        this.message = data.message || 'Terjadi kesalahan. Coba lagi.';
+                        this.message = data.message || 'Terjadi kesalahan. Coba muat ulang halaman.';
                         this.isProcessing = false;
-                        this.capturedImages = []; // Reset untuk foto ulang
                     }
                 } catch (e) {
-                    this.message = 'Koneksi error. Coba lagi.';
+                    this.message = 'Koneksi error. Gagal menyimpan wajah.';
                     this.isProcessing = false;
                 }
             }

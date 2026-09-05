@@ -97,9 +97,7 @@ def mode_extract(payload: dict):
         "dimensions": len(descriptor)
     }))
 
-# ──────────────────────────────────────────────────────────────
 #  MODE: enroll — rata-rata descriptor dari 5 foto multi-angle
-# ──────────────────────────────────────────────────────────────
 def mode_enroll(payload: dict):
     face_recognition, np = load_libs()
     

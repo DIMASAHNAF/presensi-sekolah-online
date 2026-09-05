@@ -11,7 +11,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e293b 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #022c22 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -30,9 +30,9 @@
             opacity: 0.15;
             pointer-events: none;
         }
-        .blob-1 { width: 600px; height: 600px; background: #3b82f6; top: -200px; right: -200px; animation: float 8s ease-in-out infinite; }
-        .blob-2 { width: 400px; height: 400px; background: #6366f1; bottom: -150px; left: -150px; animation: float 10s ease-in-out infinite reverse; }
-        .blob-3 { width: 300px; height: 300px; background: #06b6d4; top: 40%; left: 10%; animation: float 6s ease-in-out infinite 2s; }
+        .blob-1 { width: 600px; height: 600px; background: #0d9488; top: -200px; right: -200px; animation: float 8s ease-in-out infinite; }
+        .blob-2 { width: 400px; height: 400px; background: #10b981; bottom: -150px; left: -150px; animation: float 10s ease-in-out infinite reverse; }
+        .blob-3 { width: 300px; height: 300px; background: #34d399; top: 40%; left: 10%; animation: float 6s ease-in-out infinite 2s; }
 
         @keyframes float {
             0%, 100% { transform: translateY(0px) scale(1); }
@@ -58,19 +58,19 @@
         }
         .gear-icon {
             font-size: 80px;
-            color: #60a5fa;
+            color: #2dd4bf;
             display: block;
             animation: gear-spin 4s linear infinite;
-            filter: drop-shadow(0 0 20px rgba(96,165,250,0.5));
+            filter: drop-shadow(0 0 20px rgba(45,212,191,0.5));
         }
         .gear-icon-small {
             position: absolute;
             bottom: -5px;
             right: -10px;
             font-size: 44px;
-            color: #818cf8;
+            color: #34d399;
             animation: gear-spin 2.5s linear infinite reverse;
-            filter: drop-shadow(0 0 12px rgba(129,140,248,0.5));
+            filter: drop-shadow(0 0 12px rgba(52,211,153,0.5));
         }
         @keyframes gear-spin {
             from { transform: rotate(0deg); }
@@ -82,9 +82,9 @@
             font-weight: 700;
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            color: #60a5fa;
-            background: rgba(96,165,250,0.1);
-            border: 1px solid rgba(96,165,250,0.2);
+            color: #2dd4bf;
+            background: rgba(45,212,191,0.1);
+            border: 1px solid rgba(45,212,191,0.2);
             border-radius: 100px;
             padding: 0.35rem 1.25rem;
             display: inline-block;
@@ -96,7 +96,7 @@
             font-weight: 900;
             line-height: 1.15;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #ffffff, #93c5fd);
+            background: linear-gradient(135deg, #ffffff, #99f6e4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -122,7 +122,7 @@
         .progress-bar {
             height: 100%;
             border-radius: 100px;
-            background: linear-gradient(90deg, #3b82f6, #6366f1, #06b6d4);
+            background: linear-gradient(90deg, #0d9488, #10b981, #34d399);
             background-size: 200% 100%;
             animation: progress-shimmer 2s linear infinite;
         }
@@ -152,7 +152,7 @@
             color: rgba(255,255,255,0.75);
             backdrop-filter: blur(8px);
         }
-        .chip i { color: #60a5fa; }
+        .chip i { color: #2dd4bf; }
 
         /* Countdown */
         #countdown-wrap { color: rgba(255,255,255,0.5); font-size:0.8rem; margin-top:0.5rem; }
@@ -199,20 +199,21 @@
         <div class="chips">
             <div class="chip">
                 <i class="fas fa-clock"></i>
-                <span>Estimasi: Beberapa menit</span>
-            </div>
-            <div class="chip">
-                <i class="fas fa-shield-halved"></i>
-                <span>Data aman terjaga</span>
-            </div>
-            <div class="chip">
-                <i class="fas fa-wifi"></i>
-                <span>Server internal</span>
+                <span>Estimasi: 10-30 Menit</span>
             </div>
         </div>
 
         <div id="countdown-wrap">
             <i class="fas fa-rotate-right"></i> Auto-refresh dalam <span id="timer">30</span> detik
+        </div>
+        
+        {{-- Contact Info Alert --}}
+        <div style="margin-top: 1.5rem; background: rgba(20, 184, 166, 0.15); border: 1px solid rgba(20, 184, 166, 0.3); padding: 1rem; border-radius: 12px; font-size: 0.875rem; text-align: left; display: flex; align-items: flex-start; gap: 0.75rem;">
+            <i class="fas fa-circle-info" style="font-size: 1.25rem; color: #2dd4bf; margin-top: 0.125rem;"></i>
+            <div>
+                <strong style="display: block; margin-bottom: 0.25rem; font-weight: 600; color: #ffffff;">Informasi Lebih Lanjut</strong>
+                <span style="color: rgba(255,255,255,0.85);">Silakan hubungi administrator: <strong style="color: #ffffff;">+62 822-6116-8543</strong></span>
+            </div>
         </div>
     </div>
 
