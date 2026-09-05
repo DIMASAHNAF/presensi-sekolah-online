@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.min.js"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         [x-cloak] { display: none !important; }
@@ -335,12 +336,12 @@
                     </div>
                     <div x-show="scanState === 'detecting'" class="absolute bottom-3 left-0 right-0 flex justify-center">
                         <div class="bg-black/60 text-white text-xs px-4 py-1.5 rounded-full">
-                            Posisikan wajah dalam bingkai
+                            Posisikan wajah & Kedipkan mata
                         </div>
                     </div>
                     <div x-show="scanState === 'detected'" class="absolute bottom-3 left-0 right-0 flex justify-center">
                         <div class="bg-green-500/80 text-white text-xs px-4 py-1.5 rounded-full font-semibold">
-                            <i class="fas fa-check mr-1"></i> Siap! Tahan sebentar...
+                            <i class="fas fa-check mr-1"></i> Kedipan Terdeteksi!
                         </div>
                     </div>
                     <div x-show="scanState === 'processing'" class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -366,15 +367,9 @@
                 {{-- Bottom info / message --}}
                 <div class="p-4">
                     <div x-show="scanMessage" class="text-sm font-semibold p-3 rounded-xl mb-3 text-center"
-                         :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
+                         :class="scanSuccess ? 'bg-emerald-50 text-emerald-700' : (scanState === 'idle' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700')">
                         <span x-text="scanMessage"></span>
                     </div>
-
-                    <button @click="manualTrigger()"
-                            x-show="scanState === 'detecting' || scanState === 'detected'"
-                            class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30">
-                        <i class="fas fa-face-viewfinder text-lg"></i> Scan Sekarang
-                    </button>
 
                     <button @click="retryScan()"
                             x-show="scanState === 'failed'"
@@ -410,7 +405,8 @@
             scanMessage: '',
             scanSuccess: false,
             videoStream: null,
-            autoScanTimer: null,
+            detectionInterval: null,
+            blinkState: 'open',
 
             init() {
                 this.pollSesiAktif();
@@ -440,8 +436,9 @@
             async openFaceScanner() {
                 this.isScanning   = true;
                 this.scanState    = 'idle';
-                this.scanMessage  = '';
+                this.scanMessage  = 'Memuat Model AI...';
                 this.scanSuccess  = false;
+                this.blinkState   = 'open';
 
                 try {
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
@@ -450,29 +447,73 @@
                     });
                     const video = document.getElementById('video-scan');
                     video.srcObject = this.videoStream;
+                    
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/model/';
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+                    ]);
+                    
+                    this.scanMessage = '';
+                    
+                    video.onloadedmetadata = () => {
+                        video.width = video.videoWidth;
+                        video.height = video.videoHeight;
+                    };
+                    
                     await video.play();
-
-                    setTimeout(() => {
-                        if (this.isScanning) this.scanState = 'detecting';
-                    }, 600);
-
-                    // Simulate face detection ready after ~1.5s
-                    setTimeout(() => {
-                        if (this.isScanning && this.scanState === 'detecting') {
-                            this.scanState = 'detected';
-                        }
-                    }, 1800);
+                    this.scanState = 'detecting';
+                    this.startDetectionLoop(video);
 
                 } catch (err) {
-                    this.scanMessage = 'Kamera tidak dapat diakses. Pastikan menggunakan HTTPS dan izinkan akses kamera.';
+                    this.scanMessage = 'Gagal mengakses kamera/AI: ' + err.message;
                     this.scanState = 'failed';
                 }
             },
 
-            manualTrigger() {
-                if (this.scanState !== 'detecting' && this.scanState !== 'detected') return;
-                this.captureAndSend();
+            startDetectionLoop(video) {
+                this.detectionInterval = setInterval(async () => {
+                    if (this.scanState !== 'detecting') return;
+                    
+                    const detections = await faceapi.detectSingleFace(
+                        video, 
+                        new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 })
+                    ).withFaceLandmarks();
+                    
+                    if (detections) {
+                        const box = detections.detection.box;
+                        if (box.width > 80) {
+                            const landmarks = detections.landmarks;
+                            const leftEye = landmarks.getLeftEye();
+                            const rightEye = landmarks.getRightEye();
+                            
+                            // Calculate EAR
+                            const getEAR = (eye) => {
+                                const width = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+                                const h1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+                                const h2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+                                return (h1 + h2) / (2.0 * width);
+                            };
+                            
+                            const avgEAR = (getEAR(leftEye) + getEAR(rightEye)) / 2;
+                            
+                            if (avgEAR < 0.27) {
+                                this.blinkState = 'closed';
+                            } else if (avgEAR > 0.28 && this.blinkState === 'closed') {
+                                // Blink detected!
+                                this.blinkState = 'open';
+                                this.scanState = 'detected';
+                                clearInterval(this.detectionInterval);
+                                setTimeout(() => {
+                                    this.captureAndSend();
+                                }, 500);
+                            }
+                        }
+                    }
+                }, 150);
             },
+
+
 
             captureAndSend() {
                 const video  = document.getElementById('video-scan');
@@ -527,12 +568,8 @@
             retryScan() {
                 this.scanState   = 'detecting';
                 this.scanMessage = '';
-                // Give face detection time
-                setTimeout(() => {
-                    if (this.isScanning && this.scanState === 'detecting') {
-                        this.scanState = 'detected';
-                    }
-                }, 1500);
+                const video = document.getElementById('video-scan');
+                this.startDetectionLoop(video);
             },
 
             closeFaceScanner() {
@@ -542,6 +579,9 @@
             },
 
             stopCamera() {
+                if (this.detectionInterval) {
+                    clearInterval(this.detectionInterval);
+                }
                 if (this.videoStream) {
                     this.videoStream.getTracks().forEach(t => t.stop());
                     this.videoStream = null;

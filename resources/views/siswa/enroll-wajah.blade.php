@@ -269,7 +269,7 @@
                             const earR = this.getEAR(rightEye);
                             const avgEAR = (earL + earR) / 2;
                             
-                            if (avgEAR < 0.25) {
+                            if (avgEAR < 0.27) {
                                 this.blinkState = 'closed';
                             } else if (avgEAR > 0.28 && this.blinkState === 'closed') {
                                 this.blinkState = 'open';
