@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 310" width="100%" height="100%">
+  <defs>
+    <linearGradient id="flowBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070c16"/>
+      <stop offset="50%" stop-color="#0b1526"/>
+      <stop offset="100%" stop-color="#061a1a"/>
+    </linearGradient>
+
+    <!-- Node Gradients -->
+    <linearGradient id="nodeGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="activeNodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+
+    <!-- Glowing Filters -->
+    <filter id="flowGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <pattern id="dotPattern" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#14b8a6" fill-opacity="0.08"/>
+    </pattern>
+  </defs>
+
+  <style>
+    @keyframes lineFlow {
+      0% { stroke-dashoffset: 60; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes packetMove1 {
+      0% { transform: translateX(0); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(110px); opacity: 0; }
+    }
+    @keyframes pulseNode {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    @keyframes beacon {
+      0% { r: 5; opacity: 1; }
+      100% { r: 18; opacity: 0; }
+    }
+    .flow-line {
+      stroke: #0d9488;
+      stroke-width: 2.5;
+      stroke-dasharray: 6 4;
+      animation: lineFlow 1.2s linear infinite;
+    }
+    .node-box {
+      transition: all 0.3s;
+    }
+    .mono-font {
+      font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', Menlo, monospace;
+    }
+    .sans-font {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+
+  <!-- Container Box -->
+  <rect width="940" height="310" rx="16" fill="url(#flowBg)" stroke="#1e3a47" stroke-width="1.5"/>
+  <rect width="940" height="310" rx="16" fill="url(#dotPattern)"/>
+
+  <!-- Top Title -->
+  <g transform="translate(470, 36)" text-anchor="middle">
+    <rect x="-140" y="-18" width="280" height="24" rx="12" fill="#042f2e" stroke="#134e4a" stroke-width="1"/>
+    <text y="-2" class="mono-font" font-size="11" font-weight="700" fill="#34d399" letter-spacing="1.5">ALUR PRESENSI CERDAS (END-TO-END)</text>
+  </g>
+
+  <!-- ================= PIPELINE NODES ================= -->
+
+  <!-- STEP 1: ENROLLMENT -->
+  <g transform="translate(35, 75)">
+    <rect class="node-box" width="150" height="185" rx="12" fill="url(#nodeGrad1)" stroke="#334155" stroke-width="1.2"/>
+    <circle cx="75" cy="42" r="24" fill="#0284c7" fill-opacity="0.2"/>
+    <!-- Camera/Face Icon -->
+    <path d="M 64 36 L 68 31 L 82 31 L 86 36 L 91 36 A 3 3 0 0 1 94 39 L 94 51 A 3 3 0 0 1 91 54 L 59 54 A 3 3 0 0 1 56 51 L 56 39 A 3 3 0 0 1 59 36 Z" fill="none" stroke="#38bdf8" stroke-width="1.8"/>
+    <circle cx="75" cy="45" r="5" stroke="#38bdf8" stroke-width="1.6" fill="none"/>
+    
+    <!-- Step Badge -->
+    <rect x="52" y="76" width="46" height="18" rx="9" fill="#0369a1"/>
+    <text x="75" y="89" class="mono-font" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">STEP 1</text>
+    
+    <text x="75" y="112" class="sans-font" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Enroll Wajah</text>
+    <text x="75" y="128" class="sans-font" font-size="10" fill="#94a3b8" text-anchor="middle">3-5 Foto Multi-Sudut</text>
+    
+    <!-- Detail Subtext -->
+    <rect x="12" y="142" width="126" height="30" rx="6" fill="#0f172a" stroke="#1e293b"/>
+    <text x="75" y="156" class="mono-font" font-size="8.5" fill="#38bdf8" text-anchor="middle">Vector 128-D</text>
+    <text x="75" y="167" class="mono-font" font-size="7.5" fill="#64748b" text-anchor="middle">Tersimpan di Database</text>
+  </g>
+
+  <!-- Flow Connector 1 -> 2 -->
+  <g transform="translate(185, 165)">
+    <line x1="0" y1="0" x2="35" y2="0" class="flow-line"/>
+    <polygon points="35,0 27,-4 27,4" fill="#0d9488"/>
+  </g>
+
+  <!-- STEP 2: BUKA SESI -->
+  <g transform="translate(220, 75)">
+    <rect class="node-box" width="150" height="185" rx="12" fill="url(#nodeGrad1)" stroke="#334155" stroke-width="1.2"/>
+    <circle cx="75" cy="42" r="24" fill="#7c3aed" fill-opacity="0.2"/>
+    <!-- Dashboard / Calendar Icon -->
+    <rect x="63" y="32" width="24" height="20" rx="3" fill="none" stroke="#a78bfa" stroke-width="1.8"/>
+    <line x1="63" y1="38" x2="87" y2="38" stroke="#a78bfa" stroke-width="1.5"/>
+    <circle cx="69" cy="44" r="1.5" fill="#a78bfa"/>
+    <circle cx="75" cy="44" r="1.5" fill="#a78bfa"/>
+    <circle cx="81" cy="44" r="1.5" fill="#a78bfa"/>
+
+    <!-- Step Badge -->
+    <rect x="52" y="76" width="46" height="18" rx="9" fill="#6d28d9"/>
+    <text x="75" y="89" class="mono-font" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">STEP 2</text>
+
+    <text x="75" y="112" class="sans-font" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Sesi Dibuka</text>
+    <text x="75" y="128" class="sans-font" font-size="10" fill="#94a3b8" text-anchor="middle">Guru / Wali Kelas</text>
+
+    <rect x="12" y="142" width="126" height="30" rx="6" fill="#0f172a" stroke="#1e293b"/>
+    <text x="75" y="156" class="mono-font" font-size="8.5" fill="#c084fc" text-anchor="middle">Sesi Pagi / Mapel</text>
+    <text x="75" y="167" class="mono-font" font-size="7.5" fill="#64748b" text-anchor="middle">Live Polling Aktif</text>
+  </g>
+
+  <!-- Flow Connector 2 -> 3 -->
+  <g transform="translate(370, 165)">
+    <line x1="0" y1="0" x2="35" y2="0" class="flow-line"/>
+    <polygon points="35,0 27,-4 27,4" fill="#0d9488"/>
+  </g>
+
+  <!-- STEP 3: SCAN WAJAH & GPS -->
+  <g transform="translate(405, 75)">
+    <rect class="node-box" width="150" height="185" rx="12" fill="url(#activeNodeGrad)" stroke="#10b981" stroke-width="1.8" filter="url(#flowGlow)"/>
+    <circle cx="75" cy="42" r="24" fill="#10b981" fill-opacity="0.3"/>
+    <!-- Face Scan + Radar Icon -->
+    <circle cx="75" cy="42" r="14" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path d="M 68 40 Q 75 48 82 40" fill="none" stroke="#34d399" stroke-width="1.8"/>
+    <circle cx="70" cy="38" r="1.5" fill="#34d399"/>
+    <circle cx="80" cy="38" r="1.5" fill="#34d399"/>
+
+    <!-- Step Badge Highlight -->
+    <rect x="52" y="76" width="46" height="18" rx="9" fill="#059669"/>
+    <text x="75" y="89" class="mono-font" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">STEP 3</text>
+
+    <text x="75" y="112" class="sans-font" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Scan &amp; GPS</text>
+    <text x="75" y="128" class="sans-font" font-size="10" fill="#a7f3d0" text-anchor="middle">Mandiri di HP Siswa</text>
+
+    <rect x="12" y="142" width="126" height="30" rx="6" fill="#022c22" stroke="#047857"/>
+    <text x="75" y="156" class="mono-font" font-size="8.5" fill="#34d399" text-anchor="middle">Haversine &lt; 100m</text>
+    <text x="75" y="167" class="mono-font" font-size="7.5" fill="#6ee7b7" text-anchor="middle">Face-API Oval Guide</text>
+  </g>
+
+  <!-- Flow Connector 3 -> 4 -->
+  <g transform="translate(555, 165)">
+    <line x1="0" y1="0" x2="35" y2="0" class="flow-line"/>
+    <polygon points="35,0 27,-4 27,4" fill="#0d9488"/>
+  </g>
+
+  <!-- STEP 4: PYTHON AI MATCHING -->
+  <g transform="translate(590, 75)">
+    <rect class="node-box" width="150" height="185" rx="12" fill="url(#nodeGrad1)" stroke="#334155" stroke-width="1.2"/>
+    <circle cx="75" cy="42" r="24" fill="#eab308" fill-opacity="0.2"/>
+    <!-- CPU / AI Chip Icon -->
+    <rect x="65" y="32" width="20" height="20" rx="4" fill="none" stroke="#facc15" stroke-width="1.8"/>
+    <path d="M 60 38 L 65 38 M 60 46 L 65 46 M 85 38 L 90 38 M 85 46 L 90 46 M 71 27 L 71 32 M 79 27 L 79 32 M 71 52 L 71 57 M 79 52 L 79 57" stroke="#facc15" stroke-width="1.5"/>
+
+    <!-- Step Badge -->
+    <rect x="52" y="76" width="46" height="18" rx="9" fill="#ca8a04"/>
+    <text x="75" y="89" class="mono-font" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">STEP 4</text>
+
+    <text x="75" y="112" class="sans-font" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">AI Matching</text>
+    <text x="75" y="128" class="sans-font" font-size="10" fill="#94a3b8" text-anchor="middle">Python Backend Engine</text>
+
+    <rect x="12" y="142" width="126" height="30" rx="6" fill="#0f172a" stroke="#1e293b"/>
+    <text x="75" y="156" class="mono-font" font-size="8.5" fill="#facc15" text-anchor="middle">Euclidean &lt; 0.45</text>
+    <text x="75" y="167" class="mono-font" font-size="7.5" fill="#64748b" text-anchor="middle">Anti-Cheat Verification</text>
+  </g>
+
+  <!-- Flow Connector 4 -> 5 -->
+  <g transform="translate(740, 165)">
+    <line x1="0" y1="0" x2="35" y2="0" class="flow-line"/>
+    <polygon points="35,0 27,-4 27,4" fill="#0d9488"/>
+  </g>
+
+  <!-- STEP 5: LIVE SYNC & REPORTING -->
+  <g transform="translate(775, 75)">
+    <rect class="node-box" width="130" height="185" rx="12" fill="url(#nodeGrad1)" stroke="#334155" stroke-width="1.2"/>
+    <circle cx="65" cy="42" r="24" fill="#10b981" fill-opacity="0.2"/>
+    <!-- Checkmark & Chart Icon -->
+    <circle cx="65" cy="42" r="13" fill="none" stroke="#34d399" stroke-width="1.8"/>
+    <path d="M 59 42 L 63 46 L 71 38" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Step Badge -->
+    <rect x="42" y="76" width="46" height="18" rx="9" fill="#059669"/>
+    <text x="65" y="89" class="mono-font" font-size="9.5" font-weight="800" fill="#ffffff" text-anchor="middle">STEP 5</text>
+
+    <text x="65" y="112" class="sans-font" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">HADIR &amp; Rekap</text>
+    <text x="65" y="128" class="sans-font" font-size="10" fill="#94a3b8" text-anchor="middle">Live Sync 2s</text>
+
+    <rect x="8" y="142" width="114" height="30" rx="6" fill="#0f172a" stroke="#1e293b"/>
+    <text x="65" y="156" class="mono-font" font-size="8.5" fill="#34d399" text-anchor="middle">Instant Update</text>
+    <text x="65" y="167" class="mono-font" font-size="7.5" fill="#64748b" text-anchor="middle">Cetak PDF Bulanan</text>
+  </g>
+
+  <!-- Bottom Indicator Bar -->
+  <g transform="translate(470, 285)" text-anchor="middle">
+    <circle cx="-160" cy="0" r="3" fill="#34d399"/>
+    <text x="-148" y="4" class="mono-font" font-size="9" fill="#94a3b8" text-anchor="start">Toleransi GPS: 100 Meter</text>
+
+    <circle cx="0" cy="0" r="3" fill="#38bdf8"/>
+    <text x="12" y="4" class="mono-font" font-size="9" fill="#94a3b8" text-anchor="start">Akurasi AI: 99.4%</text>
+
+    <circle cx="160" cy="0" r="3" fill="#a78bfa"/>
+    <text x="172" y="4" class="mono-font" font-size="9" fill="#94a3b8" text-anchor="start">PWA Standalone Ready</text>
+  </g>
+</svg>

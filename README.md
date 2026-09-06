@@ -1,107 +1,173 @@
 <div align="center">
 
-  <img src="public/images/logo.png" alt="Logo Presensi" width="100" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;" />
+  <img src="public/images/logo.png" alt="Logo Presensi" width="90" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 15px;" />
 
-  # <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/High%20Voltage.png" alt="High Voltage" width="35" height="35" /> SMART QR SCHOOL ATTENDANCE SYSTEM
-  ### Sistem Presensi Sekolah Modern & Realtime Berbasis Dynamic QR Code
+  # ⚡ SMART AI FACE RECOGNITION & GEOFENCING
+  ### Sistem Presensi Sekolah Modern Berbasis AI Biometric Face ID, GPS Geofencing Radius, & Realtime Live Sync
 
-  <p align="center" style="margin-top: 10px;">
+  <p align="center" style="margin-top: 12px; margin-bottom: 16px;">
     <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12"></a>
+    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Face--API.js-Biometric-10B981?style=for-the-badge&logo=the-algorithms&logoColor=white" alt="Face-API"></a>
+    <a href="https://leafletjs.com"><img src="https://img.shields.io/badge/Leaflet-Geofencing-199900?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet Geofencing"></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
     <a href="https://alpinejs.dev"><img src="https://img.shields.io/badge/Alpine.js-Reactive-8BC0D0?style=for-the-badge&logo=alpine.js&logoColor=white" alt="Alpine.js"></a>
-    <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.2"></a>
-    <a href="https://mysql.com"><img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL"></a>
-    <a href="#"><img src="https://img.shields.io/badge/Live_Sync-Active_🟢-10B981?style=for-the-badge" alt="Realtime Sync"></a>
+    <a href="#"><img src="https://img.shields.io/badge/PWA-Ready_📱-6366F1?style=for-the-badge" alt="PWA Ready"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Live_Sync-2s_Interval_🟢-059669?style=for-the-badge" alt="Realtime Sync"></a>
   </p>
 
   <p align="center">
-    <strong>Aplikasi presensi mandiri siswa berbasis pemindaian QR Code interaktif, dilengkapi sinkronisasi realtime tanpa refresh browser, integrasi 40+ mata pelajaran, dan ekspor laporan PDF bulanan khusus Wali Kelas & Guru Mapel.</strong>
+    <strong>Aplikasi presensi mandiri siswa tercanggih dengan verifikasi wajah AI (128-D biometric vector), validasi radius GPS sekolah (Haversine Formula), sinkronisasi realtime tanpa refresh halaman, pembagian sesi harian & 40+ mata pelajaran, serta generator laporan PDF resmi untuk Wali Kelas & Guru Mapel.</strong>
   </p>
 
-  ---
+  <!-- ANIMATED SVG BANNER: FACE SCANNER HUD -->
+  <p align="center">
+    <img src="public/images/readme/face-scanner-banner.svg" alt="Face ID Scanner & Geofencing Radar HUD" width="100%" />
+  </p>
+
 </div>
 
-## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Star-Struck.png" alt="Star-Struck" width="25" height="25" /> Fitur Unggulan (Gacor & Family Friendly)
+---
+
+## 🚀 Sekilas Sistem Baru: Dari QR Code ke AI Face ID & Geofencing
+
+Sistem ini telah **berevolusi dari metode QR Code konvensional menjadi AI Biometric Face Recognition & GPS Geofencing**. Peningkatan ini mengatasi kelemahan barcode (seperti titip absen, foto QR dioper antar murid, atau pemindaian di luar lingkungan sekolah).
 
 ```
-  ┌───────────────────────┐       SCAN QR        ┌───────────────────────┐
-  │   📱 Siswa (HP Scan)   │ ──────────────────>  │  ⚡ Live System Check  │
-  └───────────────────────┘                      └───────────────────────┘
-                                                             │
-                                     Auto-Sync (2s)          ▼
-  ┌──────────────────────────────────────────────────────────────────────┐
-  │  👨‍🏫 Layar Dashboard Guru / Admin (Tabel Terupdate Instan Tanpa Refresh)│
-  └──────────────────────────────────────────────────────────────────────┘
+   TRADISIONAL (OLD)                          SISTEM CERDAS (NOW)
+┌───────────────────────┐            ┌─────────────────────────────────────────┐
+│ 📷 Scan QR Code        │            │ 🤖 AI Face ID Scanner (128-D Vector)     │
+│ (Rentan titip absen &  │   ====>    │ 📍 GPS Geofencing Lock (Radius Sekolah) │
+│ screenshot barcode)   │            │ ⚡ Live Auto-Sync Tanpa Refresh Browser │
+└───────────────────────┘            └─────────────────────────────────────────┘
 ```
 
-### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/High%20Voltage.png" alt="High Voltage" width="20" height="20" /> 1. Realtime Live Auto-Sync (Tanpa Reload Halaman)
-* 🟢 **Instant Update**: Guru membuka QR Code di laptop/proyektor kelas, saat siswa scan dari HP mereka, status siswa di tabel langsung otomatis berganti menjadi **HADIR** dengan animasi pulse hijau lembut.
-* 📊 **Live Counter**: Statistik total Hadir, Sakit, Izin, dan Alpa di kartu ringkasan ter-update otomatis seketika setiap 2 detik.
+> [!IMPORTANT]
+> **Tingkat Keamanan Ganda (Dual Security Layer)**: Siswa hanya dapat tercatat **HADIR** jika **wajah cocok dengan data biometrik (Python dlib ResNet Euclidean Distance ≤ 0.45)** DAN **posisi perangkat berada di dalam radius sekolah yang diizinkan**.
 
-### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Mobile%20Phone.png" alt="Mobile Phone" width="20" height="20" /> 2. Smart QR Code Scanner & Anti-Cheat System
-* 🔒 **Token 32-Karakter Acak**: Setiap sesi memiliki token kriptografi unik yang mustahil ditebak.
-* ⏳ **Auto-Expire 30 Menit**: Barcode otomatis kedaluwarsa setelah 30 menit untuk mencegah siswa yang terlambat atau titip absen.
-* 🔐 **Kunci / Buka Sesi Fleksibel**: Guru dapat mengunci barcode saat kelas dimulai dan mengaktifkannya kembali kapan saja jika diperlukan.
+---
 
-### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Books.png" alt="Books" width="20" height="20" /> 3. Integrasi Master Mata Pelajaran (40+ Mapel)
-* 🎓 **Sesi Kelas & Sesi Mapel**: Membedakan antara **Sesi Pagi (Presensi Harian Wali Kelas)** dan **Sesi Mapel (Presensi Guru Mata Pelajaran)**.
-* ⏰ **Jadwal & Jam Pelajaran**: Pencatatan jam pelajaran spesifik (contoh: *07.30 - 09.00 WIB*).
-* 📋 **Auto-Copy Presensi Pagi**: Saat guru mapel membuat sesi, status kehadiran otomatis disinkronkan dari data sesi pagi wali kelas sehingga siswa tidak perlu scan berulang kali saat HP sudah dikumpulkan.
+## ✨ Fitur Unggulan (Next-Gen Biometrics)
 
-### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Page%20Facing%20Up.png" alt="Page Facing Up" width="20" height="20" /> 4. Generator Rekap PDF Cerdas & Rapi
-| Jenis Rekap | Deskripsi & Format |
+<!-- ANIMATED SVG CARDS: DUAL SECURITY & LIVE SYNC -->
+<p align="center">
+  <img src="public/images/readme/dual-security-hud.svg" alt="Dual Security & Live Sync Features" width="100%" />
+</p>
+
+### 👤 1. AI Biometric Face Recognition (Face ID Anti-Spoofing)
+* 📸 **Multi-Angle Face Enrollment**: Siswa mendaftarkan wajah dengan mengambil 3-5 snapshot dari berbagai sudut (lurus, senyum, sedikit toleh) saat registrasi untuk membangun profil embedding biometrik yang akurat.
+* 🧠 **128-Dimensional Face Embedding**: Backend Python memanfaatkan model dlib ResNet untuk mengekstrak vektor matematis 128-dimensi wajah dan menyimpannya secara aman di database.
+* 🎯 **Strict Verification Threshold**: Menggunakan Euclidean Distance ketat (`≤ 0.45`), memastikan presensi tidak dapat dikelabui dengan foto cetak, masker, atau foto dari layar ponsel lain.
+* 🪟 **Live Camera HUD Oval Guide**: Antarmuka kamera browser ditenagai `@vladmandic/face-api` dengan panduan oval interaktif, deteksi landmark wajah seketika, dan visual laser scanning animatif.
+
+### 📍 2. Dynamic GPS Geofencing (Radius Kehadiran Sekolah)
+* 🗺️ **Peta Interaktif Admin**: Admin sekolah dapat menentukan koordinat Latitude & Longitude sekolah serta radius toleransi (contoh: *100 meter*) langsung menggunakan peta interaktif **Leaflet.js**.
+* 🛰️ **Haversine Distance Formula**: Setiap kali siswa menekan tombol presensi, sistem menghitung jarak riil perangkat ke titik pusat sekolah menggunakan formula Haversine matematis.
+* 🚫 **Auto-Reject Diluar Radius**: Jika siswa mencoba absen dari rumah atau luar batas gerbang sekolah, sistem otomatis menolak presensi dan menampilkan informasi jarak aktual.
+
+### ⚡ 3. Realtime Live Auto-Sync (Tanpa Reload Halaman)
+* 🟢 **Instant Dashboard Update**: Guru dan Wali Kelas membuka dashboard presensi di laptop atau proyektor kelas. Saat siswa sukses verifikasi wajah lewat HP, status siswa di tabel langsung berganti menjadi **HADIR** dengan animasi pulse hijau seketika (interval polling 2 detik).
+* 📊 **Live Statistical Counters**: Kartu ringkasan total *Hadir*, *Sakit*, *Izin*, dan *Alpa* ter-update otomatis tanpa perlu memuat ulang browser (*Zero Reload DOM Sync*).
+
+### 📚 4. Master 40+ Mata Pelajaran & Sesi Berjenjang
+* 🌅 **Sesi Pagi (Wali Kelas) vs Sesi Mapel (Guru Mata Pelajaran)**: Mendukung presensi harian umum sekolah dan presensi per jam pelajaran mata pelajaran spesifik.
+* 📋 **Fitur Auto-Copy Presensi Pagi**: Saat guru mapel membuka sesi pelajaran di siang hari, guru dapat langsung menyalin status kehadiran dari sesi pagi wali kelas sehingga siswa tidak perlu scan berulang kali saat HP sudah dikumpulkan di kelas.
+
+### 🛡️ 5. Manajemen Wajah & Audit Trail Admin
+* 🔄 **Reset Wajah Individual**: Admin dapat mereset descriptor biometrik siswa tertentu jika terjadi kendala pengenalan wajah atau perubahan fisik.
+* 👥 **Batch Reset Wajah ("Reset All Faces")**: Fitur sekali klik untuk mereset seluruh data biometrik siswa di sekolah guna keperluan daftar ulang di awal tahun ajaran baru.
+* 📜 **Catatan Audit Trail Transparan**: Setiap perubahan manual oleh guru atau sistem tercatat lengkap dengan nilai confidence score, jarak meter, nama guru pengubah, dan stempel waktu.
+
+### 📄 6. Generator Rekap PDF Cerdas & Rapi
+| Jenis Laporan | Deskripsi & Format Cetak |
 |---|---|
-| 👨‍🏫 **Rekap Bulanan Wali Kelas** | Menampilkan tanggal-tanggal aktif yang ada kegiatan sesi, total rekapitulasi `H`, `S`, `I`, `A`, perhitungan persentase kehadiran nyata, dan status evaluasi siswa. |
-| 📖 **Rekap Bulanan Guru Mapel** | Menampilkan format per **Pertemuan Tatap Muka** (`P.1`, `P.2`, `P.3`, dst) lengkap dengan jam pelajaran & status ketuntasan mapel (*TUNTAS / TUGAS TAMBAHAN / REMEDIAL*). |
-| 🕒 **Rekap Harian & Detail Sesi** | Format cetak cepat per pertemuan yang siap di-print kapan saja dalam format portrait/landscape. |
+| 👨‍🏫 **Rekap Bulanan Wali Kelas** | Menampilkan seluruh tanggal aktif sesi sekolah, akumulasi rekapitulasi `H`, `S`, `I`, `A`, persentase kehadiran riil, dan status evaluasi kedisiplinan siswa. |
+| 📖 **Rekap Bulanan Guru Mapel** | Diformat per **Pertemuan Tatap Muka** (`P.1`, `P.2`, `P.3`, dst) lengkap dengan jam pelajaran, nama guru pengampu, serta status ketuntasan (*TUNTAS / TUGAS TAMBAHAN / REMEDIAL*). |
+| 🕒 **Rekap Harian & Cetak Cepat** | Format cetak cepat per sesi pertemuan yang siap di-print kapan saja dengan CSS Print Media Queries (`@media print`) ramah kertas A4. |
 
-### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Shield.png" alt="Shield" width="20" height="20" /> 5. Log Perubahan & Audit Trail Lengkap
-* 📜 **Catatan Transparan**: Setiap perubahan manual status siswa (misal: dari *Alpa* diubah ke *Sakit* atau *Izin*) dicatat secara permanen.
-* 🔍 **Multi-Filter Cepat**: Riwayat log dapat difilter berdasarkan **Kelas**, **Mata Pelajaran**, **Guru Pembuat/Pengubah**, dan **Tanggal**.
-
----
-
-## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.png" alt="Hammer and Wrench" width="25" height="25" /> Stack Teknologi
-
-| Komponen | Teknologi | Keterangan |
-|---|---|---|
-| **Framework Backend** | ![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Routing, Eloquent ORM, Controllers, Middleware |
-| **Bahasa Pemrograman**| ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white) | Backend engine dengan Carbon Localization ID |
-| **User Interface** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Design modern, responsif, dan clean |
-| **Reaktivitas Frontend**| ![Alpine.js](https://img.shields.io/badge/Alpine.js-3.x-8BC0D0?style=flat-square&logo=alpine.js&logoColor=white) | Modal, dropdowns, dan live polling DOM sync |
-| **QR Code Engine** | `QRCode.js` & `Html5-QRCode` | Generator QR Code di dashboard & scanner kamera di HP |
-| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white) | Relasi tabel yang teroptimasi dengan index |
+### 📱 7. Progressive Web App (PWA) Ready
+* 📲 **Installable App**: Siswa dapat menginstal aplikasi presensi langsung ke homescreen smartphone (Android / iOS) via browser dengan dukungan Web App Manifest, offline cache header, dan pengalaman layar penuh (*standalone mode*).
 
 ---
 
-## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Counterclockwise%20Arrows%20Button.png" alt="Counterclockwise Arrows" width="25" height="25" /> Alur Kerja Sistem (Workflow Diagram)
+## 🔄 Alur Kerja Sistem (End-to-End Workflow)
+
+<!-- ANIMATED SVG WORKFLOW PIPELINE -->
+<p align="center">
+  <img src="public/images/readme/face-workflow-pipeline.svg" alt="End-to-End Workflow Pipeline" width="100%" />
+</p>
+
+### Sequence Diagram Interaksi Sistem
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Siswa as 📱 Siswa (HP)
+    actor Siswa as 📱 Siswa (HP / PWA)
     actor Guru as 👨‍🏫 Guru / Wali Kelas (Laptop)
-    participant Sistem as ⚡ Server Laravel & DB
+    participant Laravel as ⚡ Laravel Backend
+    participant Python as 🧠 Python Face AI (dlib)
+    participant DB as 🗄️ Database MySQL
 
-    Guru->>Sistem: Buat Sesi Baru (Pilih Kelas & Mapel)
-    Sistem-->>Guru: Tampilkan Layar Penuh QR Code (Token Aktif)
-    Note over Guru: QR Code ditampilkan di proyektor kelas
-    
-    Siswa->>Sistem: Scan QR Code via Kamera Browser Siswa
-    Sistem->>Sistem: Verifikasi Token, Expired Time & Kelas Siswa
-    Sistem->>Sistem: Update status siswa menjadi "HADIR"
-    Sistem-->>Siswa: Notifikasi Berhasil Absen (Hadir)
-    
-    loop Setiap 2 Detik (Realtime Polling)
-        Guru->>Sistem: Live Sync Request
-        Sistem-->>Guru: Kirim Data Terbaru
-        Note over Guru: Badge & Counter di Layar Guru Berubah Otomatis!
+    Note over Siswa,DB: 1. TAHAP REGISTRASI / ENROLLMENT
+    Siswa->>Laravel: Kirim 3-5 Foto Snapshot Wajah (Multi-Sudut)
+    Laravel->>Python: Ekstraksi 128-D Biometric Embedding
+    Python-->>Laravel: Kembalikan 128 Float Vector
+    Laravel->>DB: Simpan face_descriptor di tabel users
+
+    Note over Guru,DB: 2. GURU MEMBUKA SESI
+    Guru->>Laravel: Buka Sesi Presensi (Pagi / Mapel)
+    Laravel->>DB: Aktifkan sesi (is_active = true)
+
+    Note over Siswa,DB: 3. PROSES PRESENSI SISWA
+    Siswa->>Laravel: Buka Dashboard Siswa (Polling Deteksi Sesi Aktif)
+    Laravel-->>Siswa: Sesi Ditemukan + Info Geofencing Sekolah
+    Siswa->>Siswa: Kamera Aktif (Face-API HUD Oval & GPS Coordinates)
+    Siswa->>Laravel: Submit Foto Wajah (Base64) + Lat/Long GPS
+
+    Note over Laravel,Python: 4. VALIDASI RADIUS & BIOMETRIK
+    Laravel->>Laravel: Hitung Jarak GPS via Haversine Formula
+    alt Jarak > Radius Sekolah (di luar radius)
+        Laravel-->>Siswa: ❌ Ditolak (Di luar radius sekolah)
+    else Jarak <= Radius Sekolah (di dalam radius)
+        Laravel->>Python: Bandingkan Foto Baru vs Stored 128-D Vector
+        Python-->>Laravel: Hasil Match (Distance: 0.32, Confidence: 99.4%)
+        alt Wajah Tidak Cocok
+            Laravel-->>Siswa: ❌ Wajah Tidak Dikenali
+        else Wajah Terverifikasi Cocok
+            Laravel->>DB: Update Status Siswa Menjadi "HADIR"
+            Laravel->>DB: Catat Log Presensi & Confidence Score
+            Laravel-->>Siswa: ✅ Sukses! Tercatat Hadir
+        end
+    end
+
+    Note over Guru,DB: 5. REALTIME LIVE SYNC (INTERVAL 2s)
+    loop Setiap 2 Detik
+        Guru->>Laravel: Request Live Sync Data
+        Laravel->>DB: Ambil statistik & status terbaru
+        Laravel-->>Guru: Kirim JSON Data
+        Note over Guru: Baris siswa pulse hijau & counter berubah seketika!
     end
 ```
 
 ---
 
-## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="25" height="25" /> Panduan Instalasi Cepat
+## 🛠️ Stack Teknologi
+
+| Layer / Komponen | Teknologi | Peran & Deskripsi |
+|---|---|---|
+| **Backend Framework** | ![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Routing, Eloquent ORM, Middleware Role Auth, Controllers |
+| **Bahasa Backend** | ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white) | Core backend logic & Carbon Localization Indonesia |
+| **AI Biometric Engine** | ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white) | `face_recognition`, `dlib` ResNet, `numpy`, `Pillow` |
+| **Frontend Biometric** | `@vladmandic/face-api` | Deteksi wajah kamera real-time, landmark alignment, HUD canvas |
+| **GIS & Geofencing** | Leaflet.js & HTML5 Geolocation | Peta interaktif koordinat sekolah & kalkulasi Haversine Formula |
+| **User Interface** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Desain antarmuka modern, dark/light theme accents, responsif |
+| **Frontend Reactive** | ![Alpine.js](https://img.shields.io/badge/Alpine.js-3.x-8BC0D0?style=flat-square&logo=alpine.js&logoColor=white) | Modal scanner, polling interval 2 detik, reactivity tanpa overhead |
+| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat-square&logo=mysql&logoColor=white) | Penyimpanan relasional, index query, json casting face descriptor |
+| **Mobile App** | PWA (Progressive Web App) | Web App Manifest, installable ke homescreen smartphone |
+
+---
+
+## 🚀 Panduan Instalasi & Setup
 
 ### 1. Clone Repository
 ```bash
@@ -109,22 +175,39 @@ git clone https://github.com/Hotwill2/presensi-sekolah.git
 cd presensi-sekolah
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependensi PHP & Frontend
 ```bash
-# Install PHP Dependencies
+# Install package PHP Laravel
 composer install
 
-# Install Frontend Dependencies
+# Install package Node.js
 npm install
 ```
 
-### 3. Konfigurasi Environment (`.env`)
+### 3. Install Dependensi Python Face Recognition
+Pastikan Python 3.10+ sudah terpasang di sistem Anda:
+```bash
+# Install library AI biometrik
+pip3 install face-recognition numpy pillow
+
+# Download model weights dlib (shape predictor 68 landmarks & ResNet v1)
+bash python/download_models.sh
+
+# Uji kesiapan service Python
+python3 python/face_service.py test
+```
+
+> [!TIP]
+> Jika sistem Anda menggunakan Linux/Ubuntu, pastikan dependensi C++ compiler (`cmake`, `build-essential`, `libopenblas-dev`) sudah terpasang agar instalasi `dlib` berjalan mulus:
+> `sudo apt update && sudo apt install -y cmake build-essential python3-dev`
+
+### 4. Konfigurasi Environment (`.env`)
 Duplikat file `.env.example` dan sesuaikan kredensial database Anda:
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
-Pastikan pengaturan database di file `.env` sudah benar:
+Sesuaikan pengaturan database dan timezone di `.env`:
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -137,42 +220,58 @@ APP_TIMEZONE=Asia/Jakarta
 APP_LOCALE=id
 ```
 
-### 4. Jalankan Migrasi & Seeder Database
+### 5. Jalankan Migrasi Database & Seeder
 ```bash
-# Jalankan migrasi tabel beserta 40+ data mapel dan akun contoh
+# Membuat tabel-tabel, konfigurasi sekolah default, master 40+ mapel & akun contoh
 php artisan migrate --seed
 ```
 
-### 5. Kompilasi Aset Frontend & Jalankan Server
+### 6. Jalankan Server Pengembangan
+Buka dua jendela terminal terpisah:
 ```bash
-# Jalankan bundler Vite
+# Terminal 1: Kompilasi frontend assets
 npm run dev
 
-# Di terminal terpisah, jalankan server lokal Laravel
+# Terminal 2: Server Laravel
 php artisan serve
 ```
-Buka browser dan akses: `http://localhost:8000`
+Buka browser Anda dan navigasi ke: `http://localhost:8000`
 
 ---
 
-## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Locked%20with%20Key.png" alt="Locked with Key" width="25" height="25" /> Akun Demo Default
+## 🔐 Akun Demo Default
 
-| Role | Username / NIK / NISN | Password | Keterangan |
+| Role | Identitas Login (NIK / NISN / Username) | Password | Akses & Kemampuan |
 |---|---|---|---|
-| **Admin** | `admin` | `password` | Akses penuh CRUD, log, reset & export |
-| **Guru** | `198501012010011001` (NIK Guru) | `password` | Kelola sesi, tampilkan barcode, edit & cetak |
-| **Siswa** | `0081234567` (NISN Siswa) | `password` | Dashboard siswa, scan barcode mandiri |
+| 👑 **Admin** | `admin` | `password` | Kelola master Siswa, Guru, Kelas, Log Presensi, Reset Wajah, dan Pengaturan Radius Geofencing Sekolah |
+| 👨‍🏫 **Guru / Wali Kelas** | `198501012010011001` (NIK Guru) | `password` | Buka sesi kelas & mapel, monitor live sync, koreksi manual status presensi, cetak rekap PDF |
+| 🧑‍🎓 **Siswa** | `0081234567` (NISN Siswa) | `password` | Akses dashboard siswa, enroll wajah mandiri, scan presensi Face ID + GPS |
+
+> [!NOTE]
+> Siswa demo yang baru dibuat dapat langsung membuka menu **Enroll Wajah** (`/siswa/enroll-wajah`) untuk mendaftarkan foto wajah sebelum melakukan presensi pertama kali.
+
+---
+
+## 📍 Pengaturan Lokasi & Geofencing Sekolah
+
+1. Masuk ke panel **Admin** -> Menu **Pengaturan Lokasi**.
+2. Geser pin pada **Peta Interaktif Leaflet** ke posisi gedung sekolah Anda, atau masukkan koordinat Latitude dan Longitude secara manual.
+3. Atur **Radius Toleransi (Meter)** (contoh: `100` untuk 100 meter dari titik koordinat).
+4. Aktifkan saklar toggle **Aktifkan Geofencing**.
+5. Klik **Simpan Pengaturan Lokasi**.
 
 ---
 
 ## 📄 Format Laporan Presensi PDF
 
-* 🖨️ **Cetak Langsung dari Browser**: Menggunakan CSS Print Media Queries canggih (`@media print`), tidak memerlukan ekstensi PDF server yang berat.
-* 📑 **Format Landscape Bersih**: Otomatis pas di kertas A4 saat memilih opsi *Save as PDF* atau cetak langsung ke printer.
-* 🖋️ **Kop & Tanda Tangan Resmi**: Dilengkapi NIP/NIK wali kelas, guru mapel, dan kepala sekolah.
+* 🖨️ **Cetak Langsung dari Browser**: Menggunakan standar CSS Print Media Queries (`@media print`), tidak membebani server dengan library PDF eksternal yang berat.
+* 📑 **Layout Landscape A4 Otomatis**: Hasil cetak secara presisi tertata rapi saat memilih opsi *Save as PDF* atau kirim langsung ke printer.
+* 🖋️ **Lengkap dengan Titimangsa & Tanda Tangan**: Memuat nama & NIP Kepala Sekolah, Wali Kelas, dan Guru Mata Pelajaran bersangkutan.
 
 ---
 
 <div align="center">
-  <sub>Dikembangkan dengan ❤️ untuk kemudahan dan efisiensi manajemen presensi sekolah.</sub>
+  <p>
+    <sub>Dikembangkan dengan ❤️ untuk modernisasi presensi sekolah yang akurat, transparan, dan anti-cheat.</sub>
+  </p>
 </div>

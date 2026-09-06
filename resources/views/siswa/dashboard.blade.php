@@ -384,6 +384,11 @@
                 @endif
             </div>
 
+            {{-- Footer --}}
+            <footer class="mt-8 mb-4 text-center text-xs text-slate-400">
+                Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
+            </footer>
+
         </div>
 
         {{-- ──────────────────────────────────────────── --}}

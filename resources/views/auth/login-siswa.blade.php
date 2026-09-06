@@ -12,7 +12,7 @@
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
         .split-bg {
-            background-image: linear-gradient(135deg, rgba(6, 78, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%), url('{{ asset('images/bg-sekolah.jpg') }}');
+            background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.95) 100%), url('{{ asset('images/bg-sekolah.jpg') }}');
             background-size: cover;
             background-position: center;
         }
@@ -46,22 +46,22 @@
         .animate-slide-in { animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
-<body class="antialiased overflow-hidden selection:bg-teal-500 selection:text-white" x-data="{ showPass: false, focused: '' }">
+<body class="antialiased overflow-hidden selection:bg-slate-900 selection:text-white" x-data="{ showPass: false, focused: '' }">
 
     <div class="min-h-screen flex">
         
         {{-- Left Side: Visual/Branding (Hidden on mobile) --}}
         <div class="hidden lg:flex lg:w-1/2 split-bg relative items-center justify-center p-12 overflow-hidden">
             <!-- Decorative Blobs -->
-            <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style="animation-delay: 0s;"></div>
-            <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style="animation-delay: 2s;"></div>
+            <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-slate-700 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style="animation-delay: 0s;"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-slate-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style="animation-delay: 2s;"></div>
             
             <div class="relative z-10 glass-panel p-10 rounded-[2rem] max-w-lg text-white shadow-2xl animate-float">
                 <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-                    <i class="fas fa-school text-3xl text-teal-100"></i>
+                    <i class="fas fa-school text-3xl text-slate-100"></i>
                 </div>
                 <h1 class="text-4xl font-extrabold mb-4 leading-tight">Portal Presensi <br> Masa Depan.</h1>
-                <p class="text-teal-50 text-lg leading-relaxed opacity-90">
+                <p class="text-slate-200 text-lg leading-relaxed opacity-90">
                     Akses dashboard siswa, kelola kehadiran, dan rasakan pengalaman presensi wajah berteknologi tinggi langsung dari genggamanmu.
                 </p>
                 
@@ -114,45 +114,45 @@
                 <form method="POST" action="{{ route('login.siswa') }}" class="space-y-5">
                     @csrf
 
-                    <div class="input-field group" :class="focused === 'identifier' ? 'ring-2 ring-teal-100 rounded-xl' : ''">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 transition-colors group-focus-within:text-teal-600">Username / Email / NISN</label>
+                    <div class="input-field group" :class="focused === 'identifier' ? 'ring-2 ring-slate-200 rounded-xl' : ''">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 transition-colors group-focus-within:text-slate-900">Username / Email / NISN</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-user text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
+                                <i class="fas fa-user text-slate-400 group-focus-within:text-slate-800 transition-colors"></i>
                             </div>
                             <input type="text" name="identifier" value="{{ old('identifier') }}" required autofocus
                                    @focus="focused = 'identifier'" @blur="focused = ''"
-                                   class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all duration-200" 
+                                   class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:bg-white transition-all duration-200" 
                                    placeholder="Masukkan username kamu">
                         </div>
                     </div>
 
-                    <div class="input-field group" :class="focused === 'password' ? 'ring-2 ring-teal-100 rounded-xl' : ''">
+                    <div class="input-field group" :class="focused === 'password' ? 'ring-2 ring-slate-200 rounded-xl' : ''">
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-teal-600">Password</label>
-                            <a href="#" class="text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline">Lupa password?</a>
+                            <label class="block text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-slate-900">Password</label>
+                            <a href="#" class="text-xs font-medium text-slate-500 hover:text-slate-800 hover:underline">Lupa password?</a>
                         </div>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-lock text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
+                                <i class="fas fa-lock text-slate-400 group-focus-within:text-slate-800 transition-colors"></i>
                             </div>
                             <input :type="showPass ? 'text' : 'password'" name="password" required
                                    @focus="focused = 'password'" @blur="focused = ''"
-                                   class="block w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all duration-200"
+                                   class="block w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:bg-white transition-all duration-200"
                                    placeholder="••••••••">
-                            <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-teal-600 transition-colors focus:outline-none">
+                            <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 transition-colors focus:outline-none">
                                 <i class="fas fa-fw" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="flex items-center">
-                        <input id="remember" type="checkbox" name="remember" class="w-4 h-4 text-teal-600 bg-slate-100 border-slate-300 rounded focus:ring-teal-500 focus:ring-2 cursor-pointer transition-colors">
+                        <input id="remember" type="checkbox" name="remember" class="w-4 h-4 text-slate-900 bg-slate-100 border-slate-300 rounded focus:ring-slate-900/20 focus:ring-2 cursor-pointer transition-colors">
                         <label for="remember" class="ml-2 text-sm font-medium text-slate-600 cursor-pointer select-none">Ingat sesi saya</label>
                     </div>
 
                     <button type="submit"
-                            class="w-full bg-slate-900 hover:bg-teal-600 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg hover:shadow-teal-500/25 flex items-center justify-center gap-2 group mt-2">
+                            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-slate-900/15 flex items-center justify-center gap-2 group mt-2">
                         <span>Masuk ke Dashboard</span>
                         <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
                     </button>
@@ -169,7 +169,7 @@
 
                 <div class="mt-6 flex flex-col gap-3">
                     <a href="{{ route('register.siswa') }}"
-                       class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-teal-500 hover:bg-teal-50 text-slate-700 hover:text-teal-700 font-semibold py-3 rounded-xl transition-all duration-200">
+                       class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-slate-800 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold py-3 rounded-xl transition-all duration-200">
                         <i class="fas fa-user-plus"></i> Daftar Akun Siswa
                     </a>
                     
@@ -179,7 +179,7 @@
                 </div>
                 
                 <p class="text-center text-xs text-slate-400 mt-10">
-                    &copy; {{ date('Y') }} Presensi Sekolah. All rights reserved.
+                    Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
                 </p>
 
             </div>

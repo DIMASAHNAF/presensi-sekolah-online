@@ -343,7 +343,7 @@
                 </div>
                 
                 <p class="text-center text-xs text-slate-400 mt-10">
-                    &copy; {{ date('Y') }} Presensi Sekolah. All rights reserved.
+                    Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
                 </p>
 
             </div>

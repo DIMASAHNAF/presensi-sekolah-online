@@ -218,7 +218,7 @@
     </div>
 
     <footer>
-        &copy; {{ date('Y') }} Sistem Presensi Sekolah &mdash; Developed by <span>Dimas A.F</span>
+        Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
     </footer>
 
     <script>

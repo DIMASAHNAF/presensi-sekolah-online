@@ -282,7 +282,7 @@
         
         {{-- Footer --}}
         <footer class="mt-8 pt-4 border-t border-slate-200 text-center text-xs text-slate-500">
-            &copy; {{ date('Y') }} Presensi Sekolah. Developed by <span class="font-semibold text-slate-700">Dimas A.F</span>.
+            Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
         </footer>
     </main>
 </div>
