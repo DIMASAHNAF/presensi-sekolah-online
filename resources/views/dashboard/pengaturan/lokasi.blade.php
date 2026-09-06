@@ -39,7 +39,7 @@
     
     {{-- Form Pengaturan --}}
     <div class="lg:col-span-5 space-y-6">
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
                 <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold">
                     <i class="fas fa-map-location-dot text-lg"></i>
@@ -135,22 +135,22 @@
         </div>
 
         {{-- Petunjuk Penggunaan --}}
-        <div class="bg-gradient-to-br from-slate-900 to-teal-950 rounded-3xl p-6 text-white shadow-sm border border-slate-800">
-            <div class="flex items-center gap-2 text-teal-400 font-bold text-sm mb-3">
-                <i class="fas fa-lightbulb"></i> Tips Penentuan Radius
+        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 rounded-xl p-5 text-white shadow-sm border border-slate-800">
+            <div class="flex items-center gap-2 text-blue-300 font-heading font-bold text-sm mb-3">
+                <i class="fas fa-lightbulb"></i> Panduan Kalibrasi Radius GPS
             </div>
             <ul class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
                 <li class="flex items-start gap-2">
-                    <i class="fas fa-check text-teal-400 mt-0.5 shrink-0"></i>
-                    <span><strong>Geser Pin di Peta:</strong> Kamu bisa klik atau geser marker biru di peta sebelah kanan untuk menentukan titik gerbang sekolah secara presisi.</span>
+                    <i class="fas fa-check text-blue-400 mt-0.5 shrink-0"></i>
+                    <span><strong>Geser Pin di Peta:</strong> Klik atau geser marker di peta sebelah kanan untuk menentukan titik pusat gerbang SMKN 1 Beringin.</span>
                 </li>
                 <li class="flex items-start gap-2">
-                    <i class="fas fa-check text-teal-400 mt-0.5 shrink-0"></i>
-                    <span><strong>Rekomendasi Radius 80–150 meter:</strong> Di dalam gedung/kelas, akurasi GPS HP bisa meleset 15–30 meter. Radius 100m adalah titik ideal untuk mencegah kesalahan deteksi.</span>
+                    <i class="fas fa-check text-blue-400 mt-0.5 shrink-0"></i>
+                    <span><strong>Rekomendasi Radius 80–150 meter:</strong> Di dalam gedung/kelas, akurasi GPS HP memiliki toleransi 15–30 meter. Radius 100m adalah titik ideal untuk mencegah false-lock.</span>
                 </li>
                 <li class="flex items-start gap-2">
-                    <i class="fas fa-check text-teal-400 mt-0.5 shrink-0"></i>
-                    <span><strong>Matikan saat Diperlukan:</strong> Matikan toggle di atas jika sekolah sedang mengadakan pembelajaran daring (PJJ) atau study tour.</span>
+                    <i class="fas fa-check text-blue-400 mt-0.5 shrink-0"></i>
+                    <span><strong>Mode PJJ / Luar Sekolah:</strong> Nonaktifkan toggle di atas jika sekolah sedang mengadakan pembelajaran daring (PJJ) atau kunjungan industri.</span>
                 </li>
             </ul>
         </div>
@@ -158,7 +158,7 @@
 
     {{-- Map Display --}}
     <div class="lg:col-span-7">
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-full flex flex-col">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-full flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">

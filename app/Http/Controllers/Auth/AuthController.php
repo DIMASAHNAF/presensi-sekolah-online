@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kelas;
+use App\Models\Presensi;
+use App\Models\SesiPresensi;
 use App\Models\User;
 use App\Services\FaceService;
 use Illuminate\Http\Request;
@@ -141,6 +143,26 @@ class AuthController extends Controller
                 'face_descriptor'  => $result['descriptor'],
                 'face_enrolled_at' => now(),
             ]);
+
+            // Sinkronkan otomatis ke sesi presensi yang sudah dibuat hari ini untuk kelas ini
+            $sesiHariIni = SesiPresensi::where('kelas_id', $user->kelas_id)
+                ->where('tanggal', today())
+                ->get();
+
+            foreach ($sesiHariIni as $sesi) {
+                $exists = Presensi::where('sesi_presensi_id', $sesi->id)
+                    ->where('siswa_id', $user->id)
+                    ->exists();
+
+                if (!$exists) {
+                    Presensi::create([
+                        'sesi_presensi_id' => $sesi->id,
+                        'siswa_id'         => $user->id,
+                        'status'           => 'alpa',
+                        'keterangan'       => 'Siswa baru terdaftar',
+                    ]);
+                }
+            }
 
             $request->session()->forget('register_data');
             Auth::login($user);

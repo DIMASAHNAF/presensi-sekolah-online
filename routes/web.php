@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::get('/presensi/export/bulanan-kelas', [DashboardController::class, 'exportBulananKelas'])->name('.presensi.pdf.bulanan.kelas');
     Route::get('/presensi/export/bulanan-mapel', [DashboardController::class, 'exportBulananMapel'])->name('.presensi.pdf.bulanan.mapel');
     Route::patch('/presensi/record/{presensi}', [DashboardController::class, 'updateRecord'])->name('.presensi.record.update');
+    Route::post('/presensi/{sesiPresensi}/sync-siswa', [DashboardController::class, 'syncSiswaSesi'])->name('.presensi.sync-siswa');
     Route::patch('/presensi/{sesiPresensi}/close', [DashboardController::class, 'closeSesi'])->name('.presensi.close');
     Route::post('/presensi/{sesiPresensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.presensi.reset');
     Route::delete('/presensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.presensi.delete-all');

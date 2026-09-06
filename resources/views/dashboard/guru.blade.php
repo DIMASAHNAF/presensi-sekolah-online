@@ -20,7 +20,7 @@
 @endif
 
 <div x-data="{ openAdd: false, openEdit: false, editData: {} }">
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
         <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
             <h2 class="font-bold text-slate-800">Daftar Guru</h2>
             
@@ -81,52 +81,52 @@
     </div>
 
     {{-- MODAL ADD --}}
-    <div x-show="openAdd" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 px-4">
-        <div @click.away="openAdd = false" class="bg-white rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-bold text-lg mb-4">Tambah Akun Guru</h3>
+    <div x-show="openAdd" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-xs px-4">
+        <div @click.away="openAdd = false" class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-heading font-bold text-base mb-4 text-slate-900">Tambah Akun Dewan Guru</h3>
             <form action="{{ route('dashboard.guru.store') }}" method="POST">
                 @csrf
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                    <input type="text" name="name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nama Lengkap</label>
+                    <input type="text" name="name" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">NIK</label>
-                    <input type="text" name="nik" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK (16 Digit)</label>
+                    <input type="text" name="nik" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Username Login</label>
-                    <input type="text" name="username" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
+                    <input type="text" name="username" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Password Login</label>
-                    <input type="password" name="password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password Login</label>
+                    <input type="password" name="password" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
-                <div class="flex gap-2 justify-end mt-6">
-                    <button type="button" @click="openAdd = false" class="btn-secondary">Batal</button>
-                    <button type="submit" class="btn-primary">Simpan</button>
+                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                    <button type="button" @click="openAdd = false" class="btn-secondary py-2 text-xs">Batal</button>
+                    <button type="submit" class="btn-primary py-2 text-xs">Simpan Data Guru</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- MODAL EDIT --}}
-    <div x-show="openEdit" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 px-4">
-        <div @click.away="openEdit = false" class="bg-white rounded-3xl w-full max-w-md p-6">
-            <h3 class="font-bold text-lg mb-4">Edit Guru</h3>
+    <div x-show="openEdit" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-xs px-4">
+        <div @click.away="openEdit = false" class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-6">
+            <h3 class="font-heading font-bold text-base mb-4 text-slate-900">Edit Data Guru</h3>
             <form :action="'{{ route('dashboard.guru') }}/' + editData.id" method="POST">
                 @csrf @method('PUT')
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                    <input type="text" name="name" x-model="editData.nama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nama Lengkap</label>
+                    <input type="text" name="name" x-model="editData.nama" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">NIK</label>
-                    <input type="text" name="nik" x-model="editData.nik" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK</label>
+                    <input type="text" name="nik" x-model="editData.nik" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Username Login</label>
-                    <input type="text" name="username" x-model="editData.username" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" required>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
+                    <input type="text" name="username" x-model="editData.username" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
                 </div>
                 <div class="flex gap-2 justify-end mt-6">
                     <button type="button" @click="openEdit = false" class="btn-secondary">Batal</button>

@@ -91,23 +91,41 @@ class DashboardController extends Controller
         $query = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
             ->withCount(['presensi as hadir_count' => fn ($q) => $q->where('status', 'hadir')])
             ->withCount(['presensi as total_count'])
-            ->latest('tanggal');
+            ->latest('tanggal')
+            ->latest('created_at');
 
-        // Guru dan Admin bisa melihat semua sesi (agar guru lain bisa mengedit kehadiran di hari yang sama)
-        // Hapus limitasi guru_id = user->id
-        if ($request->kelas_id) {
+        // Guru dan Admin bisa melihat semua sesi
+        if ($request->filled('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
         }
-        if ($request->mapel_id) {
+        if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->mapel_id);
         }
-        // Default to today if no date provided
-        $tanggal = $request->tanggal ?? today()->toDateString();
-        $query->where('tanggal', $tanggal);
+
+        // Filter Tanggal Spesifik (opsional)
+        if ($request->filled('tanggal')) {
+            $query->where('tanggal', $request->tanggal);
+        }
+        // Filter Bulan (opsional, contoh: 2026-09)
+        elseif ($request->filled('bulan')) {
+            $bulanDate = Carbon::parse($request->bulan . '-01');
+            $query->whereBetween('tanggal', [
+                $bulanDate->copy()->startOfMonth()->toDateString(),
+                $bulanDate->copy()->endOfMonth()->toDateString(),
+            ]);
+        }
+        // Filter Periode Cepat
+        elseif ($request->periode === 'hari_ini') {
+            $query->where('tanggal', today()->toDateString());
+        }
 
         $sesiList = $query->paginate(15)->withQueryString();
 
-        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal', 'jamPelajarans'));
+        $tanggal = $request->tanggal;
+        $bulan = $request->bulan;
+        $periode = $request->periode;
+
+        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal', 'bulan', 'periode', 'jamPelajarans'));
     }
 
     // =========================================================
@@ -203,7 +221,121 @@ class DashboardController extends Controller
     {
         $sesiPresensi->load(['kelas', 'guru', 'mataPelajaran', 'presensi.siswa', 'presensi.logPresensi.guru']);
 
-        return view('dashboard.presensi.detail', compact('sesiPresensi'));
+        // Data statistik siswa untuk sinkronisasi susulan (Retroactive Sync)
+        $existingStudentIds = $sesiPresensi->presensi->pluck('siswa_id')->toArray();
+        $totalSiswaKelas = User::where('role', 'siswa')->where('kelas_id', $sesiPresensi->kelas_id)->count();
+        $missingStudents = User::where('role', 'siswa')
+            ->where('kelas_id', $sesiPresensi->kelas_id)
+            ->whereNotIn('id', $existingStudentIds)
+            ->orderBy('name')
+            ->get();
+        $missingCount = $missingStudents->count();
+
+        return view('dashboard.presensi.detail', compact(
+            'sesiPresensi', 'totalSiswaKelas', 'missingStudents', 'missingCount'
+        ));
+    }
+
+    /**
+     * Retroactive Sync — Menambahkan siswa susulan (baru mendaftar/belum tercatat) ke sesi ini,
+     * serta memperbarui status sesi mapel dari sesi kelas pagi jika tersedia.
+     */
+    public function syncSiswaSesi(SesiPresensi $sesiPresensi)
+    {
+        // 1. Ambil ID siswa yang sudah ada di sesi ini
+        $existingStudentIds = $sesiPresensi->presensi()->pluck('siswa_id')->toArray();
+
+        // 2. Cari siswa kelas ini yang belum terdaftar di sesi ini
+        $missingStudents = User::where('role', 'siswa')
+            ->where('kelas_id', $sesiPresensi->kelas_id)
+            ->whereNotIn('id', $existingStudentIds)
+            ->get();
+
+        // Cari sesi kelas (pagi) jika ini sesi mapel
+        $sesiKelas = null;
+        if ($sesiPresensi->tipe === 'mapel') {
+            $sesiKelas = SesiPresensi::with('presensi')
+                ->where('kelas_id', $sesiPresensi->kelas_id)
+                ->where('tanggal', $sesiPresensi->tanggal)
+                ->where('tipe', 'kelas')
+                ->first();
+        }
+
+        $addedCount = 0;
+        $updatedFromKelasCount = 0;
+
+        // 3. Masukkan siswa susulan
+        foreach ($missingStudents as $siswa) {
+            $status = 'alpa';
+            $keterangan = 'Siswa susulan (Sync Retroaktif)';
+
+            // Jika sesi mapel dan ada sesi kelas pagi, salin status dari sesi kelas
+            if ($sesiKelas) {
+                $absenKelas = $sesiKelas->presensi->where('siswa_id', $siswa->id)->first();
+                if ($absenKelas) {
+                    $status = $absenKelas->status;
+                    $keterangan = 'Salin dari Sesi Kelas pagi';
+                }
+            }
+
+            $newPresensi = Presensi::create([
+                'sesi_presensi_id' => $sesiPresensi->id,
+                'siswa_id'         => $siswa->id,
+                'status'           => $status,
+                'keterangan'       => $keterangan,
+            ]);
+
+            LogPresensi::create([
+                'presensi_id'       => $newPresensi->id,
+                'guru_id'           => auth()->id(),
+                'status_sebelumnya' => 'belum terdaftar',
+                'status_baru'       => $status,
+                'keterangan'        => 'Ditambahkan via Sinkronisasi Retroaktif oleh ' . auth()->user()->name,
+            ]);
+
+            $addedCount++;
+        }
+
+        // 4. Jika sesi mapel, perbarui juga siswa yang berstatus 'alpa' di mapel tapi sudah diset 'sakit'/'izin' di sesi kelas pagi
+        if ($sesiPresensi->tipe === 'mapel' && $sesiKelas) {
+            $sesiPresensi->load('presensi');
+            foreach ($sesiPresensi->presensi as $absenMapel) {
+                if ($absenMapel->status === 'alpa') {
+                    $absenKelas = $sesiKelas->presensi->where('siswa_id', $absenMapel->siswa_id)->first();
+                    if ($absenKelas && in_array($absenKelas->status, ['sakit', 'izin', 'hadir'])) {
+                        $oldStatus = $absenMapel->status;
+                        $absenMapel->update([
+                            'status'     => $absenKelas->status,
+                            'keterangan' => 'Disinkronkan dari Sesi Kelas pagi',
+                        ]);
+
+                        LogPresensi::create([
+                            'presensi_id'       => $absenMapel->id,
+                            'guru_id'           => auth()->id(),
+                            'status_sebelumnya' => $oldStatus,
+                            'status_baru'       => $absenKelas->status,
+                            'keterangan'        => 'Sinkronisasi status dari Sesi Kelas pagi oleh ' . auth()->user()->name,
+                        ]);
+
+                        $updatedFromKelasCount++;
+                    }
+                }
+            }
+        }
+
+        if ($addedCount === 0 && $updatedFromKelasCount === 0) {
+            return back()->with('info', 'Semua siswa di kelas ini sudah tersinkronisasi lengkap.');
+        }
+
+        $msg = [];
+        if ($addedCount > 0) {
+            $msg[] = "Berhasil menambahkan {$addedCount} siswa susulan ke sesi ini.";
+        }
+        if ($updatedFromKelasCount > 0) {
+            $msg[] = "Berhasil memperbarui status {$updatedFromKelasCount} siswa dari Sesi Kelas pagi.";
+        }
+
+        return back()->with('success', implode(' ', $msg) . ' Silakan sesuaikan status kehadiran pada tabel jika diperlukan.');
     }
 
     public function exportPdf(SesiPresensi $sesiPresensi)

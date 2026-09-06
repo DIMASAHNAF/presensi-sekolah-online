@@ -17,7 +17,8 @@
 
     {{-- Fonts & Icons --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     {{-- Tailwind & Alpine --}}
@@ -25,19 +26,21 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
-        * { font-family: 'Inter', sans-serif; }
+        body, button, input { font-family: 'Plus Jakarta Sans', sans-serif; }
+        h1, h2, h3, .font-heading { font-family: 'Outfit', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
 
         /* Modern Subtle Dot Grid Pattern */
         .dot-grid {
-            background-image: radial-gradient(rgba(148, 163, 184, 0.3) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
             background-size: 24px 24px;
         }
 
         /* Inner Grid Pattern on White Card */
         .inner-grid {
-            background-image: linear-gradient(135deg, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
-                              linear-gradient(45deg, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+            background-image: linear-gradient(135deg, rgba(226, 232, 240, 0.4) 1px, transparent 1px),
+                              linear-gradient(45deg, rgba(226, 232, 240, 0.4) 1px, transparent 1px);
             background-size: 28px 28px;
         }
 
@@ -92,22 +95,18 @@
         }
     </style>
 </head>
-<body class="min-h-screen w-screen bg-[#F8FAFC] text-slate-800 relative overflow-x-hidden flex flex-col items-center justify-center p-4 selection:bg-slate-900 selection:text-white"
+<body class="min-h-screen w-screen bg-[#F8FAFC] text-slate-800 relative overflow-x-hidden flex flex-col items-center justify-center p-4 selection:bg-blue-900 selection:text-white"
       x-data="loginCardApp()">
 
     <x-page-loader />
 
-    {{-- Clean Ambient Background Layers (Dominant White / Light) --}}
+    {{-- Clean Ambient Background Layers --}}
     <div class="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-slate-100 pointer-events-none"></div>
     <div class="absolute inset-0 dot-grid opacity-60 pointer-events-none"></div>
 
     {{-- Top & Ambient Soft Spotlight Glows --}}
-    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-[100vw] h-[50vh] rounded-b-[50%] bg-gradient-to-b from-slate-200/50 to-transparent blur-[90px] pointer-events-none animate-glow-top"></div>
-    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[85vw] h-[40vh] rounded-t-full bg-slate-200/30 blur-[100px] pointer-events-none"></div>
-
-    {{-- Ambient Floating Subtle Light Spots --}}
-    <div class="absolute left-10 top-1/4 w-80 h-80 bg-slate-200/40 rounded-full blur-[90px] animate-pulse pointer-events-none"></div>
-    <div class="absolute right-10 bottom-1/4 w-80 h-80 bg-slate-200/40 rounded-full blur-[90px] animate-pulse pointer-events-none" style="animation-delay: 1.5s;"></div>
+    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-[100vw] h-[45vh] rounded-b-[50%] bg-gradient-to-b from-blue-100/40 to-transparent blur-[90px] pointer-events-none animate-glow-top"></div>
+    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[85vw] h-[35vh] rounded-t-full bg-slate-200/30 blur-[100px] pointer-events-none"></div>
 
     {{-- Main 3D Card Container --}}
     <div class="w-full max-w-md relative z-10 py-6"
@@ -120,65 +119,47 @@
              class="relative group transform-gpu">
 
             {{-- Outer Card Soft Glow Effect on Hover --}}
-            <div class="absolute -inset-[1px] rounded-3xl opacity-40 group-hover:opacity-90 transition-opacity duration-700 pointer-events-none blur-sm bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200"></div>
-
-            {{-- Traveling Light Beam Border Wrapper (Silver / Platinum Modern Laser) --}}
-            <div class="absolute -inset-[1.5px] rounded-3xl overflow-hidden pointer-events-none z-20">
-                {{-- Top Beam --}}
-                <div class="absolute top-0 left-0 h-[2.5px] w-[50%] bg-gradient-to-r from-transparent via-slate-500 to-transparent opacity-70 blur-[0.5px] animate-beam-top"></div>
-                {{-- Right Beam --}}
-                <div class="absolute top-0 right-0 h-[50%] w-[2.5px] bg-gradient-to-b from-transparent via-slate-400 to-transparent opacity-70 blur-[0.5px] animate-beam-right"></div>
-                {{-- Bottom Beam --}}
-                <div class="absolute bottom-0 right-0 h-[2.5px] w-[50%] bg-gradient-to-r from-transparent via-slate-500 to-transparent opacity-70 blur-[0.5px] animate-beam-bottom"></div>
-                {{-- Left Beam --}}
-                <div class="absolute bottom-0 left-0 h-[50%] w-[2.5px] bg-gradient-to-b from-transparent via-slate-400 to-transparent opacity-70 blur-[0.5px] animate-beam-left"></div>
-
-                {{-- Corner Light Spots --}}
-                <div class="absolute top-0 left-0 h-[6px] w-[6px] rounded-full bg-slate-400/80 blur-[1px]"></div>
-                <div class="absolute top-0 right-0 h-[6px] w-[6px] rounded-full bg-slate-400/80 blur-[1px]"></div>
-                <div class="absolute bottom-0 right-0 h-[6px] w-[6px] rounded-full bg-slate-400/80 blur-[1px]"></div>
-                <div class="absolute bottom-0 left-0 h-[6px] w-[6px] rounded-full bg-slate-400/80 blur-[1px]"></div>
-            </div>
+            <div class="absolute -inset-[1px] rounded-xl opacity-40 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none blur-xs bg-gradient-to-r from-blue-200 via-slate-300 to-blue-200"></div>
 
             {{-- Dominant Pure White Card Body --}}
-            <div class="relative bg-white/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.07),0_1px_2px_0_rgba(0,0,0,0.05)] overflow-hidden">
+            <div class="relative bg-white/95 backdrop-blur-2xl rounded-xl p-6 sm:p-8 border border-slate-200 shadow-[0_12px_36px_-10px_rgba(15,23,42,0.08),0_1px_2px_0_rgba(15,23,42,0.04)] overflow-hidden">
 
                 {{-- Inner Geometric Pattern --}}
                 <div class="absolute inset-0 inner-grid opacity-40 pointer-events-none"></div>
 
                 {{-- Header & Logo --}}
                 <div class="text-center space-y-2 mb-6 relative z-10">
-                    <div class="mx-auto w-16 h-16 rounded-2xl border border-slate-200/80 bg-white p-2.5 flex items-center justify-center relative shadow-sm shadow-slate-200">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo Sekolah" class="w-full h-full object-contain filter drop-shadow-sm">
+                    <div class="mx-auto w-14 h-14 rounded-xl border border-slate-200 bg-white p-2 flex items-center justify-center relative shadow-xs">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
                     </div>
 
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                            PRESENSI SEKOLAH
+                        <h1 class="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
+                            PORTAL PRESENSI
                         </h1>
-                        <p class="text-slate-500 text-xs font-semibold uppercase tracking-widest mt-0.5">
+                        <p class="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-0.5">
                             SMKN 1 BERINGIN
                         </p>
                     </div>
                 </div>
 
                 {{-- Role Tab Switcher (Siswa / Guru) --}}
-                <div class="relative flex bg-slate-100/90 border border-slate-200/80 rounded-2xl p-1 mb-5 z-10">
-                    <div class="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm shadow-slate-300/60 border border-slate-200/60 transition-all duration-300 ease-out"
+                <div class="relative flex bg-slate-100 border border-slate-200 rounded-lg p-1 mb-5 z-10">
+                    <div class="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-md shadow-xs border border-slate-200/80 transition-all duration-300 ease-out"
                          :class="tab === 'siswa' ? 'left-1' : 'left-[calc(50%+2px)]'"></div>
 
                     <button type="button"
                             @click="tab = 'siswa'"
-                            class="relative z-10 w-1/2 py-2.5 text-xs font-bold rounded-xl transition-colors duration-200 flex items-center justify-center gap-1.5"
-                            :class="tab === 'siswa' ? 'text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'">
-                        <i class="fas fa-graduation-cap"></i>
+                            class="relative z-10 w-1/2 py-2 text-xs font-semibold rounded-md transition-colors duration-200 flex items-center justify-center gap-1.5"
+                            :class="tab === 'siswa' ? 'text-blue-900 font-bold' : 'text-slate-500 hover:text-slate-800'">
+                        <i class="fas fa-user-graduate text-xs"></i>
                         <span>Siswa</span>
                     </button>
                     <button type="button"
                             @click="tab = 'guru'"
-                            class="relative z-10 w-1/2 py-2.5 text-xs font-bold rounded-xl transition-colors duration-200 flex items-center justify-center gap-1.5"
-                            :class="tab === 'guru' ? 'text-slate-950 font-bold' : 'text-slate-500 hover:text-slate-800'">
-                        <i class="fas fa-chalkboard-user"></i>
+                            class="relative z-10 w-1/2 py-2 text-xs font-semibold rounded-md transition-colors duration-200 flex items-center justify-center gap-1.5"
+                            :class="tab === 'guru' ? 'text-blue-900 font-bold' : 'text-slate-500 hover:text-slate-800'">
+                        <i class="fas fa-chalkboard-user text-xs"></i>
                         <span>Guru / Staf</span>
                     </button>
                 </div>
@@ -251,21 +232,21 @@
                             </label>
                         </div>
 
-                        {{-- Submit Button (Crisp Minimalist Black/Slate-900 with Shimmer) --}}
+                        {{-- Submit Button --}}
                         <button type="submit"
-                                class="w-full relative group/btn overflow-hidden bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-slate-900/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm mt-5">
+                                class="w-full relative group/btn overflow-hidden bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-lg shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider mt-5">
                             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.2s_infinite] pointer-events-none"></div>
                             <span>Masuk sebagai Siswa</span>
-                            <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover/btn:translate-x-1"></i>
+                            <i class="fas fa-arrow-right text-[10px] transition-transform duration-300 group-hover/btn:translate-x-1"></i>
                         </button>
                     </form>
 
                     {{-- Register Link --}}
-                    <p class="text-center text-xs text-slate-500 mt-5">
+                    <p class="text-center text-xs text-slate-500 mt-4">
                         Belum punya akun siswa?
                         <a href="{{ route('register.siswa') }}"
-                           class="text-slate-900 hover:text-slate-700 font-bold underline underline-offset-4 transition-colors">
-                            Daftar di sini
+                           class="text-blue-700 hover:text-blue-800 font-bold underline underline-offset-4 transition-colors">
+                            Daftar mandiri di sini
                         </a>
                     </p>
                 </div>
@@ -284,14 +265,14 @@
                             <label class="block text-xs font-semibold text-slate-700">Nomor Induk Kependudukan (NIK)</label>
                             <div class="relative flex items-center">
                                 <span class="absolute left-3.5 text-sm transition-colors duration-200"
-                                      :class="focusedInput === 'guru-nik' ? 'text-slate-900' : 'text-slate-400'">
+                                      :class="focusedInput === 'guru-nik' ? 'text-blue-700' : 'text-slate-400'">
                                     <i class="fas fa-id-card"></i>
                                 </span>
                                 <input type="text" name="nik" value="{{ old('nik') }}" required
                                        placeholder="16 digit NIK"
                                        @focus="focusedInput = 'guru-nik'"
                                        @blur="focusedInput = null"
-                                       class="w-full bg-slate-50/70 border border-slate-200/90 focus:border-slate-900 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-xl pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-slate-900/10 transition-all duration-200">
+                                       class="w-full bg-slate-50/70 border border-slate-200 focus:border-blue-700 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-lg pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-700/15 transition-all duration-200">
                             </div>
                         </div>
 
@@ -300,7 +281,7 @@
                             <label class="block text-xs font-semibold text-slate-700">Password</label>
                             <div class="relative flex items-center">
                                 <span class="absolute left-3.5 text-sm transition-colors duration-200"
-                                      :class="focusedInput === 'guru-pass' ? 'text-slate-900' : 'text-slate-400'">
+                                      :class="focusedInput === 'guru-pass' ? 'text-blue-700' : 'text-slate-400'">
                                     <i class="fas fa-lock"></i>
                                 </span>
                                 <input :type="showPasswordGuru ? 'text' : 'password'"
@@ -308,7 +289,7 @@
                                        placeholder="••••••••"
                                        @focus="focusedInput = 'guru-pass'"
                                        @blur="focusedInput = null"
-                                       class="w-full bg-slate-50/70 border border-slate-200/90 focus:border-slate-900 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-xl pl-10 pr-11 py-3 outline-none focus:ring-2 focus:ring-slate-900/10 transition-all duration-200">
+                                       class="w-full bg-slate-50/70 border border-slate-200 focus:border-blue-700 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-lg pl-10 pr-11 py-2.5 outline-none focus:ring-2 focus:ring-blue-700/15 transition-all duration-200">
                                 <button type="button"
                                         @click="showPasswordGuru = !showPasswordGuru"
                                         class="absolute right-3.5 text-slate-400 hover:text-slate-700 transition-colors text-sm p-1">
@@ -321,22 +302,22 @@
                         <div class="flex items-center justify-between pt-1">
                             <label class="flex items-center gap-2 text-xs text-slate-600 hover:text-slate-900 cursor-pointer select-none">
                                 <input type="checkbox" name="remember"
-                                       class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 focus:ring-offset-0 transition">
+                                       class="w-4 h-4 rounded border-slate-300 text-blue-700 focus:ring-blue-700/20 focus:ring-offset-0 transition">
                                 <span>Ingat saya di perangkat ini</span>
                             </label>
                         </div>
 
                         {{-- Submit Button --}}
                         <button type="submit"
-                                class="w-full relative group/btn overflow-hidden bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-slate-900/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm mt-5">
+                                class="w-full relative group/btn overflow-hidden bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-lg shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider mt-5">
                             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.2s_infinite] pointer-events-none"></div>
                             <span>Masuk sebagai Guru / Staf</span>
-                            <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover/btn:translate-x-1"></i>
+                            <i class="fas fa-arrow-right text-[10px] transition-transform duration-300 group-hover/btn:translate-x-1"></i>
                         </button>
                     </form>
 
-                    <div class="mt-5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center text-xs text-slate-500">
-                        <i class="fas fa-info-circle mr-1 text-slate-400"></i> Akun guru & staf dibuat oleh Admin Sekolah.
+                    <div class="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-center text-xs text-slate-500">
+                        <i class="fas fa-info-circle mr-1 text-blue-600"></i> Akun dewan guru & staf dibuat oleh Admin Sekolah.
                     </div>
                 </div>
 
@@ -345,8 +326,8 @@
     </div>
 
     {{-- Footer --}}
-    <footer class="mt-4 text-center text-xs text-slate-400 relative z-10">
-        Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
+    <footer class="mt-4 text-center text-xs text-slate-400 font-mono relative z-10">
+        Sistem Presensi Biometrik &copy; 2026 SMKN 1 BERINGIN
     </footer>
 
     <script>
