@@ -77,9 +77,7 @@ def euclidean_distance(a, b):
     face_recognition, np = load_libs()
     return float(np.linalg.norm(np.array(a) - np.array(b)))
 
-# ──────────────────────────────────────────────────────────────
 #  MODE: extract — ambil descriptor dari 1 foto
-# ──────────────────────────────────────────────────────────────
 def mode_extract(payload: dict):
     if 'image_b64' not in payload:
         error_exit("Field 'image_b64' wajib ada.")
