@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -235,115 +236,126 @@
                     </a>
                 </div>
 
-                {{-- STEP 2: SCAN WAJAH --}}
+                {{-- STEP 2: SCAN WAJAH REAL-TIME --}}
                 <div x-show="step === 2" x-cloak class="w-full">
                     
-                    <div class="text-center lg:text-left mb-6">
-                        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Daftarkan Wajah Kamu</h2>
-                        <p class="text-slate-500 mt-1">Langkah 2 dari 2 &mdash; Digunakan untuk verifikasi absensi.</p>
+                    <div class="text-center lg:text-left mb-5">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-2 border border-blue-200">
+                            <i class="fas fa-shield-halved text-blue-600"></i> Verifikasi Biometrik AI
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Perekaman Wajah Real-Time</h2>
+                        <p class="text-slate-500 text-sm mt-1">AI akan mendeteksi dan mengambil 5 foto secara otomatis.</p>
                     </div>
 
                     @if(session('step') == 2 && $errors->has('face'))
-                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl mb-6">
+                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl mb-5 shadow-xs">
                             <i class="fas fa-exclamation-circle mr-1"></i> <span class="font-medium text-sm">{{ $errors->first('face') }}</span>
                         </div>
                     @endif
 
-                    {{-- Instruksi --}}
-                    <div class="bg-slate-100 rounded-2xl px-4 py-3 text-center mb-6">
-                        <p class="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-1">Instruksi</p>
-                        <p x-text="currentInstruction" class="text-slate-800 font-bold text-lg"></p>
+                    {{-- Instruksi Dinamis --}}
+                    <div class="bg-gradient-to-r from-blue-50 to-emerald-50 rounded-2xl px-4 py-3.5 text-center mb-4 border border-blue-100 shadow-xs">
+                        <p class="text-blue-600 text-[11px] uppercase tracking-widest font-bold mb-0.5" x-text="isLoadingModels ? 'Mempersiapkan AI...' : 'Panduan Posisi'"></p>
+                        <p x-text="currentInstruction" class="text-slate-800 font-extrabold text-base"></p>
                     </div>
 
-                    {{-- Progress dots --}}
-                    <div class="flex justify-center gap-2 mb-6">
+                    {{-- Progress Bar 5 Foto --}}
+                    <div class="flex justify-center gap-2 mb-4">
                         <template x-for="i in 5" :key="i">
-                            <div class="w-8 h-2 rounded-full transition-all duration-300"
-                                 :class="capturedImages.length >= i ? 'bg-teal-500' : 'bg-slate-200'"></div>
+                            <div class="h-2 rounded-full transition-all duration-300"
+                                 :class="capturedImages.length >= i ? 'bg-emerald-500 w-10 shadow-xs shadow-emerald-500/50' : 'bg-slate-200 w-7'"></div>
                         </template>
                     </div>
 
-                    {{-- Camera Preview --}}
-                    <div class="relative bg-slate-900 rounded-3xl overflow-hidden mb-6 shadow-inner" style="height: 320px;">
+                    {{-- Camera Preview Real-Time --}}
+                    <div class="relative bg-slate-950 rounded-3xl overflow-hidden mb-4 shadow-lg border-2 border-slate-200" style="height: 300px;">
                         <video id="video-reg" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
                         <canvas id="canvas-reg" class="hidden"></canvas>
 
-                        {{-- Face oval guide --}}
-                        <div class="face-ring" :class="faceState === 'detected' ? 'detected' : (faceState === 'capturing' ? 'capturing' : '')"></div>
+                        {{-- Face oval HUD --}}
+                        <div class="face-ring" :class="{ 'detected': faceState === 'detected', 'capturing': faceState === 'capturing' }"></div>
 
-                        {{-- Status overlay --}}
-                        <div class="absolute bottom-4 left-0 right-0 flex justify-center z-20">
-                            <div x-show="faceState === 'idle'" class="bg-black/60 text-white/90 text-xs px-4 py-2 rounded-full backdrop-blur-sm">
-                                <i class="fas fa-circle-notch fa-spin mr-1"></i> Mendeteksi wajah...
+                        {{-- Loading AI overlay --}}
+                        <div x-show="isLoadingModels" class="absolute inset-0 bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center text-white z-30">
+                            <i class="fas fa-circle-notch fa-spin text-3xl text-blue-400 mb-2"></i>
+                            <span class="text-xs font-semibold text-slate-200">Memuat Model AI Wajah (Real-time)...</span>
+                        </div>
+
+                        {{-- Status overlay di bawah --}}
+                        <div class="absolute bottom-3 left-0 right-0 flex justify-center z-20">
+                            <div x-show="!isLoadingModels && faceState === 'searching'" class="bg-black/70 text-white text-xs px-4 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-1.5 border border-white/10">
+                                <i class="fas fa-expand text-blue-400"></i> Posisikan wajah di dalam oval
                             </div>
-                            <div x-show="faceState === 'detected'" class="bg-green-500/90 text-white text-xs px-4 py-2 rounded-full font-semibold pulse-ring backdrop-blur-sm shadow-lg shadow-green-500/20">
-                                <i class="fas fa-check mr-1"></i> Wajah terdeteksi!
+                            <div x-show="!isLoadingModels && faceState === 'detected'" class="bg-emerald-600/90 text-white text-xs px-4 py-1.5 rounded-full font-bold backdrop-blur-sm flex items-center gap-1.5 shadow-md border border-emerald-400/50">
+                                <i class="fas fa-check-circle text-white"></i> Wajah Terdeteksi — Menangkap Otomatis...
                             </div>
-                            <div x-show="faceState === 'capturing'" class="bg-yellow-400/90 text-black text-xs px-4 py-2 rounded-full font-semibold backdrop-blur-sm">
-                                <i class="fas fa-camera mr-1"></i> Mengambil foto...
+                            <div x-show="!isLoadingModels && faceState === 'capturing'" class="bg-blue-600/90 text-white text-xs px-4 py-1.5 rounded-full font-bold backdrop-blur-sm flex items-center gap-1.5 shadow-md">
+                                <i class="fas fa-camera text-yellow-300 fa-pulse"></i> Memproses Frame...
                             </div>
-                            <div x-show="capturedImages.length >= 5 && faceState !== 'capturing'" class="bg-teal-600/90 text-white text-xs px-4 py-2 rounded-full font-semibold backdrop-blur-sm">
-                                <i class="fas fa-check-double mr-1"></i> Selesai!
+                            <div x-show="capturedImages.length >= 5" class="bg-emerald-600 text-white text-xs px-4 py-1.5 rounded-full font-bold backdrop-blur-sm flex items-center gap-1.5 shadow-md">
+                                <i class="fas fa-check-double text-white"></i> 5 Foto Lengkap!
                             </div>
                         </div>
                     </div>
 
-                    {{-- Thumbnail preview --}}
-                    <div class="flex gap-2 justify-center mb-6">
+                    {{-- Thumbnail preview 5 Slot --}}
+                    <div class="flex gap-2 justify-center mb-4">
                         <template x-for="i in 5" :key="i">
-                            <div class="w-12 h-12 rounded-xl overflow-hidden border-2 transition-all bg-slate-50"
-                                 :class="capturedImages.length >= i ? 'border-teal-500' : 'border-slate-200'">
+                            <div class="w-12 h-12 rounded-xl overflow-hidden border-2 transition-all bg-slate-50 relative shadow-2xs"
+                                 :class="capturedImages.length >= i ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'">
                                 <template x-if="capturedImages[i-1]">
                                     <div class="relative w-full h-full">
-                                        <img :src="capturedImages[i-1]" class="w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-teal-500/60 flex items-center justify-center text-white text-sm">
+                                        <img :src="capturedImages[i-1]" class="w-full h-full object-cover" style="transform: scaleX(-1);">
+                                        <div class="absolute inset-0 bg-emerald-600/30 flex items-center justify-center text-white text-xs backdrop-blur-[1px]">
                                             <i class="fas fa-check"></i>
                                         </div>
                                     </div>
                                 </template>
                                 <template x-if="!capturedImages[i-1]">
-                                    <div class="w-full h-full flex items-center justify-center text-slate-300 text-xs">
-                                        <i class="fas fa-user"></i>
+                                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-300 text-[10px] font-mono font-bold">
+                                        <i class="fas fa-user mb-0.5 text-xs"></i>
+                                        <span x-text="i"></span>
                                     </div>
                                 </template>
                             </div>
                         </template>
                     </div>
 
-                    {{-- Manual capture button (backup) --}}
-                    <button @click="manualCapture()"
-                            x-show="capturedImages.length < 5"
-                            :disabled="faceState === 'capturing'"
-                            class="w-full mb-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-xl transition border border-slate-200 flex items-center justify-center gap-2">
-                        <i class="fas fa-camera"></i>
-                        <span x-text="'Ambil Foto ' + (capturedImages.length + 1) + ' / 5'"></span>
-                    </button>
+                    {{-- Tombol Cadangan Manual (Hanya jika ingin ambil langsung atau ruangan gelap) --}}
+                    <div x-show="capturedImages.length < 5" class="mb-4">
+                        <button type="button" @click="manualCapture()"
+                                :disabled="faceState === 'capturing' || isLoadingModels"
+                                class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl border border-slate-300 shadow-2xs transition flex items-center justify-center gap-2 text-xs">
+                            <i class="fas fa-camera text-blue-600"></i>
+                            <span>Ambil Manual Sekarang (Foto <span x-text="capturedImages.length + 1"></span> / 5)</span>
+                        </button>
+                    </div>
 
-                    {{-- Submit form (step 2) --}}
+                    {{-- Form Submit (Step 2) --}}
                     <form id="form-step2" method="POST" action="{{ route('register.siswa') }}">
                         @csrf
                         <input type="hidden" name="face_images" id="face-images-input">
 
                         <button type="button" @click="submitFace()"
                                 :disabled="capturedImages.length < 5 || isSubmitting"
-                                :class="capturedImages.length >= 5 && !isSubmitting ? 'bg-teal-600 hover:bg-teal-700 cursor-pointer shadow-lg hover:shadow-teal-500/25' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
-                                class="w-full text-white font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+                                :class="capturedImages.length >= 5 && !isSubmitting ? 'bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 cursor-pointer shadow-lg shadow-blue-500/25' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
+                                class="w-full text-white font-extrabold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm">
                             <template x-if="!isSubmitting">
-                                <span><i class="fas fa-user-check mr-2"></i>Daftar & Simpan Wajah</span>
+                                <span><i class="fas fa-user-check mr-2"></i>Daftar & Simpan Akun Siswa</span>
                             </template>
                             <template x-if="isSubmitting">
-                                <span><i class="fas fa-spinner fa-spin mr-2"></i>Memproses...</span>
+                                <span><i class="fas fa-spinner fa-spin mr-2"></i>Mendaftarkan Wajah ke Server...</span>
                             </template>
                         </button>
                     </form>
 
-                    <button @click="step = 1; stopCamera()" class="w-full mt-4 text-slate-500 text-sm hover:text-slate-800 transition text-center font-medium">
-                        <i class="fas fa-arrow-left mr-1"></i> Kembali ubah data
+                    <button @click="step = 1; stopCamera()" class="w-full mt-4 text-slate-500 text-xs hover:text-slate-800 transition text-center font-semibold flex items-center justify-center gap-1.5 py-1">
+                        <i class="fas fa-arrow-left text-[11px]"></i> Kembali ubah data identitas
                     </button>
                 </div>
                 
-                <p class="text-center text-xs text-slate-400 mt-10">
-                    Sistem Presensi Online &copy; 2026 SMKN1 BERINGIN
+                <p class="text-center text-xs text-slate-400 mt-8">
+                    Sistem Presensi Online &copy; 2026 SMKN 1 BERINGIN
                 </p>
 
             </div>
@@ -363,32 +375,34 @@
         }
     }
 
-    // ─── Alpine.js App ────────────────────────────────────────────
+    // ─── Alpine.js App dengan Real-Time Face Detection & Auto-Capture ───
     function registerApp() {
         return {
             step: 1,
-            faceState: 'idle',   // idle | detected | capturing
+            faceState: 'searching',   // searching | detected | capturing | done
             capturedImages: [],
             isSubmitting: false,
+            isLoadingModels: true,
             videoStream: null,
-            autoDetectInterval: null,
-            faceDetectionActive: false,
+            detectionInterval: null,
+            lastCaptureTime: 0,
 
             instructions: [
-                'Hadap ke depan',
-                'Miringkan kepala ke KIRI',
-                'Miringkan kepala ke KANAN',
-                'Tengadah sedikit ke ATAS',
-                'Tundukkan sedikit ke BAWAH',
+                'Posisikan wajah tepat di tengah oval',
+                'Bagus! Tolehkan wajah sedikit ke KIRI',
+                'Hebat! Sekarang tolehkan sedikit ke KANAN',
+                'Tersenyumlah sedikit (buka mulut perlahan)',
+                'Satu lagi! Hadap tegak lurus ke depan',
             ],
 
             get currentInstruction() {
+                if (this.isLoadingModels) return 'Sedang mengunduh modul AI...';
+                if (this.capturedImages.length >= 5) return 'Semua foto berhasil diambil! Mendaftarkan...';
                 const idx = Math.min(this.capturedImages.length, 4);
                 return this.instructions[idx];
             },
 
             checkInitialStep() {
-                // Jika server mengirim session step=2 setelah redirect, langsung ke step 2
                 const serverStep = {{ session('step') ?? 1 }};
                 if (serverStep === 2) {
                     this.$nextTick(() => {
@@ -399,6 +413,9 @@
             },
 
             async startCamera() {
+                this.isLoadingModels = true;
+                this.faceState = 'searching';
+
                 try {
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
                         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
@@ -406,32 +423,81 @@
                     });
                     const video = document.getElementById('video-reg');
                     video.srcObject = this.videoStream;
+                    
+                    // Muat model face-api ringan
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/model/';
+                    if (typeof faceapi !== 'undefined') {
+                        await Promise.all([
+                            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+                        ]);
+                    }
+                    
+                    this.isLoadingModels = false;
+
+                    video.onloadedmetadata = () => {
+                        video.width = video.videoWidth;
+                        video.height = video.videoHeight;
+                    };
+
                     await video.play();
-                    this.startAutoDetect();
+                    this.startRealtimeDetection(video);
+
                 } catch (err) {
-                    alert('Kamera tidak dapat diakses: ' + err.message + '\nPastikan halaman dibuka via HTTPS.');
+                    this.isLoadingModels = false;
+                    alert('Kamera tidak dapat diakses atau perizinan ditolak: ' + err.message);
                 }
             },
 
             stopCamera() {
+                if (this.detectionInterval) {
+                    clearInterval(this.detectionInterval);
+                    this.detectionInterval = null;
+                }
                 if (this.videoStream) {
                     this.videoStream.getTracks().forEach(t => t.stop());
                     this.videoStream = null;
                 }
-                if (this.autoDetectInterval) {
-                    clearInterval(this.autoDetectInterval);
-                    this.autoDetectInterval = null;
-                }
             },
 
-            startAutoDetect() {
-                // Auto-capture setiap 2.5 detik jika belum 5 foto
-                // Dalam skenario nyata ini langsung capture (deteksi face ada di backend Python)
-                // Frontend hanya pastikan kamera aktif
-                this.autoDetectInterval = setInterval(() => {
-                    if (this.capturedImages.length >= 5 || this.faceState === 'capturing') return;
-                    this.faceState = 'detected';
-                }, 800);
+            startRealtimeDetection(video) {
+                this.detectionInterval = setInterval(async () => {
+                    if (this.capturedImages.length >= 5) {
+                        clearInterval(this.detectionInterval);
+                        this.faceState = 'done';
+                        setTimeout(() => this.submitFace(), 600);
+                        return;
+                    }
+
+                    if (this.faceState === 'capturing' || this.isLoadingModels) return;
+
+                    try {
+                        if (typeof faceapi !== 'undefined') {
+                            const detection = await faceapi.detectSingleFace(
+                                video,
+                                new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 })
+                            );
+
+                            if (detection && detection.box && detection.box.width > 70) {
+                                this.faceState = 'detected';
+                                
+                                // Auto capture jika sudah berlalu minimal 850ms sejak foto terakhir
+                                const now = Date.now();
+                                if (now - this.lastCaptureTime > 850) {
+                                    this.lastCaptureTime = now;
+                                    this.captureFrame();
+                                }
+                            } else {
+                                this.faceState = 'searching';
+                            }
+                        } else {
+                            // Fallback jika CDN faceapi lambat
+                            this.faceState = 'detected';
+                        }
+                    } catch (e) {
+                        this.faceState = 'searching';
+                    }
+                }, 180);
             },
 
             manualCapture() {
@@ -442,10 +508,13 @@
             captureFrame() {
                 const video  = document.getElementById('video-reg');
                 const canvas = document.getElementById('canvas-reg');
+                if (!video || !canvas) return;
+
                 canvas.width  = video.videoWidth  || 640;
                 canvas.height = video.videoHeight || 480;
                 const ctx = canvas.getContext('2d');
-                // Mirror flip untuk konsistensi dengan preview
+
+                // Mirror flip konsisten
                 ctx.save();
                 ctx.scale(-1, 1);
                 ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
@@ -458,23 +527,24 @@
                     this.capturedImages.push(dataUrl);
 
                     if (this.capturedImages.length >= 5) {
-                        this.faceState = 'idle';
-                        if (this.autoDetectInterval) {
-                            clearInterval(this.autoDetectInterval);
-                        }
+                        this.faceState = 'done';
+                        if (this.detectionInterval) clearInterval(this.detectionInterval);
+                        setTimeout(() => this.submitFace(), 500);
                     } else {
-                        this.faceState = 'detected';
+                        setTimeout(() => {
+                            if (this.capturedImages.length < 5) {
+                                this.faceState = 'detected';
+                            }
+                        }, 300);
                     }
-                }, 400);
+                }, 250);
             },
 
             submitFace() {
                 if (this.capturedImages.length < 5 || this.isSubmitting) return;
                 this.isSubmitting = true;
 
-                // Masukkan array base64 ke hidden input
                 document.getElementById('face-images-input').value = JSON.stringify(this.capturedImages);
-
                 this.stopCamera();
                 document.getElementById('form-step2').submit();
             },
