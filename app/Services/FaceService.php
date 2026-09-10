@@ -3,16 +3,16 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class FaceService
 {
-    protected string $pythonBin;
-    protected string $scriptPath;
+    protected string $apiUrl;
 
     public function __construct()
     {
-        $this->pythonBin  = config('face.python_bin', 'python3');
-        $this->scriptPath = base_path('python/face_service.py');
+        // Gunakan port 8000 tempat FastAPI berjalan
+        $this->apiUrl = config('face.api_url', 'http://127.0.0.1:8000');
     }
 
     /**
@@ -21,8 +21,7 @@ class FaceService
      */
     public function extract(string $imageB64): array
     {
-        $payload = json_encode(['image_b64' => $imageB64]);
-        return $this->call('extract', $payload);
+        return $this->call('extract', ['image_b64' => $imageB64]);
     }
 
     /**
@@ -31,8 +30,7 @@ class FaceService
      */
     public function enroll(array $imagesB64): array
     {
-        $payload = json_encode(['images_b64' => $imagesB64]);
-        return $this->call('enroll', $payload);
+        return $this->call('enroll', ['images_b64' => $imagesB64]);
     }
 
     /**
@@ -41,12 +39,10 @@ class FaceService
      */
     public function compare(array $storedDescriptor, string $imageB64): array
     {
-        $payload = json_encode([
+        return $this->call('compare', [
             'stored'    => $storedDescriptor,
             'image_b64' => $imageB64,
         ]);
-
-        return $this->call('compare', $payload);
     }
 
     /**
@@ -54,68 +50,32 @@ class FaceService
      */
     public function test(): array
     {
-        return $this->call('test', null);
+        return $this->call('test', []);
     }
 
     /**
-     * Panggil Python script dan decode hasilnya.
+     * Panggil Python FastAPI menggunakan HTTP.
      */
-    protected function call(string $mode, ?string $payloadJson): array
+    protected function call(string $mode, array $payload): array
     {
-        if (!file_exists($this->scriptPath)) {
-            return ['success' => false, 'error' => 'Python face_service.py tidak ditemukan.'];
-        }
+        $url = rtrim($this->apiUrl, '/') . '/' . $mode;
 
-        $escapedScript  = escapeshellarg($this->scriptPath);
-        $escapedMode = escapeshellarg($mode);
-        $tempFile    = null;
-        $cmd         = "{$this->pythonBin} {$escapedScript} {$escapedMode} 2>&1";
-
-        if ($payloadJson) {
-            // Tulis payload ke file temporary untuk menghindari limit panjang argumen shell (ARG_MAX)
-            $tempFile = tempnam(sys_get_temp_dir(), 'face_payload_');
-            file_put_contents($tempFile, $payloadJson);
-            $escapedPayloadFile = escapeshellarg($tempFile);
-            $cmd = "{$this->pythonBin} {$escapedScript} {$escapedMode} {$escapedPayloadFile} 2>&1";
-        }
-
-        $output     = null;
-        $returnCode = 0;
-
-        exec($cmd, $outputLines, $returnCode);
-        $output = implode("\n", $outputLines);
-
-        // Hapus file temporary setelah selesai
-        if ($tempFile && file_exists($tempFile)) {
-            unlink($tempFile);
-        }
-
-        // Ambil baris JSON terakhir (Python mungkin print warning dulu)
-        $lines = array_filter(array_map('trim', $outputLines));
-        $jsonLine = '';
-        foreach (array_reverse(array_values($lines)) as $line) {
-            if (str_starts_with($line, '{')) {
-                $jsonLine = $line;
-                break;
+        try {
+            if ($mode === 'test') {
+                $response = Http::timeout(5)->get($url);
+            } else {
+                $response = Http::timeout(10)->post($url, $payload);
             }
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            Log::error("[FaceService] API returned status {$response->status()} at {$url}: {$response->body()}");
+            return ['success' => false, 'error' => 'Gagal terhubung ke API Face Recognition (Status ' . $response->status() . ').'];
+        } catch (\Exception $e) {
+            Log::error("[FaceService] API Exception at {$url}: " . $e->getMessage());
+            return ['success' => false, 'error' => 'API Face Recognition mati atau tidak merespons. Pastikan service PM2/Python berjalan.'];
         }
-
-        if (!$jsonLine) {
-            Log::error("[FaceService] No JSON output from Python. Output: {$output}");
-            return ['success' => false, 'error' => 'Python script tidak menghasilkan output JSON.'];
-        }
-
-        $result = json_decode($jsonLine, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error("[FaceService] Invalid JSON from Python: {$jsonLine}");
-            return ['success' => false, 'error' => 'Output Python tidak valid.'];
-        }
-
-        if ($returnCode !== 0 && !isset($result['success'])) {
-            Log::error("[FaceService] Python returned non-zero exit: {$returnCode}. Output: {$output}");
-        }
-
-        return $result;
     }
 }
