@@ -668,6 +668,11 @@ class DashboardController extends Controller
             'kelas_id' => 'nullable|exists:kelas,id',
         ]);
 
+        if ($request->has('reset_wajah')) {
+            $v['face_descriptor'] = null;
+            $v['face_enrolled_at'] = null;
+        }
+
         $siswa->update($v);
 
         return redirect()->route('dashboard.siswa')->with('success', 'Data siswa diperbarui!');

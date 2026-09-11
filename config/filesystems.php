@@ -40,11 +40,17 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => '/mnt/data-presensi-smk/storage_public',
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+        ],
+
+        'data_smk' => [
+            'driver' => 'local',
+            'root' => '/mnt/data-presensi-smk',
+            'throw' => false,
         ],
 
         's3' => [
@@ -74,7 +80,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('storage') => '/mnt/data-presensi-smk/storage_public',
     ],
 
 ];

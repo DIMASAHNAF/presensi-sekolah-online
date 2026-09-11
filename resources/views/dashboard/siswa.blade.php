@@ -79,7 +79,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex justify-center gap-2">
-                                <button @click="openEdit = true; editData = { id: {{ $siswa->id }}, nama: '{{ $siswa->name }}', nisn: '{{ $siswa->nisn }}', username: '{{ $siswa->username }}', kelas_id: '{{ $siswa->kelas_id }}' }" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Siswa">
+                                <button @click="openEdit = true; editData = { id: {{ $siswa->id }}, nama: '{{ $siswa->name }}', nisn: '{{ $siswa->nisn }}', username: '{{ $siswa->username }}', kelas_id: '{{ $siswa->kelas_id }}', has_face: {{ $siswa->face_enrolled_at ? 'true' : 'false' }} }" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Siswa">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 @if($siswa->face_enrolled_at)
@@ -177,6 +177,12 @@
                 <div class="mb-4">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
                     <input type="text" name="username" x-model="editData.username" class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+                </div>
+                <div class="mb-4" x-show="editData.has_face" x-cloak>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="reset_wajah" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-600 w-4 h-4">
+                        <span class="text-sm text-slate-700">Reset Data Wajah (Siswa harus scan ulang saat login)</span>
+                    </label>
                 </div>
                 <div class="flex gap-2 justify-end mt-6">
                     <button type="button" @click="openEdit = false" class="btn-secondary">Batal</button>
