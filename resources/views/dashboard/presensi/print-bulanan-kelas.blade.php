@@ -240,11 +240,8 @@
 
 @php
     $totalHariSesi = count($activeDates);
-    // Jika ada tanggal aktif, kita tampilkan kolom tanggal aktif tersebut agar tidak penuh strip kosong!
-    // Tapi jika belum ada tanggal aktif sama sekali, kita tampilkan tabel kosong yang rapi.
-    $daftarHariTampil = count($activeDates) > 0 
-        ? collect($hariList)->where('has_session', true)->values()
-        : collect($hariList)->where('libur', false)->take(10)->values();
+    // Tampilkan 1 bulan penuh layaknya buku absensi manual kelas (semua tanggal dalam bulan tersebut)
+    $daftarHariTampil = collect($hariList)->values();
 @endphp
 
 <div class="table-wrap">
@@ -257,7 +254,7 @@
             
             @if($daftarHariTampil->count() > 0)
                 <th colspan="{{ $daftarHariTampil->count() }}" class="th-main">
-                    Daftar Kehadiran Harian (Tanggal Sesi Aktif)
+                    Tanggal (1 - {{ $daftarHariTampil->count() }})
                 </th>
             @endif
 
@@ -429,23 +426,26 @@
     Persentase (%) dihitung berdasarkan jumlah pertemuan/hari sesi yang terselenggara.
 </div>
 
-{{-- TANDA TANGAN --}}
-<div class="signature-container">
-    <div class="signature-box">
-        <div>Mengetahui,</div>
-        <div>Kepala Sekolah SMKN 1 Beringin</div>
-        <div class="signature-space"></div>
-        <div class="signature-name">H. ILYAS, M.Pd</div>
-        <div style="font-size: 9.5px; color: #64748b;">NIP. 19680512 199403 1 005</div>
-    </div>
-    <div class="signature-box">
-        <div>Beringin, {{ now()->translatedFormat('d F Y') }}</div>
-        <div>Wali Kelas {{ $kelas->nama_kelas }}</div>
-        <div class="signature-space"></div>
-        <div class="signature-name">{{ $kelas->wali_kelas?->name ?? '________________________' }}</div>
-        <div style="font-size: 9.5px; color: #64748b;">NIP/NIK. {{ $kelas->wali_kelas?->nik ?? '-' }}</div>
-    </div>
-</div>
+{{-- TANDA TANGAN (Menggunakan Table agar rapi di Excel) --}}
+<br><br>
+<table style="width: 100%; border: none; font-size: 11px;">
+    <tr>
+        <td style="width: 50%; text-align: center; border: none; vertical-align: top;">
+            Mengetahui,<br>
+            Kepala Sekolah SMKN 1 Beringin<br>
+            <br><br><br><br>
+            <strong><u>H. ILYAS, M.Pd</u></strong><br>
+            <span style="color: #64748b; font-size: 9.5px;">NIP. 19680512 199403 1 005</span>
+        </td>
+        <td style="width: 50%; text-align: center; border: none; vertical-align: top;">
+            Beringin, {{ now()->translatedFormat('d F Y') }}<br>
+            Wali Kelas {{ $kelas->nama_kelas }}<br>
+            <br><br><br><br>
+            <strong><u>{{ $kelas->wali_kelas?->name ?? '________________________' }}</u></strong><br>
+            <span style="color: #64748b; font-size: 9.5px;">NIP/NIK. {{ $kelas->wali_kelas?->nik ?? '-' }}</span>
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>
