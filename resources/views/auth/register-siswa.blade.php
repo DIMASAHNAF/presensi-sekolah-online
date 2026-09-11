@@ -215,7 +215,7 @@
                         </div>
 
                         <button type="submit"
-                                class="w-full bg-slate-900 hover:bg-teal-600 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg hover:shadow-teal-500/25 flex items-center justify-center gap-2 group mt-6">
+                                class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-md flex items-center justify-center gap-2 group mt-6">
                             <span>Lanjut Scan Wajah</span>
                             <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
                         </button>

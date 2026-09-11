@@ -48,12 +48,37 @@
         }
 
         body {
-            background-color: #f8fafc;
-            background-image:
-                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-color: #f1f5f9;
             min-height: 100vh;
         }
+
+        /* ── Profile Header ── */
+        .profile-hero {
+            background: #1d4ed8;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            top: -60px; right: -40px;
+        }
+
+        /* ── Stat pill cards ── */
+        .stat-pill {
+            border-radius: 1rem;
+            padding: 1rem 0.5rem 0.85rem;
+            text-align: center;
+            transition: transform 0.15s ease;
+        }
+        .stat-pill:hover { transform: translateY(-2px); }
+        .stat-pill.hadir  { background: #dcfce7; border: 1.5px solid #86efac; }
+        .stat-pill.izin   { background: #fef9c3; border: 1.5px solid #fde047; }
+        .stat-pill.sakit  { background: #dbeafe; border: 1.5px solid #93c5fd; }
+        .stat-pill.alpa   { background: #fee2e2; border: 1.5px solid #fca5a5; }
 
         /* ── Micro Badges ── */
         .badge-hadir {
@@ -192,24 +217,20 @@
     <x-page-loader />
 
     {{-- TOP NAVBAR --}}
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div
-                    class="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl p-1 flex items-center justify-center shadow-2xs">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin"
-                        class="w-full h-full object-contain">
+                <div class="w-9 h-9 bg-white border border-slate-200 rounded-xl p-1 flex items-center justify-center shadow-xs">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
                 </div>
                 <div>
-                    <span class="font-heading font-extrabold text-xs uppercase tracking-wider block text-slate-900">SMKN
-                        1 BERINGIN</span>
-                    <span class="text-[10px] text-blue-600 font-bold block font-mono">PORTAL PRESENSI SISWA</span>
+                    <span class="font-heading font-extrabold text-xs uppercase tracking-wider block text-slate-900">SMKN 1 BERINGIN</span>
+                    <span class="text-[10px] text-blue-600 font-bold block">Portal Presensi Siswa</span>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit"
-                    class="text-xs font-bold text-slate-500 hover:text-rose-600 px-3 py-1.5 rounded-xl hover:bg-rose-50 transition border border-slate-200 hover:border-rose-200 flex items-center gap-1.5 shadow-2xs">
+                <button type="submit" class="text-xs font-bold text-slate-500 hover:text-rose-600 px-3 py-1.5 rounded-xl hover:bg-rose-50 transition border border-slate-200 hover:border-rose-200 flex items-center gap-1.5">
                     <i class="fas fa-arrow-right-from-bracket text-[11px]"></i>
                     <span>Keluar</span>
                 </button>
@@ -220,75 +241,90 @@
     {{-- MAIN CONTAINER --}}
     <main class="max-w-xl mx-auto px-4 py-6 pb-24 space-y-5">
 
-        {{-- KARTU PROFIL SISWA (CERAH & BERSIH) --}}
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/90 relative overflow-hidden"
-            data-aos="fade-down">
-            {{-- Accent line atas --}}
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500">
+        {{-- KARTU PROFIL SISWA — Clean Card Style --}}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-aos="fade-down">
+
+            {{-- Top bar: Status + Jam --}}
+            <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+                    <span class="text-xs font-semibold text-slate-600">
+                        @if($user->isFaceEnrolled()) Face ID Aktif @else Belum Rekam Wajah @endif
+                    </span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-500 text-xs font-mono">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/>
+                    </svg>
+                    <span id="siswa-clock">--:--</span>
+                </div>
             </div>
 
-            <div class="flex items-start gap-4">
+            {{-- Main content --}}
+            <div class="px-5 py-5">
                 @php
                     $words = explode(' ', trim($user->name));
                     $initials = count($words) >= 2
                         ? mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1)
                         : mb_substr($words[0], 0, 2);
                 @endphp
-                <div
-                    class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-emerald-600 text-white font-heading font-extrabold text-xl flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20 relative">
-                    {{ strtoupper($initials) }}
-                    @if($user->isFaceEnrolled())
-                        <span
-                            class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] text-white shadow-xs"
-                            title="Wajah Terdaftar">
-                            <i class="fas fa-check"></i>
-                        </span>
-                    @endif
-                </div>
 
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span
-                            class="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold font-mono uppercase">
-                            {{ $user->kelas ? $user->kelas->nama_kelas : 'Tanpa Kelas' }}
-                        </span>
-                        <span class="text-slate-300">•</span>
-                        <span class="text-slate-500 text-[11px] font-mono">NISN: {{ $user->nisn ?? '-' }}</span>
-                    </div>
-                    <h1 class="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight truncate">
-                        {{ $user->name }}
-                    </h1>
-                    <div class="flex items-center gap-2 text-slate-500 text-xs mt-1 font-medium flex-wrap">
-                        <span class="inline-flex items-center gap-1.5 text-slate-600">
-                            <i class="fas fa-graduation-cap text-blue-600 text-xs"></i> SMKN 1 Beringin
-                        </span>
-                        <span class="text-slate-300">|</span>
+                {{-- Avatar + Info --}}
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="relative shrink-0">
+                        <div class="w-16 h-16 rounded-full bg-blue-700 text-white font-heading font-extrabold text-xl flex items-center justify-center border-2 border-slate-100 shadow-sm">
+                            {{ strtoupper($initials) }}
+                        </div>
                         @if($user->isFaceEnrolled())
-                            <span class="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[11px]">
-                                <i class="fas fa-shield-halved text-xs"></i> Face ID Aktif
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1 text-amber-600 font-semibold text-[11px]">
-                                <i class="fas fa-triangle-exclamation text-xs"></i> Belum Rekam Wajah
+                            <span class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                         @endif
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-lg font-heading font-bold text-slate-900 leading-tight truncate">{{ $user->name }}</h1>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">Siswa SMKN 1 Beringin</p>
+                    </div>
+                </div>
+
+                {{-- Info pills (2 kolom mirip tombol referensi) --}}
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                        <div class="w-7 h-7 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Kelas</p>
+                            <p class="text-xs font-bold text-slate-800 truncate">{{ $user->kelas ? $user->kelas->nama_kelas : 'Tanpa Kelas' }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                        <div class="w-7 h-7 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">NISN</p>
+                            <p class="text-xs font-bold text-slate-800 font-mono truncate">{{ $user->nisn ?? '-' }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {{-- Bottom accent strip (mirip referensi) --}}
             @if(!$user->isFaceEnrolled())
-                <div
-                    class="mt-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs flex items-start gap-3 shadow-2xs">
-                    <i class="fas fa-triangle-exclamation text-amber-500 text-base mt-0.5 shrink-0"></i>
-                    <div class="flex-1">
-                        <p class="font-bold text-amber-900">Biometrik Wajah Belum Terdaftar</p>
-                        <p class="text-amber-800 text-[11px] mt-0.5 leading-relaxed">Daftarkan wajah Anda sekali untuk
-                            mengaktifkan pemindaian presensi biometrik otomatis.</p>
-                        <a href="{{ route('siswa.enroll') }}"
-                            class="inline-flex items-center gap-1.5 mt-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition shadow-xs">
-                            <i class="fas fa-camera text-[11px]"></i> Daftarkan Wajah Sekarang
-                        </a>
+                <div class="bg-amber-500 px-5 py-2.5 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-white text-xs font-semibold">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                        Wajah belum terdaftar — Daftarkan sekarang
                     </div>
+                    <a href="{{ route('siswa.enroll') }}" class="shrink-0 text-amber-700 bg-white text-xs font-bold px-2.5 py-1 rounded-lg hover:bg-amber-50 transition">
+                        Daftar
+                    </a>
+                </div>
+            @else
+                <div class="bg-blue-700 px-5 py-2.5 flex items-center gap-2 text-white text-xs font-semibold">
+                    <svg class="w-3.5 h-3.5 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Sistem presensi biometrik aktif
                 </div>
             @endif
         </div>
@@ -325,43 +361,35 @@
             </div>
         @endif
 
-        {{-- STAT CARDS (4 KOTAK CERAH) --}}
-        <div class="grid grid-cols-4 gap-2.5 sm:gap-3" data-aos="fade-up">
-            <div
-                class="bg-white rounded-2xl p-3.5 shadow-2xs text-center border border-slate-200/90 hover:border-emerald-300 transition group">
-                <div
-                    class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-                    <i class="fas fa-user-check text-xs"></i>
+        {{-- STAT CARDS — Colored Pills --}}
+        <div class="grid grid-cols-4 gap-2.5" data-aos="fade-up">
+            <div class="stat-pill hadir shadow-sm">
+                <div class="w-9 h-9 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                    <i class="fas fa-user-check text-sm"></i>
                 </div>
-                <p class="text-xl font-heading font-extrabold text-slate-900 font-mono">{{ $stats['hadir'] }}</p>
-                <p class="text-[11px] text-emerald-700 font-bold mt-0.5">Hadir</p>
+                <p class="text-2xl font-heading font-extrabold text-emerald-800 leading-none">{{ $stats['hadir'] }}</p>
+                <p class="text-[11px] text-emerald-700 font-bold mt-1">Hadir</p>
             </div>
-            <div
-                class="bg-white rounded-2xl p-3.5 shadow-2xs text-center border border-slate-200/90 hover:border-amber-300 transition group">
-                <div
-                    class="w-8 h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-                    <i class="fas fa-envelope-open-text text-xs"></i>
+            <div class="stat-pill izin shadow-sm">
+                <div class="w-9 h-9 bg-amber-500 text-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                    <i class="fas fa-envelope-open-text text-sm"></i>
                 </div>
-                <p class="text-xl font-heading font-extrabold text-slate-900 font-mono">{{ $stats['izin'] }}</p>
-                <p class="text-[11px] text-amber-700 font-bold mt-0.5">Izin</p>
+                <p class="text-2xl font-heading font-extrabold text-amber-800 leading-none">{{ $stats['izin'] }}</p>
+                <p class="text-[11px] text-amber-700 font-bold mt-1">Izin</p>
             </div>
-            <div
-                class="bg-white rounded-2xl p-3.5 shadow-2xs text-center border border-slate-200/90 hover:border-blue-300 transition group">
-                <div
-                    class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-                    <i class="fas fa-hospital-user text-xs"></i>
+            <div class="stat-pill sakit shadow-sm">
+                <div class="w-9 h-9 bg-sky-500 text-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                    <i class="fas fa-hospital-user text-sm"></i>
                 </div>
-                <p class="text-xl font-heading font-extrabold text-slate-900 font-mono">{{ $stats['sakit'] }}</p>
-                <p class="text-[11px] text-blue-700 font-bold mt-0.5">Sakit</p>
+                <p class="text-2xl font-heading font-extrabold text-sky-800 leading-none">{{ $stats['sakit'] }}</p>
+                <p class="text-[11px] text-sky-700 font-bold mt-1">Sakit</p>
             </div>
-            <div
-                class="bg-white rounded-2xl p-3.5 shadow-2xs text-center border border-slate-200/90 hover:border-rose-300 transition group">
-                <div
-                    class="w-8 h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-                    <i class="fas fa-user-xmark text-xs"></i>
+            <div class="stat-pill alpa shadow-sm">
+                <div class="w-9 h-9 bg-rose-500 text-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                    <i class="fas fa-user-xmark text-sm"></i>
                 </div>
-                <p class="text-xl font-heading font-extrabold text-slate-900 font-mono">{{ $stats['alpa'] }}</p>
-                <p class="text-[11px] text-rose-700 font-bold mt-0.5">Alpa</p>
+                <p class="text-2xl font-heading font-extrabold text-rose-800 leading-none">{{ $stats['alpa'] }}</p>
+                <p class="text-[11px] text-rose-700 font-bold mt-1">Alpa</p>
             </div>
         </div>
 
@@ -370,200 +398,192 @@
             {{-- Loading State --}}
             <div x-show="sesiLoading"
                 class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center gap-3">
-                <i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i>
-                <span class="text-xs font-bold text-slate-600">Menghubungkan ke server presensi...</span>
+                <div class="w-12 h-12 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin"></div>
+                <span class="text-xs font-bold text-slate-500">Menghubungkan ke server presensi...</span>
             </div>
 
             {{-- 1. Ada sesi aktif, SUDAH HADIR --}}
             <div x-show="!sesiLoading && sesiData && sudahHadir" x-cloak
-                class="bg-gradient-to-br from-white via-emerald-50/40 to-teal-50/40 rounded-3xl shadow-sm border-2 border-emerald-300 p-6">
-                <div class="flex items-start justify-between">
+                class="bg-blue-600 rounded-2xl shadow-sm border border-blue-700 overflow-hidden text-white">
+                <div class="px-5 py-4 flex items-start justify-between">
                     <div>
-                        <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-800 text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2 border border-emerald-300/60">
-                            <div class="pulse-dot"></div>
-                            <span>Sesi Sedang Berlangsung</span>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
+                            <span>SESI SEDANG BERLANGSUNG</span>
                         </div>
-                        <p x-text="sesiData?.kelas"
-                            class="font-heading font-extrabold text-xl text-slate-900 tracking-tight"></p>
-                        <p x-text="'Guru: ' + sesiData?.guru" class="text-slate-600 text-xs mt-1 font-medium"></p>
+                        <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
+                        <p x-text="'Guru: ' + sesiData?.guru" class="text-blue-100 text-xs mt-0.5 font-medium"></p>
                     </div>
-                    <div
-                        class="bg-emerald-500 text-white rounded-2xl px-3 py-2 text-center shadow-md shadow-emerald-500/20">
-                        <i class="fas fa-circle-check text-xl"></i>
-                        <p class="text-[10px] font-extrabold mt-0.5 font-mono">HADIR</p>
+                    <div class="bg-white text-emerald-600 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60">
+                        <i class="fas fa-circle-check text-xl text-emerald-600"></i>
+                        <p class="text-[10px] font-extrabold mt-0.5 font-mono text-emerald-600">HADIR</p>
                     </div>
                 </div>
-                <div
-                    class="mt-4 bg-emerald-100/60 border border-emerald-300/70 rounded-2xl px-4 py-3 text-xs text-emerald-800 flex items-center gap-2.5">
-                    <i class="fas fa-check-circle text-emerald-600 text-base"></i>
-                    <span class="font-semibold">Kehadiran Anda telah terverifikasi biometrik. Selamat belajar!</span>
+                {{-- Body (The verified banner) --}}
+                <div class="bg-emerald-50 border-t border-emerald-100 px-5 py-3 flex items-center gap-2.5 text-emerald-900">
+                    <i class="fas fa-shield-halved text-emerald-600 text-base shrink-0"></i>
+                    <span class="text-xs font-semibold">Kehadiran Anda telah terverifikasi biometrik. Selamat belajar!</span>
                 </div>
             </div>
 
             {{-- 2. Ada sesi aktif, BELUM HADIR --}}
             <div x-show="!sesiLoading && sesiData && !sudahHadir" x-cloak
-                class="bg-white rounded-3xl shadow-md border-2 border-blue-300 p-6 relative overflow-hidden">
-
-                {{-- Decorative top bar --}}
-                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 to-emerald-500"></div>
-
-                <div class="flex items-start justify-between mb-4">
+                class="bg-blue-600 rounded-2xl shadow-sm border border-blue-700 overflow-hidden text-white">
+                {{-- Top Section --}}
+                <div class="px-5 py-4 flex items-start justify-between">
                     <div>
-                        <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2 border border-blue-200">
-                            <div class="pulse-dot"></div>
-                            <span>Sesi Presensi Dibuka</span>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
+                            <span>SESI PRESENSI DIBUKA</span>
                         </div>
-                        <p x-text="sesiData?.kelas"
-                            class="font-heading font-extrabold text-xl text-slate-900 tracking-tight"></p>
-                        <p x-text="sesiData?.tanggal" class="text-slate-500 text-xs mt-0.5 font-mono"></p>
-                        <p x-text="'Pengampu: ' + sesiData?.guru" class="text-slate-600 text-xs mt-0.5 font-medium"></p>
+                        <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
+                        <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-mono font-medium"></p>
+                        <p x-text="'Pengampu: ' + sesiData?.guru" class="text-blue-200 text-xs mt-0.5 font-medium"></p>
                     </div>
-                    <div class="bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2 text-center text-amber-700">
-                        <i class="fas fa-clock text-lg"></i>
-                        <p class="text-[10px] font-extrabold mt-0.5 font-mono">BELUM</p>
+                    {{-- Matching white badge --}}
+                    <div class="bg-white text-amber-600 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60">
+                        <i class="far fa-clock text-xl text-amber-500"></i>
+                        <p class="text-[10px] font-extrabold mt-0.5 font-mono text-amber-600">BELUM</p>
                     </div>
                 </div>
 
-                {{-- Geofencing GPS Radar --}}
-                <div x-show="geofencingActive" class="my-4 pt-3.5 border-t border-slate-100">
-                    <div class="flex items-center justify-between mb-2.5">
-                        <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
-                            <i class="fas fa-satellite text-blue-600"></i> Radar Lokasi Sekolah (GPS):
-                        </span>
-                        <button type="button" @click="checkLocation(true)" title="Perbarui titik GPS"
-                            class="text-blue-600 hover:text-blue-800 text-xs px-2.5 py-1 rounded-lg hover:bg-blue-50 transition flex items-center gap-1 font-bold border border-blue-100">
-                            <i class="fas fa-arrows-rotate text-[10px]" :class="isRequestingGeo ? 'fa-spin' : ''"></i>
-                            Refresh GPS
-                        </button>
-                    </div>
+                {{-- Action / Radar Section --}}
+                <div class="bg-white text-slate-800 p-5 border-t border-blue-500/20">
+                    {{-- Geofencing GPS Radar --}}
+                    <div x-show="geofencingActive" class="mb-4 pb-3.5 border-b border-slate-100">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
+                                <i class="fas fa-satellite text-blue-600"></i> Radar Lokasi Sekolah (GPS):
+                            </span>
+                            <button type="button" @click="checkLocation(true)" title="Perbarui titik GPS"
+                                class="text-blue-600 hover:text-blue-800 text-xs px-2.5 py-1 rounded-lg hover:bg-blue-50 transition flex items-center gap-1 font-bold border border-blue-100">
+                                <i class="fas fa-arrows-rotate text-[10px]" :class="isRequestingGeo ? 'fa-spin' : ''"></i>
+                                Refresh GPS
+                            </button>
+                        </div>
 
-                    {{-- Checking --}}
-                    <div x-show="geoStatus === 'checking'"
-                        class="bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2.5 text-xs text-blue-800 flex items-center gap-2">
-                        <i class="fas fa-circle-notch fa-spin text-blue-600"></i>
-                        <span>Menghitung jarak koordinat GPS Anda ke sekolah...</span>
-                    </div>
+                        {{-- Checking --}}
+                        <div x-show="geoStatus === 'checking'"
+                            class="bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2.5 text-xs text-blue-800 flex items-center gap-2">
+                            <i class="fas fa-circle-notch fa-spin text-blue-600"></i>
+                            <span>Menghitung jarak koordinat GPS Anda ke sekolah...</span>
+                        </div>
 
-                    {{-- Valid / In Radius --}}
-                    <div x-show="geoStatus === 'valid'"
-                        class="bg-emerald-50 border border-emerald-300 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 flex items-center gap-2">
-                        <i class="fas fa-circle-check text-emerald-600 text-base"></i>
-                        <span>Dalam Zona Sekolah (Jarak: <strong x-text="geoDistance + ' m'"
-                                class="font-mono"></strong>, Maks: <span x-text="schoolRadius + 'm'"
-                                class="font-mono"></span>)</span>
-                    </div>
-
-                    {{-- Outside Radius Warning --}}
-                    <div x-show="geoStatus === 'outside'"
-                        class="bg-rose-50 border border-rose-300 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 space-y-1">
-                        <div class="flex items-center gap-2 font-bold text-rose-700">
-                            <i class="fas fa-triangle-exclamation text-rose-600"></i>
-                            <span>Di Luar Radius Sekolah (<span x-text="formatDistance(geoDistance)"
+                        {{-- Valid / In Radius --}}
+                        <div x-show="geoStatus === 'valid'"
+                            class="bg-emerald-50 border border-emerald-300 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 flex items-center gap-2">
+                            <i class="fas fa-circle-check text-emerald-600 text-base"></i>
+                            <span>Dalam Zona Sekolah (Jarak: <strong x-text="geoDistance + ' m'"
+                                    class="font-mono"></strong>, Maks: <span x-text="schoolRadius + 'm'"
                                     class="font-mono"></span>)</span>
                         </div>
-                        <p class="text-[11px] text-rose-700 leading-relaxed">
-                            Presensi hanya dapat dilakukan di dalam zona sekolah (maksimal <span x-text="schoolRadius"
-                                class="font-mono"></span> meter).
-                        </p>
-                    </div>
 
-                    {{-- GPS Error --}}
-                    <div x-show="geoStatus === 'error'"
-                        class="bg-amber-50 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs text-amber-800 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-location-slash text-amber-600"></i>
-                            <span>Akses GPS perangkat belum diizinkan.</span>
+                        {{-- Outside Radius Warning --}}
+                        <div x-show="geoStatus === 'outside'"
+                            class="bg-rose-50 border border-rose-300 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 space-y-1">
+                            <div class="flex items-center gap-2 font-bold text-rose-700">
+                                <i class="fas fa-triangle-exclamation text-rose-600"></i>
+                                <span>Di Luar Radius Sekolah (<span x-text="formatDistance(geoDistance)"
+                                        class="font-mono"></span>)</span>
+                            </div>
+                            <p class="text-[11px] text-rose-700 leading-relaxed">
+                                Presensi hanya dapat dilakukan di dalam zona sekolah (maksimal <span x-text="schoolRadius"
+                                    class="font-mono"></span> meter).
+                            </p>
                         </div>
-                        <button type="button" @click="checkLocation(true)"
-                            class="underline font-bold text-amber-900 hover:text-amber-950">
-                            Izinkan
-                        </button>
-                    </div>
-                </div>
 
-                {{-- Tombol Mulai Scan Wajah --}}
-                <button @click="openFaceScanner()" :disabled="geofencingActive && geoStatus === 'outside'"
-                    :class="geofencingActive && geoStatus === 'outside' ? 'opacity-60 cursor-not-allowed bg-slate-300 text-slate-500 shadow-none' : 'bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white shadow-lg shadow-blue-500/25 active:scale-[0.99]'"
-                    class="w-full font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2.5 text-base transition-all">
-                    <i class="fas"
-                        :class="geofencingActive && geoStatus === 'outside' ? 'fa-lock text-sm' : 'fa-camera text-lg'"></i>
-                    <span
-                        x-text="geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah'"></span>
-                </button>
+                        {{-- GPS Error --}}
+                        <div x-show="geoStatus === 'error'"
+                            class="bg-amber-50 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs text-amber-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-location-slash text-amber-600"></i>
+                                <span>Akses GPS perangkat belum diizinkan.</span>
+                            </div>
+                            <button type="button" @click="checkLocation(true)"
+                                class="underline font-bold text-amber-900 hover:text-amber-950">
+                                Izinkan
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Tombol Mulai Scan Wajah --}}
+                    <button @click="openFaceScanner()" :disabled="geofencingActive && geoStatus === 'outside'"
+                        :class="geofencingActive && geoStatus === 'outside' ? 'opacity-50 cursor-not-allowed bg-slate-200 text-slate-400' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]'"
+                        class="w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm transition-all">
+                        <i class="fas text-base" :class="geofencingActive && geoStatus === 'outside' ? 'fa-lock' : 'fa-camera'"></i>
+                        <span x-text="geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah'"></span>
+                    </button>
+                </div>
             </div>
 
             {{-- 3. Tidak ada sesi aktif --}}
             <div x-show="!sesiLoading && !sesiData" x-cloak
-                class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-8 text-center">
-                <div
-                    class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-blue-100 shadow-2xs">
-                    <i class="fas fa-hourglass-half text-xl"></i>
+                class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-8 text-center border-b border-slate-100">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hourglass-half text-2xl"></i>
+                    </div>
+                    <h2 class="text-base font-heading font-extrabold text-slate-800 mb-1">Belum Ada Sesi Aktif</h2>
+                    <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">Menunggu guru pengampu membuka sesi presensi kelas hari ini.</p>
                 </div>
-                <h2 class="text-base font-heading font-extrabold text-slate-900 mb-1">Belum Ada Sesi Presensi Aktif</h2>
-                <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">Menunggu guru pengampu membuka sesi
-                    presensi kelas hari ini.</p>
-                <div
-                    class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-mono">
-                    <i class="fas fa-arrows-rotate text-[9px] fa-spin"></i> Auto-sinkron aktif setiap 5 detik
+                <div class="border-t border-slate-100 px-6 py-3 flex items-center justify-center gap-2">
+                    <i class="fas fa-arrows-rotate text-blue-400 text-[10px] fa-spin"></i>
+                    <span class="text-[11px] text-slate-400 font-mono">Auto-sinkron setiap 5 detik</span>
                 </div>
             </div>
         </div>
 
-        {{-- RIWAYAT PRESENSI ANDA --}}
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden" data-aos="fade-up"
-            data-aos-delay="100">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/60">
-                <h3
-                    class="font-heading font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <i class="fas fa-clock-rotate-left text-blue-600"></i> Riwayat Presensi Anda
+        {{-- RIWAYAT PRESENSI --}}
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <h3 class="font-heading font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                    <div class="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock-rotate-left text-xs"></i>
+                    </div>
+                    Riwayat Presensi
                 </h3>
-                <span
-                    class="text-[10px] font-mono font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">10
-                    Terakhir</span>
+                <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">10 Terakhir</span>
             </div>
 
             @if($riwayat->isEmpty())
                 <div class="py-12 text-center">
-                    <div
-                        class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-slate-400 border border-slate-200">
-                        <i class="fas fa-inbox text-lg"></i>
+                    <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-300">
+                        <i class="fas fa-inbox text-2xl"></i>
                     </div>
-                    <p class="text-xs font-bold text-slate-700">Belum ada riwayat presensi</p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Lakukan verifikasi wajah saat sesi kelas dibuka.</p>
+                    <p class="text-sm font-bold text-slate-600">Belum ada riwayat presensi</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Lakukan verifikasi wajah saat sesi kelas dibuka.</p>
                 </div>
             @else
                 <div class="divide-y divide-slate-100">
                     @foreach($riwayat as $item)
-                        <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-50/70 transition-colors">
-                            <div>
-                                <p class="text-xs font-extrabold text-slate-900 font-mono">
-                                    {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
-                                </p>
-                                <p class="text-[11px] text-slate-500 mt-1 flex items-center flex-wrap gap-1.5 font-medium">
-                                    <span
-                                        class="text-slate-700">{{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}</span>
-                                    @if(optional($item->sesiPresensi)->mataPelajaran)
-                                        <span
-                                            class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-bold">
-                                            {{ $item->sesiPresensi->mataPelajaran->nama_mapel }}
-                                        </span>
-                                    @endif
-                                </p>
+                        @php $st = $item->status; @endphp
+                        <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                {{-- Status icon circle --}}
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+                                    {{ $st==='hadir' ? 'bg-emerald-100 text-emerald-600' : ($st==='izin' ? 'bg-amber-100 text-amber-600' : ($st==='sakit' ? 'bg-sky-100 text-sky-600' : 'bg-rose-100 text-rose-500')) }}">
+                                    <i class="fas text-sm
+                                        {{ $st==='hadir' ? 'fa-check' : ($st==='izin' ? 'fa-envelope' : ($st==='sakit' ? 'fa-hospital' : 'fa-times')) }}"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">
+                                        {{ optional(optional($item->sesiPresensi)->kelas)->nama_kelas ?? '-' }}
+                                        @if(optional($item->sesiPresensi)->mataPelajaran)
+                                            <span class="bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-bold ml-1">
+                                                {{ $item->sesiPresensi->mataPelajaran->nama_mapel }}
+                                            </span>
+                                        @endif
+                                    </p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ optional($item->sesiPresensi)->tanggal?->format('d M Y') ?? '-' }}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                @if($item->status === 'hadir')
-                                    <span class="badge badge-hadir"><i class="fas fa-check-circle mr-1 text-[10px]"></i>
-                                        Hadir</span>
-                                @elseif($item->status === 'izin')
-                                    <span class="badge badge-izin"><i class="fas fa-envelope mr-1 text-[10px]"></i> Izin</span>
-                                @elseif($item->status === 'sakit')
-                                    <span class="badge badge-sakit"><i class="fas fa-hospital mr-1 text-[10px]"></i> Sakit</span>
-                                @else
-                                    <span class="badge badge-alpa"><i class="fas fa-times-circle mr-1 text-[10px]"></i> Alpa</span>
-                                @endif
-                            </div>
+                            <span class="badge text-[11px] font-bold
+                                {{ $st==='hadir' ? 'badge-hadir' : ($st==='izin' ? 'badge-izin' : ($st==='sakit' ? 'badge-sakit' : 'badge-alpa')) }}">
+                                {{ ucfirst($st) }}
+                            </span>
                         </div>
                     @endforeach
                 </div>
@@ -677,6 +697,15 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init({ once: true, duration: 400, offset: 20 });
+
+        // Realtime clock di profile hero
+        function updateSiswaClock() {
+            const el = document.getElementById('siswa-clock');
+            if (el) el.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' WIB';
+        }
+        updateSiswaClock();
+        setInterval(updateSiswaClock, 60000);
+
 
         // ── Web Audio API Synthesizer (No external MP3 files needed) ──
         const audioFx = {

@@ -38,6 +38,7 @@ Route::middleware(['auth', 'role:siswa'])->group(function () {
 Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashboard')->group(function () {
     // Overview
     Route::get('/', [DashboardController::class, 'index'])->name('');
+    Route::get('/stats-json', [DashboardController::class, 'statsJson'])->name('.stats-json');
 
     // Presensi
     Route::get('/presensi', [DashboardController::class, 'presensiIndex'])->name('.presensi');

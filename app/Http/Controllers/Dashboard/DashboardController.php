@@ -57,15 +57,23 @@ class DashboardController extends Controller
             }
 
             $recentSesi = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
-                ->latest('tanggal')->take(5)->get();
-            $sesiHariIni = null;
-            $presensiHariIni = null;
+                ->latest('tanggal')->latest('created_at')->take(5)->get();
+            $sesiHariIni = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
+                ->where('tanggal', today())
+                ->latest('created_at')
+                ->get();
+            $presensiHariIni = Presensi::with(['siswa', 'sesiPresensi.kelas', 'sesiPresensi.guru', 'sesiPresensi.mataPelajaran'])
+                ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))
+                ->get();
         } else {
-            // Guru
-            $sesiHariIni = SesiPresensi::with(['kelas', 'mataPelajaran'])->where('guru_id', $user->id)->where('tanggal', today())->get();
+            // Guru — Sinkronkan dengan seluruh sesi presensi & kehadiran sekolah hari ini
+            $sesiHariIni = SesiPresensi::with(['kelas', 'mataPelajaran', 'guru'])
+                ->where('tanggal', today())
+                ->latest('created_at')
+                ->get();
 
-            $presensiHariIni = Presensi::with(['siswa', 'sesiPresensi.kelas'])
-                ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today())->where('guru_id', $user->id))
+            $presensiHariIni = Presensi::with(['siswa', 'sesiPresensi.kelas', 'sesiPresensi.guru', 'sesiPresensi.mataPelajaran'])
+                ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))
                 ->get();
 
             $stats = [
@@ -75,14 +83,43 @@ class DashboardController extends Controller
                 'alpa_hari_ini' => $presensiHariIni->where('status', 'alpa')->count(),
             ];
             $chartLabels = $chartHadir = $chartAlpa = [];
-            $recentSesi = SesiPresensi::with(['kelas', 'mataPelajaran'])
-                ->where('guru_id', $user->id)
-                ->latest('tanggal')->take(5)->get();
+            $recentSesi = SesiPresensi::with(['kelas', 'mataPelajaran', 'guru'])
+                ->latest('tanggal')->latest('created_at')->take(5)->get();
         }
 
         return view('dashboard.index', compact(
             'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'presensiHariIni'
         ));
+    }
+
+    // =========================================================
+    //  STATS JSON — Realtime polling untuk dashboard overview
+    // =========================================================
+    public function statsJson()
+    {
+        $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return response()->json([
+                'hadir_hari_ini' => Presensi::where('status', 'hadir')
+                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))
+                    ->count(),
+                'alpa_hari_ini' => Presensi::where('status', 'alpa')
+                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))
+                    ->count(),
+                'sesi_aktif' => SesiPresensi::where('tanggal', today())->where('is_active', true)->count(),
+            ]);
+        } else {
+            // Guru realtime polling tersinkronisasi dengan seluruh sesi hari ini
+            $sesiHariIni = SesiPresensi::where('tanggal', today())->get();
+            $presensiHariIni = Presensi::whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))->get();
+            return response()->json([
+                'sesi_hari_ini'  => $sesiHariIni->count(),
+                'sesi_aktif'     => $sesiHariIni->where('is_active', true)->count(),
+                'hadir_hari_ini' => $presensiHariIni->where('status', 'hadir')->count(),
+                'alpa_hari_ini'  => $presensiHariIni->where('status', 'alpa')->count(),
+            ]);
+        }
     }
 
     // =========================================================
@@ -132,7 +169,9 @@ class DashboardController extends Controller
         $bulan = $request->bulan;
         $periode = $request->periode;
 
-        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal', 'bulan', 'periode', 'jamPelajarans'));
+        $gurus = User::where('role', 'guru')->orderBy('name')->get();
+
+        return view('dashboard.presensi.index', compact('sesiList', 'kelas', 'mapel', 'user', 'tanggal', 'bulan', 'periode', 'jamPelajarans', 'gurus'));
     }
 
     // =========================================================
@@ -144,6 +183,7 @@ class DashboardController extends Controller
             'tipe' => 'required|in:kelas,mapel',
             'kelas_id' => 'required|exists:kelas,id',
             'tanggal' => 'required|date',
+            'guru_id' => 'nullable|exists:users,id',
             'mapel_id' => 'nullable|exists:mata_pelajarans,id',
             'jam_pelajaran_id' => 'nullable|exists:jam_pelajarans,id',
         ]);
@@ -184,8 +224,13 @@ class DashboardController extends Controller
             }
         }
 
+        $guruId = auth()->id();
+        if ($request->filled('guru_id') && auth()->user()->isAdmin()) {
+            $guruId = $request->guru_id;
+        }
+
         $sesi = SesiPresensi::create([
-            'guru_id' => auth()->id(),
+            'guru_id' => $guruId,
             'kelas_id' => $request->kelas_id,
             'mapel_id' => $request->tipe === 'mapel' ? $request->mapel_id : null,
             'jam_pelajaran_id' => $request->jam_pelajaran_id,

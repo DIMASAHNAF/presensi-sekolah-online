@@ -80,6 +80,25 @@
                     </div>
                 </div>
 
+                @if(auth()->user()->isAdmin())
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Guru Pengampu / Wali Kelas <span class="text-[11px] font-normal text-slate-400 lowercase">(opsional)</span>
+                    </label>
+                    <div class="relative">
+                        <select name="guru_id"
+                            class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition appearance-none">
+                            <option value="">-- Default: Administrator (Saya) --</option>
+                            @foreach($gurus as $g)
+                                <option value="{{ $g->id }}">{{ $g->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chalkboard-user absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <i class="fas fa-chevron-down absolute right-3 top-2.5 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+                @endif
+
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Sesi <span
                             class="text-rose-600">*</span></label>
@@ -157,6 +176,25 @@
                             class="fas fa-chevron-down absolute right-3 top-2.5 text-slate-400 text-[10px] pointer-events-none"></i>
                     </div>
                 </div>
+
+                @if(auth()->user()->isAdmin())
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Guru Pengampu Mapel <span class="text-[11px] font-normal text-slate-400 lowercase">(opsional)</span>
+                    </label>
+                    <div class="relative">
+                        <select name="guru_id"
+                            class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition appearance-none">
+                            <option value="">-- Default: Administrator (Saya) --</option>
+                            @foreach($gurus as $g)
+                                <option value="{{ $g->id }}">{{ $g->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chalkboard-user absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <i class="fas fa-chevron-down absolute right-3 top-2.5 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+                @endif
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Sesi <span

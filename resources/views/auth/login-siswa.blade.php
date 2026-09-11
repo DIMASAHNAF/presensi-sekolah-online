@@ -152,7 +152,7 @@
                     </div>
 
                     <button type="submit"
-                            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-slate-900/15 flex items-center justify-center gap-2 group mt-2">
+                            class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-md flex items-center justify-center gap-2 group mt-2">
                         <span>Masuk ke Dashboard</span>
                         <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
                     </button>
