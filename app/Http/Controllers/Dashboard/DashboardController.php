@@ -13,6 +13,13 @@ use App\Models\SesiPresensi;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreSiswaRequest;
+use App\Http\Requests\UpdateSiswaRequest;
+use App\Http\Requests\StoreGuruRequest;
+use App\Http\Requests\UpdateGuruRequest;
+use App\Http\Requests\StoreKelasRequest;
+use App\Http\Requests\UpdateKelasRequest;
+use App\Http\Requests\UpdateLokasiRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -345,6 +352,16 @@ class DashboardController extends Controller
         return view('dashboard.presensi.print', compact('sesiPresensi'));
     }
 
+    public function exportExcel(SesiPresensi $sesiPresensi)
+    {
+        $sesiPresensi->load(['kelas', 'guru', 'mataPelajaran', 'presensi.siswa']);
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PresensiSesiExport($sesiPresensi),
+            'Presensi_Sesi_' . $sesiPresensi->kelas->nama_kelas . '_' . \Carbon\Carbon::parse($sesiPresensi->tanggal)->format('Ymd') . '.xlsx'
+        );
+    }
+
     public function exportPdfHarian(Request $request)
     {
         $request->validate([
@@ -371,6 +388,34 @@ class DashboardController extends Controller
         $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->orderBy('name')->get();
 
         return view('dashboard.presensi.print-harian', compact('kelas', 'tanggal', 'sesiList', 'siswaList'));
+    }
+
+    public function exportExcelHarian(Request $request)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'tanggal' => 'required|date',
+        ]);
+
+        $kelas = Kelas::findOrFail($request->kelas_id);
+        $tanggal = Carbon::parse($request->tanggal);
+
+        $sesiList = SesiPresensi::with(['mataPelajaran', 'presensi.siswa'])
+            ->where('kelas_id', $kelas->id)
+            ->where('tanggal', $tanggal->toDateString())
+            ->orderByRaw('mapel_id IS NOT NULL, created_at ASC')
+            ->get();
+
+        if ($sesiList->isEmpty()) {
+            return back()->with('error', 'Tidak ada sesi presensi pada tanggal tersebut.');
+        }
+
+        $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->orderBy('name')->get();
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PresensiHarianExport($kelas, $tanggal, $sesiList, $siswaList),
+            'Presensi_Harian_' . $kelas->nama_kelas . '_' . $tanggal->format('Ymd') . '.xlsx'
+        );
     }
 
     /**
@@ -480,6 +525,60 @@ class DashboardController extends Controller
         ));
     }
 
+    public function exportExcelBulananKelas(Request $request)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'bulan' => 'required|date_format:Y-m',
+        ]);
+
+        $kelas = Kelas::findOrFail($request->kelas_id);
+        $bulanDate = Carbon::parse($request->bulan.'-01');
+        $startOfMonth = $bulanDate->copy()->startOfMonth();
+        $endOfMonth = $bulanDate->copy()->endOfMonth();
+
+        $sesiList = SesiPresensi::with(['presensi.siswa'])
+            ->where('kelas_id', $kelas->id)
+            ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+            ->orderBy('tanggal')
+            ->orderByRaw('mapel_id IS NULL DESC, created_at ASC')
+            ->get();
+
+        $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->orderBy('name')->get();
+
+        $activeDates = $sesiList->pluck('tanggal')->map(fn ($t) => is_object($t) ? $t->format('Y-m-d') : substr($t, 0, 10))->unique()->values()->all();
+
+        $matrix = [];
+        foreach ($siswaList as $siswa) $matrix[$siswa->id] = [];
+        foreach ($sesiList as $sesi) {
+            $tglStr = is_object($sesi->tanggal) ? $sesi->tanggal->format('Y-m-d') : substr($sesi->tanggal, 0, 10);
+            foreach ($sesi->presensi as $absen) {
+                if (! isset($matrix[$absen->siswa_id][$tglStr]) || $sesi->mapel_id === null) {
+                    $matrix[$absen->siswa_id][$tglStr] = $absen->status;
+                }
+            }
+        }
+
+        $daysInMonth = $bulanDate->daysInMonth;
+        $hariList = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $currentDate = $bulanDate->copy()->day($d);
+            $tglStr = $currentDate->format('Y-m-d');
+            $hariList[] = [
+                'date' => $tglStr,
+                'tgl' => $d,
+                'nama' => $currentDate->translatedFormat('D'),
+                'libur' => in_array($currentDate->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY]),
+                'has_session' => in_array($tglStr, $activeDates),
+            ];
+        }
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PresensiBulananKelasExport($kelas, $bulanDate, $siswaList, $hariList, $activeDates, $matrix, $sesiList),
+            'Rekap_Bulanan_Kelas_' . $kelas->nama_kelas . '_' . $bulanDate->format('Ym') . '.xlsx'
+        );
+    }
+
     /**
      * Export Rekap Bulanan Mapel (Guru Mata Pelajaran)
      * Format: Berbasis Pertemuan (P.1, P.2, P.3, ...) dengan Tanggal & Jam Pelajaran
@@ -530,6 +629,47 @@ class DashboardController extends Controller
         return view('dashboard.presensi.print-bulanan-mapel', compact(
             'kelas', 'mapel', 'bulanDate', 'sesiList', 'siswaList', 'matrix', 'guruNama', 'guruNik'
         ));
+    }
+
+    public function exportExcelBulananMapel(Request $request)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'mapel_id' => 'required|exists:mata_pelajarans,id',
+            'bulan' => 'required|date_format:Y-m',
+        ]);
+
+        $kelas = Kelas::findOrFail($request->kelas_id);
+        $mapel = MataPelajaran::findOrFail($request->mapel_id);
+        $bulanDate = Carbon::parse($request->bulan.'-01');
+        $startOfMonth = $bulanDate->copy()->startOfMonth();
+        $endOfMonth = $bulanDate->copy()->endOfMonth();
+
+        $sesiList = SesiPresensi::with(['presensi.siswa', 'guru'])
+            ->where('kelas_id', $kelas->id)
+            ->where('mapel_id', $mapel->id)
+            ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+            ->orderBy('tanggal')
+            ->orderBy('created_at')
+            ->get();
+
+        $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->orderBy('name')->get();
+
+        $guruNama = optional($sesiList->first()?->guru)->name ?? auth()->user()->name;
+        $guruNik = optional($sesiList->first()?->guru)->nik ?? auth()->user()->nik ?? '-';
+
+        $matrix = [];
+        foreach ($siswaList as $siswa) $matrix[$siswa->id] = [];
+        foreach ($sesiList as $sesi) {
+            foreach ($sesi->presensi as $absen) {
+                $matrix[$absen->siswa_id][$sesi->id] = $absen->status;
+            }
+        }
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PresensiBulananMapelExport($kelas, $mapel, $bulanDate, $sesiList, $siswaList, $matrix, $guruNama, $guruNik),
+            'Rekap_Bulanan_Mapel_' . $mapel->nama_mapel . '_' . $kelas->nama_kelas . '_' . $bulanDate->format('Ym') . '.xlsx'
+        );
     }
 
     public function closeSesi(SesiPresensi $sesiPresensi)
@@ -634,18 +774,9 @@ class DashboardController extends Controller
         return view('dashboard.siswa', compact('siswaList', 'kelas'));
     }
 
-    public function storeSiswa(Request $request)
+    public function storeSiswa(StoreSiswaRequest $request)
     {
-        $this->adminOnly();
-
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:50|alpha_dash|unique:users,username',
-            'email' => 'nullable|email|unique:users,email',
-            'nisn' => 'required|string|digits:10|unique:users,nisn',
-            'kelas_id' => 'nullable|exists:kelas,id',
-            'password' => 'required|string|min:6',
-        ]);
+        $v = $request->validated();
 
         User::create(array_merge($v, [
             'role' => 'siswa',
@@ -655,18 +786,11 @@ class DashboardController extends Controller
         return redirect()->route('dashboard.siswa')->with('success', 'Siswa berhasil ditambahkan!');
     }
 
-    public function updateSiswa(Request $request, User $siswa)
+    public function updateSiswa(UpdateSiswaRequest $request, User $siswa)
     {
-        $this->adminOnly();
         abort_if($siswa->role !== 'siswa', 403);
 
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:50|alpha_dash|unique:users,username,'.$siswa->id,
-            'email' => 'nullable|email|unique:users,email,'.$siswa->id,
-            'nisn' => 'required|string|digits:10|unique:users,nisn,'.$siswa->id,
-            'kelas_id' => 'nullable|exists:kelas,id',
-        ]);
+        $v = $request->validated();
 
         if ($request->has('reset_wajah')) {
             $v['face_descriptor'] = null;
@@ -732,17 +856,9 @@ class DashboardController extends Controller
         return view('dashboard.guru', compact('guruList'));
     }
 
-    public function storeGuru(Request $request)
+    public function storeGuru(StoreGuruRequest $request)
     {
-        $this->adminOnly();
-
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:50|unique:users,username',
-            'email' => 'nullable|email|unique:users,email',
-            'nik' => 'required|string|max:20|unique:users,nik',
-            'password' => 'required|string|min:6',
-        ]);
+        $v = $request->validated();
 
         User::create(array_merge($v, [
             'role' => 'guru',
@@ -752,17 +868,11 @@ class DashboardController extends Controller
         return redirect()->route('dashboard.guru')->with('success', 'Guru berhasil ditambahkan!');
     }
 
-    public function updateGuru(Request $request, User $guru)
+    public function updateGuru(UpdateGuruRequest $request, User $guru)
     {
-        $this->adminOnly();
         abort_if($guru->role !== 'guru', 403);
 
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:50|unique:users,username,'.$guru->id,
-            'email' => 'nullable|email|unique:users,email,'.$guru->id,
-            'nik' => 'required|string|max:20|unique:users,nik,'.$guru->id,
-        ]);
+        $v = $request->validated();
 
         $guru->update($v);
 
@@ -789,30 +899,18 @@ class DashboardController extends Controller
         return view('dashboard.kelas', compact('kelasList'));
     }
 
-    public function storeKelas(Request $request)
+    public function storeKelas(StoreKelasRequest $request)
     {
-        $this->adminOnly();
-
-        $v = $request->validate([
-            'nama_kelas' => 'required|string|max:50|unique:kelas,nama_kelas',
-            'tingkat' => 'required|in:X,XI,XII',
-            'jurusan' => 'nullable|string|max:50',
-        ]);
+        $v = $request->validated();
 
         Kelas::create($v);
 
         return redirect()->route('dashboard.kelas')->with('success', 'Kelas berhasil ditambahkan!');
     }
 
-    public function updateKelas(Request $request, Kelas $kelas)
+    public function updateKelas(UpdateKelasRequest $request, Kelas $kelas)
     {
-        $this->adminOnly();
-
-        $v = $request->validate([
-            'nama_kelas' => 'required|string|max:50|unique:kelas,nama_kelas,'.$kelas->id,
-            'tingkat' => 'required|in:X,XI,XII',
-            'jurusan' => 'nullable|string|max:50',
-        ]);
+        $v = $request->validated();
 
         $kelas->update($v);
 
@@ -890,15 +988,9 @@ class DashboardController extends Controller
         return view('dashboard.pengaturan.lokasi', compact('setting'));
     }
 
-    public function updateLokasi(Request $request)
+    public function updateLokasi(UpdateLokasiRequest $request)
     {
-        $this->adminOnly();
-        $request->validate([
-            'school_name' => 'required|string|max:100',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'radius_meters' => 'required|integer|min:10|max:5000',
-        ]);
+        $request->validated();
 
         $setting = SchoolSetting::getSettings();
         $setting->update([

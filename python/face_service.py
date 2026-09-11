@@ -18,14 +18,21 @@ import base64
 import os
 import io
 import traceback
+from typing import Dict, Any, List, Optional, Tuple, NoReturn
 
 # ── threshold: makin kecil makin ketat (0.45 cukup ketat, susah ditipu foto)
 THRESHOLD = 0.45
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
 
-def load_libs():
-    """Lazy-load face_recognition dan numpy agar error import lebih jelas."""
+
+def load_libs() -> Tuple[Any, Any]:
+    """
+    Lazy-load face_recognition dan numpy agar error import lebih jelas.
+    
+    Returns:
+        Tuple[Any, Any]: Modul face_recognition dan numpy.
+    """
     try:
         import face_recognition
         import numpy as np
@@ -33,12 +40,29 @@ def load_libs():
     except ImportError as e:
         error_exit(f"Dependensi belum terinstall: {e}. Jalankan: pip3 install face-recognition numpy")
 
-def error_exit(message: str, code: int = 1):
+
+def error_exit(message: str, code: int = 1) -> NoReturn:
+    """
+    Keluarkan JSON error dan hentikan eksekusi script.
+    
+    Args:
+        message (str): Pesan error yang akan ditampilkan.
+        code (int): System exit code. Default: 1.
+    """
     print(json.dumps({"success": False, "error": message}))
     sys.exit(code)
 
-def decode_image(b64_string: str):
-    """Decode base64 image string ke numpy array (RGB)."""
+
+def decode_image(b64_string: str) -> Any:
+    """
+    Decode base64 image string ke numpy array (RGB).
+    
+    Args:
+        b64_string (str): Base64 encoded string dari gambar.
+        
+    Returns:
+        np.ndarray: Gambar dalam bentuk numpy array.
+    """
     face_recognition, np = load_libs()
     try:
         # Hapus prefix data:image/...;base64, jika ada
@@ -51,8 +75,19 @@ def decode_image(b64_string: str):
     except Exception as e:
         error_exit(f"Gagal decode gambar: {e}")
 
-def extract_descriptor(image_array):
-    """Extract 128-float face descriptor dari numpy image array. Return list atau None."""
+
+def extract_descriptor(image_array: Any) -> Tuple[Optional[List[float]], Optional[str]]:
+    """
+    Extract 128-float face descriptor dari numpy image array.
+    
+    Args:
+        image_array (np.ndarray): Gambar yang akan diekstrak.
+        
+    Returns:
+        Tuple[Optional[List[float]], Optional[str]]: 
+            - List of 128 floats (descriptor) jika sukses, atau None.
+            - Pesan error jika gagal, atau None.
+    """
     face_recognition, np = load_libs()
     
     # Deteksi lokasi wajah (model HOG — cepat, cukup akurat)
@@ -72,13 +107,33 @@ def extract_descriptor(image_array):
     
     return encodings[0].tolist(), None
 
-def euclidean_distance(a, b):
-    """Hitung Euclidean distance antara dua descriptor."""
+
+def euclidean_distance(a: List[float], b: List[float]) -> float:
+    """
+    Hitung Euclidean distance antara dua descriptor.
+    
+    Args:
+        a (List[float]): Descriptor pertama.
+        b (List[float]): Descriptor kedua.
+        
+    Returns:
+        float: Jarak Euclidean antara dua descriptor.
+    """
     face_recognition, np = load_libs()
     return float(np.linalg.norm(np.array(a) - np.array(b)))
 
-#  MODE: extract — ambil descriptor dari 1 foto
-def mode_extract(payload: dict):
+
+# ──────────────────────────────────────────────────────────────
+#  MODE ENDPOINTS
+# ──────────────────────────────────────────────────────────────
+
+def mode_extract(payload: Dict[str, Any]) -> None:
+    """
+    Ambil descriptor dari 1 foto dan print hasilnya sebagai JSON.
+    
+    Args:
+        payload (Dict[str, Any]): Dictionary berisi key 'image_b64'.
+    """
     if 'image_b64' not in payload:
         error_exit("Field 'image_b64' wajib ada.")
     
@@ -92,11 +147,17 @@ def mode_extract(payload: dict):
     print(json.dumps({
         "success": True,
         "descriptor": descriptor,
-        "dimensions": len(descriptor)
+        "dimensions": len(descriptor) if descriptor else 0
     }))
 
-#  MODE: enroll — rata-rata descriptor dari 5 foto multi-angle
-def mode_enroll(payload: dict):
+
+def mode_enroll(payload: Dict[str, Any]) -> None:
+    """
+    Rata-rata descriptor dari beberapa foto multi-angle.
+    
+    Args:
+        payload (Dict[str, Any]): Dictionary berisi key 'images_b64'.
+    """
     face_recognition, np = load_libs()
     
     if 'images_b64' not in payload or not isinstance(payload['images_b64'], list):
@@ -115,7 +176,8 @@ def mode_enroll(payload: dict):
         if err:
             errors.append(f"Foto {i+1}: {err}")
             continue
-        descriptors.append(descriptor)
+        if descriptor is not None:
+            descriptors.append(descriptor)
     
     if len(descriptors) < 3:
         error_exit(f"Terlalu banyak foto gagal diproses. Error: {'; '.join(errors)}")
@@ -131,10 +193,14 @@ def mode_enroll(payload: dict):
         "errors": errors
     }))
 
-# ──────────────────────────────────────────────────────────────
-#  MODE: compare — bandingkan stored descriptor vs foto baru
-# ──────────────────────────────────────────────────────────────
-def mode_compare(payload: dict):
+
+def mode_compare(payload: Dict[str, Any]) -> None:
+    """
+    Bandingkan stored descriptor vs foto baru.
+    
+    Args:
+        payload (Dict[str, Any]): Dictionary berisi key 'stored' dan 'image_b64'.
+    """
     if 'stored' not in payload or 'image_b64' not in payload:
         error_exit("Field 'stored' (array 128 float) dan 'image_b64' wajib ada.")
     
@@ -146,7 +212,7 @@ def mode_compare(payload: dict):
     img_array = decode_image(payload['image_b64'])
     new_descriptor, err = extract_descriptor(img_array)
     
-    if err:
+    if err or new_descriptor is None:
         print(json.dumps({
             "success": True,
             "match": False,
@@ -178,10 +244,11 @@ def mode_compare(payload: dict):
         "reason": "Wajah dikenali." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {THRESHOLD})."
     }))
 
-# ──────────────────────────────────────────────────────────────
-#  MODE: test — self-check dependencies
-# ──────────────────────────────────────────────────────────────
-def mode_test():
+
+def mode_test() -> None:
+    """
+    Self-check dependencies environment.
+    """
     results = {}
     
     try:
@@ -217,10 +284,14 @@ def mode_test():
         "ready": all_ok
     }))
 
+
 # ──────────────────────────────────────────────────────────────
-#  MAIN
+#  MAIN EXECUTOR
 # ──────────────────────────────────────────────────────────────
-def main():
+def main() -> None:
+    """
+    Entry point eksekusi file via CLI.
+    """
     if len(sys.argv) < 2:
         error_exit("Usage: face_service.py <mode> [payload_json]\nModes: extract, enroll, compare, test")
     
@@ -252,6 +323,7 @@ def main():
         mode_compare(payload)
     else:
         error_exit(f"Mode '{mode}' tidak dikenal. Mode valid: extract, enroll, compare, test")
+
 
 if __name__ == '__main__':
     try:

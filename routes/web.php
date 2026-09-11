@@ -45,9 +45,13 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::get('/presensi/{sesiPresensi}', [DashboardController::class, 'presensiDetail'])->name('.presensi.detail');
     Route::get('/presensi/{sesiPresensi}/live', [DashboardController::class, 'presensiLiveJson'])->name('.presensi.live');
     Route::get('/presensi/{sesiPresensi}/pdf', [DashboardController::class, 'exportPdf'])->name('.presensi.pdf');
+    Route::get('/presensi/{sesiPresensi}/excel', [DashboardController::class, 'exportExcel'])->name('.presensi.excel');
     Route::get('/presensi/export/harian', [DashboardController::class, 'exportPdfHarian'])->name('.presensi.pdf.harian');
+    Route::get('/presensi/export/harian/excel', [DashboardController::class, 'exportExcelHarian'])->name('.presensi.excel.harian');
     Route::get('/presensi/export/bulanan-kelas', [DashboardController::class, 'exportBulananKelas'])->name('.presensi.pdf.bulanan.kelas');
+    Route::get('/presensi/export/bulanan-kelas/excel', [DashboardController::class, 'exportExcelBulananKelas'])->name('.presensi.excel.bulanan.kelas');
     Route::get('/presensi/export/bulanan-mapel', [DashboardController::class, 'exportBulananMapel'])->name('.presensi.pdf.bulanan.mapel');
+    Route::get('/presensi/export/bulanan-mapel/excel', [DashboardController::class, 'exportExcelBulananMapel'])->name('.presensi.excel.bulanan.mapel');
     Route::patch('/presensi/record/{presensi}', [DashboardController::class, 'updateRecord'])->name('.presensi.record.update');
     Route::post('/presensi/{sesiPresensi}/sync-siswa', [DashboardController::class, 'syncSiswaSesi'])->name('.presensi.sync-siswa');
     Route::patch('/presensi/{sesiPresensi}/close', [DashboardController::class, 'closeSesi'])->name('.presensi.close');
