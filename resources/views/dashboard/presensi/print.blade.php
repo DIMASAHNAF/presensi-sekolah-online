@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Laporan Presensi - {{ $sesiPresensi->kelas->nama_kelas }}</title>
+    <title>Laporan Presensi</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <style>
         body { font-family: sans-serif; color: #333; margin: 40px; }

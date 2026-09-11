@@ -285,10 +285,15 @@
                             const earR = this.getEAR(rightEye);
                             const avgEAR = (earL + earR) / 2;
                             
-                            if (avgEAR < 0.27) {
+                            // Toleransi kedip diperbesar dari 0.27 menjadi 0.29 agar lebih mudah
+                            if (avgEAR < 0.29) {
                                 this.blinkState = 'closed';
-                            } else if (avgEAR > 0.28 && this.blinkState === 'closed') {
+                            } else if (avgEAR > 0.29 && this.blinkState === 'closed') {
                                 this.blinkState = 'open';
+                                passed = true;
+                            }
+                            // Auto-pass setelah 3.5 detik agar tidak macet
+                            else if (Date.now() - this.lastAutoCapture > 3500) {
                                 passed = true;
                             }
                         }
@@ -300,8 +305,14 @@
                             const distLeft = Math.abs(nose.x - leftJaw.x);
                             const distRight = Math.abs(nose.x - rightJaw.x);
                             
-                            if (distLeft > distRight * 1.3 || distRight > distLeft * 1.3) {
+                            // Toleransi toleh diperkecil dari 1.3 ke 1.15
+                            if (distLeft > distRight * 1.15 || distRight > distLeft * 1.15) {
                                 this.turnedDirection = distLeft > distRight ? 'left' : 'right';
+                                passed = true;
+                            }
+                            // Auto-pass setelah 3.5 detik
+                            else if (Date.now() - this.lastAutoCapture > 3500) {
+                                this.turnedDirection = 'none';
                                 passed = true;
                             }
                         }
@@ -313,11 +324,11 @@
                             const distLeft = Math.abs(nose.x - leftJaw.x);
                             const distRight = Math.abs(nose.x - rightJaw.x);
                             
-                            if (this.turnedDirection === 'left' && distRight > distLeft * 1.25) {
+                            if (this.turnedDirection === 'left' && distRight > distLeft * 1.15) {
                                 passed = true;
-                            } else if (this.turnedDirection === 'right' && distLeft > distRight * 1.25) {
+                            } else if (this.turnedDirection === 'right' && distLeft > distRight * 1.15) {
                                 passed = true;
-                            } else if (Date.now() - this.lastAutoCapture > 1500) {
+                            } else if (Date.now() - this.lastAutoCapture > 2500) {
                                 // Graceful auto-progression
                                 passed = true;
                             }

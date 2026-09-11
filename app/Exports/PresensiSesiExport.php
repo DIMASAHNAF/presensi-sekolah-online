@@ -6,9 +6,10 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles
+class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles, WithTitle
 {
     protected $sesiPresensi;
 
@@ -29,5 +30,10 @@ class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles
         return [
             1 => ['font' => ['bold' => true]],
         ];
+    }
+
+    public function title(): string
+    {
+        return substr('Sesi ' . $this->sesiPresensi->kelas->nama_kelas, 0, 31);
     }
 }

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Laporan Harian - {{ $kelas->nama_kelas }}</title>
+    <title>Laporan Harian</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <style>
         body { font-family: sans-serif; color: #333; margin: 40px; }

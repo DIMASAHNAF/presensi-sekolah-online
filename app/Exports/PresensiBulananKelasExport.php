@@ -5,8 +5,9 @@ namespace App\Exports;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PresensiBulananKelasExport implements FromView, ShouldAutoSize
+class PresensiBulananKelasExport implements FromView, ShouldAutoSize, WithTitle
 {
     protected $kelas, $bulanDate, $siswaList, $hariList, $activeDates, $matrix, $sesiList;
 
@@ -32,5 +33,10 @@ class PresensiBulananKelasExport implements FromView, ShouldAutoSize
             'matrix' => $this->matrix,
             'sesiList' => $this->sesiList
         ]);
+    }
+
+    public function title(): string
+    {
+        return substr('Bulanan ' . $this->kelas->nama_kelas, 0, 31);
     }
 }
