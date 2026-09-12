@@ -69,6 +69,8 @@ class SiswaController extends Controller
         $sudahHadir = $presensi && $presensi->status === 'hadir';
 
         $schoolSetting = SchoolSetting::getSettings();
+        $clientIp = SchoolSetting::getClientIp(request());
+        $isIpAllowed = $schoolSetting->isIpAllowed($clientIp);
 
         return response()->json([
             'success' => true,
@@ -90,6 +92,11 @@ class SiswaController extends Controller
                 'longitude'     => $schoolSetting->longitude,
                 'radius_meters' => $schoolSetting->radius_meters,
             ],
+            'network'       => [
+                'active'     => $schoolSetting->is_ip_whitelist_active,
+                'client_ip'  => $clientIp,
+                'is_allowed' => $isIpAllowed,
+            ],
         ]);
     }
 
@@ -106,8 +113,20 @@ class SiswaController extends Controller
             'longitude'  => 'nullable|numeric',
         ]);
 
-        // Cek Geofencing jika aktif
         $schoolSetting = SchoolSetting::getSettings();
+
+        // 1. Cek Validasi IP WiFi Sekolah jika aktif
+        if ($schoolSetting->is_ip_whitelist_active) {
+            $clientIp = SchoolSetting::getClientIp($request);
+            if (!$schoolSetting->isIpAllowed($clientIp)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Presensi ditolak: Anda harus terhubung ke jaringan WiFi resmi SMKN 1 Beringin. IP Anda ({$clientIp}) tidak terdaftar dalam jaringan sekolah.",
+                ]);
+            }
+        }
+
+        // 2. Cek Geofencing jika aktif
         if ($schoolSetting->is_geofencing_active) {
             if (!$request->filled('latitude') || !$request->filled('longitude')) {
                 return response()->json([

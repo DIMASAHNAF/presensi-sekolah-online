@@ -120,6 +120,69 @@
                     </div>
                 </div>
 
+                {{-- ── SECTION 2: VALIDASI JARINGAN WIFI SEKOLAH (IP WHITELIST) ── --}}
+                <div class="pt-4 border-t border-slate-200/80 space-y-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
+                            <i class="fas fa-wifi text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">Kunci Jaringan WiFi Sekolah</h3>
+                            <p class="text-[11px] text-slate-400">Batasi presensi hanya dari WiFi resmi sekolah</p>
+                        </div>
+                    </div>
+
+                    {{-- Toggle Status IP Whitelist --}}
+                    <div class="p-4 rounded-2xl border transition-all"
+                         :class="isIpActive ? 'bg-blue-50/60 border-blue-200' : 'bg-slate-50 border-slate-200'">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <div>
+                                <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                    <i class="fas fa-network-wired" :class="isIpActive ? 'text-blue-600' : 'text-slate-400'"></i>
+                                    Validasi IP Publik WiFi
+                                </span>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Tolak otomatis siswa yang memakai data seluler pribadi / WiFi luar
+                                </p>
+                            </div>
+                            <input type="checkbox" name="is_ip_whitelist_active" value="1" 
+                                   x-model="isIpActive" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                        </label>
+                    </div>
+
+                    {{-- Card Deteksi IP Saya Saat Ini --}}
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">IP Publik Anda Saat Ini</p>
+                            <p class="text-xs font-mono font-bold text-slate-800 truncate flex items-center gap-1.5 mt-0.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span>{{ $clientIp }}</span>
+                            </p>
+                        </div>
+                        <button type="button" @click="addCurrentIp()"
+                                class="shrink-0 text-xs font-bold text-blue-700 bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-lg shadow-2xs transition flex items-center gap-1.5">
+                            <i class="fas fa-plus-circle text-blue-600"></i>
+                            <span>Tambahkan IP Ini</span>
+                        </button>
+                    </div>
+
+                    {{-- Kolom Input / Textarea Allowed IPs --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                Daftar IP Publik WiFi Sekolah
+                            </label>
+                            <span class="text-[11px] text-slate-400">Pisahkan koma / baris baru</span>
+                        </div>
+                        <textarea name="allowed_ips" x-model="allowedIps" rows="3" placeholder="Contoh: 180.252.12.34, 36.88.90.12"
+                                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition leading-relaxed"></textarea>
+                        <p class="text-[11px] text-slate-500 mt-1 leading-normal">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> Jika router WiFi sekolah di-restart dan provider (Indihome/Biznet) memberikan IP baru, cukup klik tombol <strong>Tambahkan IP Ini</strong> lalu simpan.
+                        </p>
+                    </div>
+                </div>
+
                 {{-- Action Buttons --}}
                 <div class="pt-3 space-y-2">
                     <button type="button" @click="getCurrentLocation()"
@@ -128,7 +191,7 @@
                     </button>
 
                     <button type="submit" class="btn-primary w-full justify-center py-3 text-sm">
-                        <i class="fas fa-floppy-disk mr-1"></i> Simpan Perubahan Lokasi
+                        <i class="fas fa-floppy-disk mr-1"></i> Simpan Semua Pengaturan
                     </button>
                 </div>
             </form>
@@ -137,7 +200,7 @@
         {{-- Petunjuk Penggunaan --}}
         <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 rounded-xl p-5 text-white shadow-sm border border-slate-800">
             <div class="flex items-center gap-2 text-blue-300 font-heading font-bold text-sm mb-3">
-                <i class="fas fa-lightbulb"></i> Panduan Kalibrasi Radius GPS
+                <i class="fas fa-lightbulb"></i> Panduan Kalibrasi & Keamanan Jaringan
             </div>
             <ul class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
                 <li class="flex items-start gap-2">
@@ -151,6 +214,10 @@
                 <li class="flex items-start gap-2">
                     <i class="fas fa-check text-blue-400 mt-0.5 shrink-0"></i>
                     <span><strong>Mode PJJ / Luar Sekolah:</strong> Nonaktifkan toggle di atas jika sekolah sedang mengadakan pembelajaran daring (PJJ) atau kunjungan industri.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-shield-halved text-emerald-400 mt-0.5 shrink-0"></i>
+                    <span><strong>Proteksi Ganda (GPS + WiFi):</strong> Aktifkan kedua validasi untuk memastikan siswa hadir fisik di sekolah dan benar-benar terhubung ke WiFi sekolah.</span>
                 </li>
             </ul>
         </div>
@@ -199,9 +266,23 @@
             lng: {{ $setting->longitude }},
             radius: {{ $setting->radius_meters }},
             isActive: {{ $setting->is_geofencing_active ? 'true' : 'false' }},
+            isIpActive: {{ $setting->is_ip_whitelist_active ? 'true' : 'false' }},
+            allowedIps: `{!! addslashes($setting->allowed_ips ?? '') !!}`,
+            clientIp: '{{ $clientIp }}',
             map: null,
             marker: null,
             circle: null,
+
+            addCurrentIp() {
+                if (!this.clientIp) return;
+                const ip = this.clientIp.trim();
+                let current = this.allowedIps ? this.allowedIps.trim() : '';
+                if (current.includes(ip)) {
+                    alert('IP (' + ip + ') sudah ada di dalam daftar whitelist.');
+                    return;
+                }
+                this.allowedIps = current ? current + '\n' + ip : ip;
+            },
 
             init() {
                 this.$nextTick(() => {

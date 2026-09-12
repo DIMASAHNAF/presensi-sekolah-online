@@ -1026,11 +1026,12 @@ class DashboardController extends Controller
     // =========================================================
     //  PENGATURAN LOKASI & GEOFENCING (ADMIN ONLY)
     // =========================================================
-    public function lokasiIndex()
+    public function lokasiIndex(Request $request)
     {
         $this->adminOnly();
         $setting = SchoolSetting::getSettings();
-        return view('dashboard.pengaturan.lokasi', compact('setting'));
+        $clientIp = SchoolSetting::getClientIp($request);
+        return view('dashboard.pengaturan.lokasi', compact('setting', 'clientIp'));
     }
 
     public function updateLokasi(UpdateLokasiRequest $request)
@@ -1044,9 +1045,11 @@ class DashboardController extends Controller
             'longitude' => $request->longitude,
             'radius_meters' => $request->radius_meters,
             'is_geofencing_active' => $request->has('is_geofencing_active'),
+            'is_ip_whitelist_active' => $request->has('is_ip_whitelist_active'),
+            'allowed_ips' => $request->allowed_ips,
         ]);
 
-        return redirect()->back()->with('success', 'Pengaturan lokasi sekolah & radius geofencing berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Pengaturan lokasi sekolah & keamanan jaringan WiFi berhasil diperbarui.');
     }
 
     // =========================================================

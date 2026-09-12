@@ -449,6 +449,39 @@
 
                 {{-- Action / Radar Section --}}
                 <div class="bg-white text-slate-800 p-5 border-t border-blue-500/20">
+
+                    {{-- WiFi Sekolah IP Whitelist Radar --}}
+                    <div x-show="ipWhitelistActive" class="mb-4 pb-3.5 border-b border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
+                                <i class="fas fa-wifi text-blue-600"></i> Jaringan WiFi Sekolah:
+                            </span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
+                                  :class="isIpAllowed ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'">
+                                IP: <span x-text="clientIp"></span>
+                            </span>
+                        </div>
+
+                        {{-- Valid WiFi --}}
+                        <div x-show="isIpAllowed"
+                            class="bg-emerald-50 border border-emerald-300 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 flex items-center gap-2">
+                            <i class="fas fa-circle-check text-emerald-600 text-base"></i>
+                            <span>Terhubung ke Jaringan WiFi Resmi SMKN 1 Beringin.</span>
+                        </div>
+
+                        {{-- Outside WiFi / Data Seluler --}}
+                        <div x-show="!isIpAllowed"
+                            class="bg-rose-50 border border-rose-300 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 space-y-1">
+                            <div class="flex items-center gap-2 font-bold text-rose-700">
+                                <i class="fas fa-triangle-exclamation text-rose-600"></i>
+                                <span>Bukan WiFi Sekolah</span>
+                            </div>
+                            <p class="text-[11px] text-rose-700 leading-relaxed">
+                                Presensi wajib menggunakan WiFi sekolah. Harap hubungkan perangkat Anda ke jaringan WiFi resmi SMKN 1 Beringin.
+                            </p>
+                        </div>
+                    </div>
+
                     {{-- Geofencing GPS Radar --}}
                     <div x-show="geofencingActive" class="mb-4 pb-3.5 border-b border-slate-100">
                         <div class="flex items-center justify-between mb-2.5">
@@ -507,11 +540,12 @@
                     </div>
 
                     {{-- Tombol Mulai Scan Wajah --}}
-                    <button @click="openFaceScanner()" :disabled="geofencingActive && geoStatus === 'outside'"
-                        :class="geofencingActive && geoStatus === 'outside' ? 'opacity-50 cursor-not-allowed bg-slate-200 text-slate-400' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]'"
+                    <button @click="openFaceScanner()"
+                        :disabled="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed)"
+                        :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'opacity-50 cursor-not-allowed bg-slate-200 text-slate-400' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]'"
                         class="w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm transition-all">
-                        <i class="fas text-base" :class="geofencingActive && geoStatus === 'outside' ? 'fa-lock' : 'fa-camera'"></i>
-                        <span x-text="geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah'"></span>
+                        <i class="fas text-base" :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
+                        <span x-text="ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah')"></span>
                     </button>
                 </div>
             </div>
@@ -807,6 +841,11 @@
                 geoStatus: 'checking',
                 isRequestingGeo: false,
 
+                // ── IP Whitelist state ──
+                ipWhitelistActive: {{ $schoolSetting->is_ip_whitelist_active ? 'true' : 'false' }},
+                clientIp: '{{ \App\Models\SchoolSetting::getClientIp(request()) }}',
+                isIpAllowed: {{ $schoolSetting->isIpAllowed(\App\Models\SchoolSetting::getClientIp(request())) ? 'true' : 'false' }},
+
                 // ── PWA install prompt ──
                 showInstallPrompt: false,
                 deferredPrompt: null,
@@ -933,12 +972,24 @@
                                 this.schoolLng = data.geofencing.longitude;
                                 this.schoolRadius = data.geofencing.radius_meters;
                             }
+
+                            if (data.network) {
+                                this.ipWhitelistActive = data.network.active;
+                                this.clientIp = data.network.client_ip;
+                                this.isIpAllowed = data.network.is_allowed;
+                            }
                         })
                         .catch(() => { this.sesiLoading = false; });
                 },
 
                 // ── Buka Modal Pemindai Wajah ──
                 async openFaceScanner() {
+                    if (this.ipWhitelistActive && !this.isIpAllowed) {
+                        audioFx.playError();
+                        alert(`Presensi ditolak: Anda harus terhubung ke jaringan WiFi resmi SMKN 1 Beringin.\nIP jaringan Anda (${this.clientIp}) tidak terdaftar.`);
+                        return;
+                    }
+
                     if (this.geofencingActive && this.geoStatus === 'outside') {
                         audioFx.playError();
                         alert(`Presensi ditolak: Anda berada di luar radius sekolah (${this.formatDistance(this.geoDistance)}). Batas maksimal: ${this.schoolRadius} meter.`);

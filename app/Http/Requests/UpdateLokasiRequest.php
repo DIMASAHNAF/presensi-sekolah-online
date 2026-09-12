@@ -18,6 +18,8 @@ class UpdateLokasiRequest extends FormRequest
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'radius_meters' => 'required|integer|min:10|max:5000',
+            'is_ip_whitelist_active' => 'nullable',
+            'allowed_ips' => 'nullable|string|max:2000',
         ];
     }
 }
