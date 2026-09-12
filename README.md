@@ -189,8 +189,8 @@ sequenceDiagram
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/DIMASAHNAF/absensi-sekolah.git
-cd absensi-sekolah
+git clone https://github.com/DIMASAHNAF/presensi-sekolah-online.git
+cd presensi-sekolah-online
 ```
 
 ### 2. Install Dependensi PHP & Frontend
