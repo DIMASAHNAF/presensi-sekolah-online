@@ -260,16 +260,16 @@
                     <form method="POST" action="{{ route('login.guru') }}" class="space-y-4">
                         @csrf
 
-                        {{-- NIK Input --}}
+                        {{-- NIK / Username Input --}}
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-slate-700">Nomor Induk Kependudukan (NIK)</label>
+                            <label class="block text-xs font-semibold text-slate-700">NIK atau Username</label>
                             <div class="relative flex items-center">
                                 <span class="absolute left-3.5 text-sm transition-colors duration-200"
                                       :class="focusedInput === 'guru-nik' ? 'text-blue-700' : 'text-slate-400'">
-                                    <i class="fas fa-id-card"></i>
+                                    <i class="fas fa-user-shield"></i>
                                 </span>
                                 <input type="text" name="nik" value="{{ old('nik') }}" required
-                                       placeholder="16 digit NIK"
+                                       placeholder="16 digit NIK atau username"
                                        @focus="focusedInput = 'guru-nik'"
                                        @blur="focusedInput = null"
                                        class="w-full bg-slate-50/70 border border-slate-200 focus:border-blue-700 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-lg pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-700/15 transition-all duration-200">

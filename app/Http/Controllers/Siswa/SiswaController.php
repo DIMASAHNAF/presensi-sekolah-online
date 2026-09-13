@@ -7,8 +7,10 @@ use App\Models\LogPresensi;
 use App\Models\Presensi;
 use App\Models\SchoolSetting;
 use App\Models\SesiPresensi;
+use App\Models\User;
 use App\Services\FaceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SiswaController extends Controller
 {
@@ -16,11 +18,36 @@ class SiswaController extends Controller
     {
         $user = auth()->user()->load('kelas');
 
+        // 10 Riwayat Terakhir untuk widget
         $riwayat = Presensi::where('siswa_id', $user->id)
             ->with(['sesiPresensi.kelas', 'sesiPresensi.mataPelajaran'])
             ->latest()
             ->take(10)
             ->get();
+
+        // Seluruh riwayat presensi untuk tabel rekap lengkap siswa
+        $riwayatSemua = Presensi::where('siswa_id', $user->id)
+            ->with(['sesiPresensi.kelas', 'sesiPresensi.mataPelajaran', 'sesiPresensi.guru'])
+            ->latest()
+            ->get();
+
+        $riwayatSemuaFormatted = $riwayatSemua->map(function ($item) {
+            $sesi = $item->sesiPresensi;
+            $tanggalObj = $sesi?->tanggal ?? $item->created_at;
+            return [
+                'id'          => $item->id,
+                'status'      => $item->status,
+                'tanggal'     => $tanggalObj ? $tanggalObj->format('d M Y') : '-',
+                'tanggal_raw' => $tanggalObj ? $tanggalObj->format('Y-m-d') : '',
+                'bulan'       => $tanggalObj ? $tanggalObj->format('Y-m') : '',
+                'jam'         => $item->created_at ? $item->created_at->format('H:i') . ' WIB' : '-',
+                'kelas'       => $sesi?->kelas?->nama_kelas ?? 'Reguler',
+                'mapel'       => $sesi?->mataPelajaran?->nama_mapel ?? 'Presensi Umum',
+                'guru'        => $sesi?->guru?->name ?? 'Wali Kelas',
+                'metode'      => $item->face_matched ? 'Wajah AI' : 'Sistem / Guru',
+                'keterangan'  => $item->keterangan ?? '-',
+            ];
+        });
 
         $stats = [
             'hadir' => Presensi::where('siswa_id', $user->id)->where('status', 'hadir')->count(),
@@ -29,9 +56,141 @@ class SiswaController extends Controller
             'alpa'  => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
         ];
 
+        $totalPresensi = $riwayatSemua->count();
+        $persentaseKehadiran = $totalPresensi > 0 ? round(($stats['hadir'] / $totalPresensi) * 100) : 100;
+
+        // Teman Sekelas (Social Classroom row)
+        $temanSekelas = collect();
+        if ($user->kelas_id) {
+            $temanSekelas = User::where('kelas_id', $user->kelas_id)
+                ->where('role', 'siswa')
+                ->where('id', '!=', $user->id)
+                ->orderBy('name')
+                ->get()
+                ->map(function ($teman) {
+                    $absenHariIni = Presensi::where('siswa_id', $teman->id)
+                        ->whereHas('sesiPresensi', function ($q) {
+                            $q->where('tanggal', today());
+                        })
+                        ->latest()
+                        ->first();
+
+                    $teman->status_hari_ini = $absenHariIni ? $absenHariIni->status : 'belum';
+                    $teman->jam_absen = ($absenHariIni && $absenHariIni->created_at) ? $absenHariIni->created_at->format('H:i') : null;
+                    return $teman;
+                });
+        }
+
         $schoolSetting = SchoolSetting::getSettings();
 
-        return view('siswa.dashboard', compact('user', 'riwayat', 'stats', 'schoolSetting'));
+        return view('siswa.dashboard', compact(
+            'user',
+            'riwayat',
+            'riwayatSemua',
+            'riwayatSemuaFormatted',
+            'stats',
+            'persentaseKehadiran',
+            'temanSekelas',
+            'schoolSetting'
+        ));
+    }
+
+    /**
+     * Update Profile Siswa (Avatar, Banner, Bio, Website/Instagram, Username)
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'username'      => 'required|string|max:50|unique:users,username,' . $user->id,
+            'bio'           => 'nullable|string|max:180',
+            'website'       => 'nullable|string|max:255',
+            'avatar'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'banner'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'remove_banner' => 'nullable',
+            'remove_avatar' => 'nullable',
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique'   => 'Username ini sudah dipakai oleh akun lain.',
+            'avatar.image'      => 'File foto profil harus berupa gambar.',
+            'avatar.max'        => 'Ukuran foto profil maksimal 2MB.',
+            'banner.image'      => 'File banner cover harus berupa gambar.',
+            'banner.max'        => 'Ukuran banner cover maksimal 4MB.',
+            'bio.max'           => 'Bio maksimal 180 karakter.',
+        ]);
+
+        $user->username = trim($request->username);
+        $user->bio      = $request->bio ? trim($request->bio) : null;
+        $user->website  = $request->website ? trim($request->website) : null;
+
+        // Avatar Upload
+        if ($request->hasFile('avatar')) {
+            try {
+                if ($user->avatar && $user->avatar !== '0' && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+                $avatarPath = $request->file('avatar')->store($user->getStorageFolder() . '/avatar', 'public');
+                if (!$avatarPath) {
+                    throw new \Exception('Sistem gagal menyimpan file gambar avatar.');
+                }
+                $user->avatar = $avatarPath;
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan foto profil ke storage 100GB (/mnt/data-presensi-smk). Error: ' . $e->getMessage(),
+                ], 422);
+            }
+        } elseif ($request->boolean('remove_avatar') || $request->input('remove_avatar') === '1') {
+            if ($user->avatar && $user->avatar !== '0' && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = null;
+        }
+
+        // Banner Upload
+        if ($request->hasFile('banner')) {
+            try {
+                if ($user->banner && $user->banner !== '0' && Storage::disk('public')->exists($user->banner)) {
+                    Storage::disk('public')->delete($user->banner);
+                }
+                $bannerPath = $request->file('banner')->store($user->getStorageFolder() . '/banner', 'public');
+                if (!$bannerPath) {
+                    throw new \Exception('Sistem gagal menyimpan file cover banner.');
+                }
+                $user->banner = $bannerPath;
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan banner cover ke storage 100GB (/mnt/data-presensi-smk). Error: ' . $e->getMessage(),
+                ], 422);
+            }
+        } elseif ($request->boolean('remove_banner') || $request->input('remove_banner') === '1') {
+            if ($user->banner && $user->banner !== '0' && Storage::disk('public')->exists($user->banner)) {
+                Storage::disk('public')->delete($user->banner);
+            }
+            $user->banner = null;
+        }
+
+        $user->save();
+        $user->refresh();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui!',
+                'user'    => [
+                    'name'       => $user->name,
+                    'username'   => $user->username,
+                    'bio'        => $user->bio,
+                    'website'    => $user->website,
+                    'avatar_url' => $user->avatar_url,
+                    'banner_url' => $user->banner_url,
+                ],
+            ]);
+        }
+
+        return back()->with('success', 'Profil Anda berhasil diperbarui!');
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -225,13 +384,32 @@ class SiswaController extends Controller
             ]);
         }
 
-        // 6. Update jadi HADIR
+        // 6. Update jadi HADIR & Arsipkan foto scan ke storage 100GB (/mnt/data-presensi-smk/storage_public)
         $statusSebelumnya = $presensi->status;
+        $fotoPath = null;
+
+        if ($request->filled('face_image')) {
+            try {
+                $rawImg = $request->face_image;
+                if (str_contains($rawImg, ',')) {
+                    $rawImg = explode(',', $rawImg, 2)[1];
+                }
+                $decoded = base64_decode($rawImg);
+                if ($decoded) {
+                    $folder = 'face_scans/' . date('Y-m-d');
+                    $filename = $folder . '/' . $user->id . '_' . $sesi->id . '_' . time() . '.jpg';
+                    Storage::disk('public')->put($filename, $decoded);
+                    $fotoPath = $filename;
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal menyimpan foto scan wajah ke mount /mnt: ' . $e->getMessage());
+            }
+        }
 
         $presensi->update([
             'status'     => 'hadir',
             'waktu_scan' => now(),
-            'keterangan' => 'Scan Wajah (Sistem)',
+            'keterangan' => $fotoPath ? 'Scan Wajah (Tersimpan: ' . $fotoPath . ')' : 'Scan Wajah (Sistem)',
         ]);
 
         // 7. Catat log
@@ -294,6 +472,23 @@ class SiswaController extends Controller
                 'success' => false,
                 'message' => 'Gagal memproses wajah: ' . ($result['error'] ?? 'Coba lagi dengan pencahayaan lebih baik.'),
             ]);
+        }
+
+        // Arsipkan dataset foto pendaftaran wajah siswa ke storage 100GB
+        try {
+            foreach ($imagesArray as $idx => $imgB64) {
+                if (str_contains($imgB64, ',')) {
+                    $imgB64 = explode(',', $imgB64, 2)[1];
+                }
+                $decoded = base64_decode($imgB64);
+                if ($decoded) {
+                    $folder = $user->getStorageFolder() . '/face_enrollments';
+                    $filename = $folder . '/photo_' . ($idx + 1) . '_' . time() . '.jpg';
+                    Storage::disk('public')->put($filename, $decoded);
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal mengarsipkan foto enroll wajah ke mount /mnt: ' . $e->getMessage());
         }
 
         $user->update([

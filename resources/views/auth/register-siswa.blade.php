@@ -79,10 +79,10 @@
         .pulse-ring { animation: pulse-ring 1s ease infinite; }
     </style>
 </head>
-<body class="antialiased overflow-hidden selection:bg-teal-500 selection:text-white"
+<body class="antialiased min-h-screen bg-slate-50 selection:bg-teal-500 selection:text-white"
       x-data="registerApp()" x-init="checkInitialStep()">
 
-    <div class="min-h-screen flex">
+    <div class="min-h-screen flex flex-col lg:flex-row">
         
         {{-- Left Side: Visual/Branding (Hidden on mobile) --}}
         <div class="hidden lg:flex lg:w-1/2 split-bg relative items-center justify-center p-12 overflow-hidden">
@@ -115,8 +115,8 @@
         </div>
 
         {{-- Right Side: Form --}}
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white relative overflow-y-auto max-h-screen">
-            <div class="w-full max-w-md animate-slide-in py-8">
+        <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col items-center justify-start p-6 sm:p-10 lg:p-12 bg-white relative overflow-y-auto min-h-screen lg:h-screen">
+            <div class="w-full max-w-md animate-slide-in my-auto py-6 sm:py-8">
                 
                 {{-- Mobile Logo --}}
                 <div class="lg:hidden text-center mb-6">
@@ -135,18 +135,24 @@
                 {{-- STEP 1: FORM DATA --}}
                 <div x-show="step === 1" x-cloak class="w-full">
                     
-                    <div class="text-center lg:text-left mb-8">
+                    <div class="text-center lg:text-left mb-6">
                         <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Daftar Akun Baru</h2>
-                        <p class="text-slate-500 mt-2">Langkah 1 dari 2 &mdash; Isi data dirimu dengan benar.</p>
+                        <p class="text-slate-500 mt-1 text-sm">Langkah 1 dari 2 &mdash; Isi data dirimu dengan benar.</p>
                     </div>
 
                     @if ($errors->any())
-                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl mb-6">
-                            <ul class="list-disc list-inside space-y-1 text-sm font-medium">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl mb-6 shadow-xs">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-circle-exclamation text-red-500 mt-0.5 text-base shrink-0"></i>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-bold text-red-800 mb-1">Periksa Kembali Data Pendaftaran</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-xs font-medium text-red-700">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
@@ -410,6 +416,13 @@
                         this.startCamera();
                     });
                 }
+                @if ($errors->any())
+                this.$nextTick(() => {
+                    const scrollContainer = document.getElementById('form-scroll-container');
+                    if (scrollContainer) scrollContainer.scrollTop = 0;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                @endif
             },
 
             async startCamera() {

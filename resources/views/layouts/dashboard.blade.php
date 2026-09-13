@@ -25,6 +25,21 @@
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     {{-- Tailwind --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        };
+    </script>
+    {{-- Dark Theme Styles --}}
+    <link rel="stylesheet" href="{{ asset('css/theme-dark.css') }}">
+    {{-- Anti-flicker Theme Init --}}
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     {{-- Alpine.js --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -239,9 +254,9 @@
     </div>
 
     {{-- Academic Tag --}}
-    <div class="px-5 py-2 border-b border-slate-100 flex items-center justify-between text-[11px] bg-slate-50">
-        <span class="text-slate-500 font-medium"><i class="fas fa-calendar-check text-blue-500 mr-1.5"></i>T.A. 2026/2027</span>
-        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">GANJIL</span>
+    <div class="px-5 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] bg-slate-50 dark:bg-slate-900/90">
+        <span class="text-slate-500 dark:text-slate-300 font-medium"><i class="fas fa-calendar-check text-blue-500 dark:text-blue-400 mr-1.5"></i>T.A. 2026/2027</span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">GANJIL</span>
     </div>
 
     {{-- Navigation --}}
@@ -295,20 +310,26 @@
                 <i class="fas fa-map-location-dot icon"></i>
                 <span>Radius Geofencing</span>
             </a>
+
+            <a href="{{ route('dashboard.storage') }}"
+               class="nav-link {{ request()->routeIs('dashboard.storage*') ? 'active' : '' }}">
+                <i class="fas fa-hard-drive icon"></i>
+                <span>Manajemen Storage</span>
+            </a>
         @endif
     </nav>
 
     {{-- User Footer --}}
-    <div class="p-3 border-t border-slate-200 shrink-0 bg-slate-50">
-        <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white border border-slate-200 shadow-xs">
+    <div class="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50 dark:bg-slate-900/90">
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs">
             <div class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-800 truncate leading-tight">{{ auth()->user()->name }}</p>
+                <p class="text-xs font-bold text-slate-800 dark:text-white truncate leading-tight">{{ auth()->user()->name }}</p>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
-                    <span class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
+                    <span class="text-slate-400 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
                         {{ auth()->user()->isAdmin() ? 'Administrator' : 'Guru / Wali Kelas' }}
                     </span>
                 </div>
@@ -328,36 +349,42 @@
          class="fixed inset-0 bg-slate-950/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
     {{-- Header --}}
-    <header class="main-header px-6 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div class="flex items-center gap-3.5">
+    <header class="main-header px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm gap-2">
+        <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
             <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition border border-slate-200">
+                    class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700 shrink-0">
                 <i class="fas fa-bars text-sm"></i>
             </button>
-            <div>
-                <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+            <div class="min-w-0">
+                <div class="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-400 font-medium">
                     <span>SMKN 1 Beringin</span>
-                    <i class="fas fa-chevron-right text-[9px] text-slate-300"></i>
-                    <span class="text-blue-600 font-semibold">@yield('page-title', 'Dashboard')</span>
+                    <i class="fas fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                    <span class="text-blue-600 dark:text-blue-400 font-semibold">@yield('page-title', 'Dashboard')</span>
                 </div>
-                <h1 class="font-heading text-sm font-bold text-slate-800 leading-tight">@yield('page-title', 'Dashboard')</h1>
+                <h1 class="font-heading text-xs sm:text-sm font-bold text-slate-800 dark:text-white leading-tight truncate">@yield('page-title', 'Dashboard')</h1>
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
             {{-- Realtime Clock --}}
-            <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                <i class="far fa-calendar text-blue-500 text-xs"></i>
-                <span class="text-slate-600 font-medium">{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
-                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-                <span class="font-mono font-bold text-slate-700" id="realtimeClock">--:--:--</span>
+            <div class="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg text-xs">
+                <i class="far fa-calendar text-blue-500 dark:text-blue-400 text-xs"></i>
+                <span class="text-slate-600 dark:text-slate-300 font-medium">{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+                <span class="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></span>
+                <span class="font-mono font-bold text-slate-700 dark:text-white" id="realtimeClock">--:--:--</span>
+            </div>
+
+            {{-- Theme Switcher (Sky Toggle) --}}
+            <div class="flex items-center">
+                <x-sky-toggle size="8px" id="admin-sky-toggle" />
             </div>
 
             {{-- Logout --}}
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-2 rounded-lg transition shadow-xs">
+                        class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-800 p-2 sm:px-3 sm:py-2 rounded-lg transition shadow-xs"
+                        title="Keluar">
                     <i class="fas fa-arrow-right-from-bracket text-xs"></i>
                     <span class="hidden sm:inline">Keluar</span>
                 </button>
@@ -371,12 +398,12 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 -translate-y-2"
-             class="mx-6 mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
+             class="mx-6 mt-4 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-check text-emerald-600 text-base"></i>
+                <i class="fas fa-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
                 {{ session('success') }}
             </div>
-            <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 ml-4">
+            <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 ml-4">
                 <i class="fas fa-xmark"></i>
             </button>
         </div>
@@ -385,12 +412,12 @@
     @if(session('info'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
              x-transition:leave="transition ease-in duration-200"
-             class="mx-6 mt-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
+             class="mx-6 mt-4 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-info text-blue-600 text-base"></i>
+                <i class="fas fa-circle-info text-blue-600 dark:text-blue-400 text-base"></i>
                 {{ session('info') }}
             </div>
-            <button @click="show = false" class="text-blue-500 hover:text-blue-700 ml-4">
+            <button @click="show = false" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 ml-4">
                 <i class="fas fa-xmark"></i>
             </button>
         </div>
@@ -401,23 +428,23 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 -translate-y-2"
-             class="mx-6 mt-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
+             class="mx-6 mt-4 bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-exclamation text-rose-600 text-base"></i>
+                <i class="fas fa-circle-exclamation text-rose-600 dark:text-rose-400 text-base"></i>
                 {{ session('error') }}
             </div>
-            <button @click="show = false" class="text-rose-500 hover:text-rose-700 ml-4">
+            <button @click="show = false" class="text-rose-500 hover:text-rose-700 dark:text-rose-400 ml-4">
                 <i class="fas fa-xmark"></i>
             </button>
         </div>
     @endif
 
     @if ($errors->any())
-        <div class="mx-6 mt-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-4 py-3 shadow-xs">
+        <div class="mx-6 mt-4 bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 rounded-xl px-4 py-3 shadow-xs">
             <div class="flex items-center gap-2 text-sm font-bold mb-1">
-                <i class="fas fa-triangle-exclamation text-rose-600"></i> Perhatian:
+                <i class="fas fa-triangle-exclamation text-rose-600 dark:text-rose-400"></i> Perhatian:
             </div>
-            <ul class="list-disc list-inside text-xs space-y-0.5 text-rose-700">
+            <ul class="list-disc list-inside text-xs space-y-0.5 text-rose-700 dark:text-rose-300">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -432,8 +459,8 @@
         </div>
         
         {{-- Footer --}}
-        <footer class="mt-10 pt-4 border-t border-slate-200 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span>Sistem Presensi Biometrik &amp; Geofencing &bull; <strong class="text-slate-500">SMK Negeri 1 Beringin</strong></span>
+        <footer class="mt-10 pt-4 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>Sistem Presensi Biometrik &amp; Geofencing &bull; <strong class="text-slate-500 dark:text-slate-300">SMK Negeri 1 Beringin</strong></span>
             <span>Versi 2.0 &bull; Tahun Ajaran 2026/2027</span>
         </footer>
     </main>

@@ -11,6 +11,8 @@ use App\Services\FaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -70,14 +72,19 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Accept both guru and admin (both use NIK)
-        $user = User::where('nik', $request->nik)
+        $identifier = trim($request->nik);
+
+        // Accept both guru and admin (support login via NIK or Username)
+        $user = User::where(function ($q) use ($identifier) {
+                $q->where('nik', $identifier)
+                  ->orWhere('username', $identifier);
+            })
             ->whereIn('role', ['guru', 'admin'])
             ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return back()->withErrors([
-                'nik' => 'NIK atau password salah.',
+                'nik' => 'NIK / Username atau password salah.',
             ])->onlyInput('nik');
         }
 
@@ -143,6 +150,23 @@ class AuthController extends Controller
                 'face_descriptor'  => $result['descriptor'],
                 'face_enrolled_at' => now(),
             ]);
+
+            // Arsipkan dataset foto pendaftaran wajah siswa ke storage 100GB
+            try {
+                foreach ($imagesArray as $idx => $imgB64) {
+                    if (str_contains($imgB64, ',')) {
+                        $imgB64 = explode(',', $imgB64, 2)[1];
+                    }
+                    $decoded = base64_decode($imgB64);
+                    if ($decoded) {
+                        $folder = $user->getStorageFolder() . '/face_enrollments';
+                        $filename = $folder . '/photo_' . ($idx + 1) . '_' . time() . '.jpg';
+                        Storage::disk('public')->put($filename, $decoded);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengarsipkan foto registrasi wajah ke mount /mnt: ' . $e->getMessage());
+            }
 
             // Sinkronkan otomatis ke sesi presensi yang sudah dibuat hari ini untuk kelas ini
             $sesiHariIni = SesiPresensi::where('kelas_id', $user->kelas_id)

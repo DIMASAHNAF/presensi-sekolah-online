@@ -21,7 +21,9 @@ use App\Http\Requests\StoreKelasRequest;
 use App\Http\Requests\UpdateKelasRequest;
 use App\Http\Requests\UpdateLokasiRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DashboardController extends Controller
@@ -801,22 +803,58 @@ class DashboardController extends Controller
         $this->adminOnly();
 
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
+        // Technical Stats Bar
+        $totalSiswa = User::where('role', 'siswa')->count();
+        $totalEnrolled = User::where('role', 'siswa')->whereNotNull('face_enrolled_at')->count();
+        $totalNotEnrolled = $totalSiswa - $totalEnrolled;
+        $totalCustomAvatar = User::where('role', 'siswa')->whereNotNull('avatar')->where('avatar', '!=', '0')->count();
+        $stats = [
+            'total' => $totalSiswa,
+            'enrolled' => $totalEnrolled,
+            'not_enrolled' => $totalNotEnrolled,
+            'custom_avatar' => $totalCustomAvatar,
+            'enrolled_percent' => $totalSiswa > 0 ? round(($totalEnrolled / $totalSiswa) * 100, 1) : 0,
+        ];
+
         $query = User::where('role', 'siswa')->with('kelas');
 
-        if ($request->search) {
+        // Search Filter (name, nisn, username, bio)
+        if ($request->filled('search')) {
             $query->where(fn ($q) => $q
                 ->where('name', 'like', '%'.$request->search.'%')
                 ->orWhere('nisn', 'like', '%'.$request->search.'%')
                 ->orWhere('username', 'like', '%'.$request->search.'%')
+                ->orWhere('bio', 'like', '%'.$request->search.'%')
             );
         }
-        if ($request->kelas_id) {
+
+        // Kelas Filter
+        if ($request->filled('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
+        }
+
+        // Face Biometrics Filter
+        if ($request->filled('wajah')) {
+            if ($request->wajah === 'enrolled') {
+                $query->whereNotNull('face_enrolled_at');
+            } elseif ($request->wajah === 'not_enrolled') {
+                $query->whereNull('face_enrolled_at');
+            }
+        }
+
+        // Avatar Profile Filter
+        if ($request->filled('foto')) {
+            if ($request->foto === 'has_avatar') {
+                $query->whereNotNull('avatar')->where('avatar', '!=', '0');
+            } elseif ($request->foto === 'no_avatar') {
+                $query->where(fn ($q) => $q->whereNull('avatar')->orWhere('avatar', '0'));
+            }
         }
 
         $siswaList = $query->orderBy('name')->paginate(15)->withQueryString();
 
-        return view('dashboard.siswa', compact('siswaList', 'kelas'));
+        return view('dashboard.siswa', compact('siswaList', 'kelas', 'stats'));
     }
 
     public function storeSiswa(StoreSiswaRequest $request)
@@ -833,27 +871,62 @@ class DashboardController extends Controller
 
     public function updateSiswa(UpdateSiswaRequest $request, User $siswa)
     {
+        $this->adminOnly();
         abort_if($siswa->role !== 'siswa', 403);
 
         $v = $request->validated();
 
+        if ($request->filled('password')) {
+            $v['password'] = Hash::make($request->password);
+        } else {
+            unset($v['password']);
+        }
+
         if ($request->has('reset_wajah')) {
             $v['face_descriptor'] = null;
             $v['face_enrolled_at'] = null;
+            // Hapus file fisik foto biometrik di storage
+            Storage::disk('public')->deleteDirectory($siswa->getStorageFolder() . '/face_enrollments');
+            Storage::disk('public')->deleteDirectory('face_enrollments/' . $siswa->id);
+        }
+
+        if ($request->boolean('remove_avatar')) {
+            if ($siswa->avatar && Storage::disk('public')->exists($siswa->avatar)) {
+                Storage::disk('public')->delete($siswa->avatar);
+            }
+            $v['avatar'] = null;
+        }
+
+        if ($request->boolean('remove_banner')) {
+            if ($siswa->banner && Storage::disk('public')->exists($siswa->banner)) {
+                Storage::disk('public')->delete($siswa->banner);
+            }
+            $v['banner'] = null;
         }
 
         $siswa->update($v);
 
-        return redirect()->route('dashboard.siswa')->with('success', 'Data siswa diperbarui!');
+        return redirect()->route('dashboard.siswa')->with('success', "Data siswa {$siswa->name} berhasil diperbarui!");
     }
 
     public function destroySiswa(User $siswa)
     {
         $this->adminOnly();
         abort_if($siswa->role !== 'siswa', 403);
+
+        // Hapus seluruh berkas penyimpanan akun di storage
+        Storage::disk('public')->deleteDirectory($siswa->getStorageFolder());
+        Storage::disk('public')->deleteDirectory('face_enrollments/' . $siswa->id);
+        if ($siswa->avatar && Storage::disk('public')->exists($siswa->avatar)) {
+            Storage::disk('public')->delete($siswa->avatar);
+        }
+        if ($siswa->banner && Storage::disk('public')->exists($siswa->banner)) {
+            Storage::disk('public')->delete($siswa->banner);
+        }
+
         $siswa->delete();
 
-        return redirect()->route('dashboard.siswa')->with('success', 'Siswa dihapus!');
+        return redirect()->route('dashboard.siswa')->with('success', "Akun dan seluruh berkas siswa {$siswa->name} berhasil dihapus!");
     }
 
     public function resetFaceSiswa(User $siswa)
@@ -861,24 +934,37 @@ class DashboardController extends Controller
         $this->adminOnly();
         abort_if($siswa->role !== 'siswa', 403);
         
+        // 1. Reset kolom biometrik di database
         $siswa->update([
             'face_descriptor' => null,
             'face_enrolled_at' => null
         ]);
 
-        return redirect()->route('dashboard.siswa')->with('success', "Wajah siswa {$siswa->name} berhasil direset!");
+        // 2. Hapus berkas foto referensi wajah fisik di storage
+        Storage::disk('public')->deleteDirectory($siswa->getStorageFolder() . '/face_enrollments');
+        Storage::disk('public')->deleteDirectory('face_enrollments/' . $siswa->id);
+
+        return redirect()->route('dashboard.siswa')->with('success', "Wajah dan berkas referensi biometrik siswa {$siswa->name} berhasil direset dari database dan storage!");
     }
 
     public function resetAllFaces()
     {
         $this->adminOnly();
         
+        // 1. Reset seluruh kolom biometrik siswa di database
         User::where('role', 'siswa')->update([
             'face_descriptor' => null,
             'face_enrolled_at' => null
         ]);
 
-        return redirect()->route('dashboard.siswa')->with('success', 'Semua data wajah siswa berhasil direset. Siswa harus scan ulang!');
+        // 2. Hapus folder berkas referensi wajah fisik di seluruh akun
+        $accountDirs = Storage::disk('public')->directories('accounts');
+        foreach ($accountDirs as $dir) {
+            Storage::disk('public')->deleteDirectory($dir . '/face_enrollments');
+        }
+        Storage::disk('public')->deleteDirectory('face_enrollments');
+
+        return redirect()->route('dashboard.siswa')->with('success', 'Semua data biometrik dan berkas foto referensi wajah siswa berhasil direset dari database dan storage. Siswa harus scan ulang!');
     }
 
 
@@ -1050,6 +1136,332 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Pengaturan lokasi sekolah & keamanan jaringan WiFi berhasil diperbarui.');
+    }
+
+    // =========================================================
+    //  MANAJEMEN STORAGE 100GB (ADMIN ONLY)
+    // =========================================================
+    public function storageIndex(Request $request)
+    {
+        $this->adminOnly();
+
+        $mountPath = '/mnt/data-presensi-smk/storage_public';
+        $storagePath = is_dir($mountPath) ? $mountPath : storage_path('app/public');
+
+        // Disk Capacity Metrics (OS Native)
+        $diskTotalBytes = @disk_total_space($storagePath) ?: (100 * 1024 * 1024 * 1024);
+        $diskFreeBytes = @disk_free_space($storagePath) ?: (95 * 1024 * 1024 * 1024);
+        $diskUsedBytes = max(0, $diskTotalBytes - $diskFreeBytes);
+        
+        $diskUsedPercent = $diskTotalBytes > 0 ? round(($diskUsedBytes / $diskTotalBytes) * 100, 1) : 0;
+        $diskFreePercent = round(100 - $diskUsedPercent, 1);
+
+        // Calculate Category Sizes
+        $getDirStats = function ($relativePath) {
+            $files = Storage::disk('public')->allFiles($relativePath);
+            $totalBytes = 0;
+            foreach ($files as $f) {
+                try {
+                    $totalBytes += Storage::disk('public')->size($f);
+                } catch (\Throwable $e) {}
+            }
+            return [
+                'count' => count($files),
+                'bytes' => $totalBytes,
+                'mb' => round($totalBytes / (1024 * 1024), 2),
+            ];
+        };
+
+        $accountStats = $getDirStats('accounts');
+        $enrollLegacyStats = $getDirStats('face_enrollments');
+        $faceScanStats = $getDirStats('face_scans');
+        $profileLegacyStats = $getDirStats('profiles');
+
+        $categories = [
+            'accounts' => [
+                'name' => 'Akun Terorganisir (Baru)',
+                'count' => $accountStats['count'],
+                'bytes' => $accountStats['bytes'],
+                'mb' => $accountStats['mb'],
+                'icon' => 'fa-folder-tree',
+                'color' => 'blue',
+            ],
+            'enrollments' => [
+                'name' => 'Biometrik Wajah (Enrollments)',
+                'count' => $accountStats['count'] + $enrollLegacyStats['count'],
+                'bytes' => $accountStats['bytes'] + $enrollLegacyStats['bytes'],
+                'mb' => round(($accountStats['bytes'] + $enrollLegacyStats['bytes']) / (1024 * 1024), 2),
+                'icon' => 'fa-face-viewfinder',
+                'color' => 'emerald',
+            ],
+            'scans' => [
+                'name' => 'Snapshot Presensi Harian',
+                'count' => $faceScanStats['count'],
+                'bytes' => $faceScanStats['bytes'],
+                'mb' => $faceScanStats['mb'],
+                'icon' => 'fa-camera-rotate',
+                'color' => 'indigo',
+            ],
+            'profiles' => [
+                'name' => 'Avatar & Banner Profil',
+                'count' => $profileLegacyStats['count'],
+                'bytes' => $profileLegacyStats['bytes'],
+                'mb' => $profileLegacyStats['mb'],
+                'icon' => 'fa-images',
+                'color' => 'purple',
+            ],
+        ];
+
+        // Format Disk Info
+        $diskInfo = [
+            'total_gb' => round($diskTotalBytes / (1024 * 1024 * 1024), 1),
+            'free_gb' => round($diskFreeBytes / (1024 * 1024 * 1024), 1),
+            'used_gb' => round($diskUsedBytes / (1024 * 1024 * 1024), 1),
+            'used_percent' => $diskUsedPercent,
+            'free_percent' => $diskFreePercent,
+            'mount_path' => $storagePath,
+            'is_writable' => is_writable($storagePath),
+            'is_mount' => is_dir($mountPath),
+        ];
+
+        // Legacy folders detector
+        $hasLegacyFolders = count(Storage::disk('public')->directories('face_enrollments')) > 0;
+
+        // Student Account File Explorer
+        $query = User::where('role', 'siswa')->with('kelas');
+        if ($request->filled('search')) {
+            $query->where(fn($q) => $q
+                ->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('nisn', 'like', '%'.$request->search.'%')
+                ->orWhere('username', 'like', '%'.$request->search.'%')
+            );
+        }
+        if ($request->filled('kelas_id')) {
+            $query->where('kelas_id', $request->kelas_id);
+        }
+
+        $students = $query->orderBy('name')->paginate(12)->withQueryString();
+        $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
+        // Calculate student files data for current page
+        $students->getCollection()->transform(function ($student) {
+            $folder = $student->getStorageFolder();
+            $files = [];
+            $totalBytes = 0;
+
+            // Check Avatar
+            if ($student->avatar && $student->avatar !== '0' && Storage::disk('public')->exists($student->avatar)) {
+                $sz = Storage::disk('public')->size($student->avatar);
+                $files[] = [
+                    'type' => 'Avatar Profil',
+                    'path' => $student->avatar,
+                    'url' => asset('storage/' . $student->avatar),
+                    'size_kb' => round($sz / 1024, 1),
+                ];
+                $totalBytes += $sz;
+            }
+
+            // Check Banner
+            if ($student->banner && $student->banner !== '0' && Storage::disk('public')->exists($student->banner)) {
+                $sz = Storage::disk('public')->size($student->banner);
+                $files[] = [
+                    'type' => 'Cover Banner',
+                    'path' => $student->banner,
+                    'url' => asset('storage/' . $student->banner),
+                    'size_kb' => round($sz / 1024, 1),
+                ];
+                $totalBytes += $sz;
+            }
+
+            // Check Face Enrollments (new path or legacy)
+            $enrollFolder = $folder . '/face_enrollments';
+            if (!Storage::disk('public')->exists($enrollFolder)) {
+                $enrollFolder = 'face_enrollments/' . $student->id;
+            }
+
+            if (Storage::disk('public')->exists($enrollFolder)) {
+                $enrollFiles = Storage::disk('public')->files($enrollFolder);
+                foreach ($enrollFiles as $ef) {
+                    $sz = Storage::disk('public')->size($ef);
+                    $files[] = [
+                        'type' => 'Foto Referensi Wajah',
+                        'path' => $ef,
+                        'url' => asset('storage/' . $ef),
+                        'size_kb' => round($sz / 1024, 1),
+                    ];
+                    $totalBytes += $sz;
+                }
+            }
+
+            $student->storage_folder = $folder;
+            $student->storage_files = $files;
+            $student->storage_total_files = count($files);
+            $student->storage_total_kb = round($totalBytes / 1024, 1);
+
+            return $student;
+        });
+
+        return view('dashboard.storage', compact('diskInfo', 'categories', 'students', 'kelas', 'hasLegacyFolders'));
+    }
+
+    public function cleanupStorage(Request $request)
+    {
+        $this->adminOnly();
+
+        $days = $request->input('days', '60');
+        $deletedCount = 0;
+        $freedBytes = 0;
+
+        $dateFolders = Storage::disk('public')->directories('face_scans');
+        $totalFilesBefore = count(Storage::disk('public')->allFiles('face_scans'));
+
+        if ($days === 'all' || $days === '0') {
+            // Hapus seluruh file snapshot presensi harian (reset total)
+            foreach ($dateFolders as $df) {
+                $files = Storage::disk('public')->allFiles($df);
+                foreach ($files as $f) {
+                    try {
+                        $freedBytes += Storage::disk('public')->size($f);
+                    } catch (\Throwable $e) {}
+                    Storage::disk('public')->delete($f);
+                    $deletedCount++;
+                }
+                Storage::disk('public')->deleteDirectory($df);
+            }
+            $freedMb = round($freedBytes / (1024 * 1024), 2);
+            return redirect()->back()->with('success', "Pembersihan total selesai! {$deletedCount} berkas snapshot absensi harian berhasil dihapus. Ruang disk terbebas: {$freedMb} MB.");
+        }
+
+        $daysInt = max(1, (int) $days);
+        $cutoffDate = now()->subDays($daysInt)->format('Y-m-d');
+
+        foreach ($dateFolders as $df) {
+            $folderName = basename($df);
+            // Folder name is YYYY-MM-DD
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $folderName) && $folderName < $cutoffDate) {
+                $files = Storage::disk('public')->allFiles($df);
+                foreach ($files as $f) {
+                    try {
+                        $freedBytes += Storage::disk('public')->size($f);
+                    } catch (\Throwable $e) {}
+                    Storage::disk('public')->delete($f);
+                    $deletedCount++;
+                }
+                Storage::disk('public')->deleteDirectory($df);
+            }
+        }
+
+        $freedMb = round($freedBytes / (1024 * 1024), 2);
+
+        if ($deletedCount === 0) {
+            return redirect()->back()->with('info', "Tidak ada snapshot presensi yang lebih lama dari {$daysInt} hari. Saat ini berkas snapshot yang ada di server masih berumur baru ({$totalFilesBefore} berkas). Pilih opsi 'Hapus Semua Snapshot' jika ingin menghapus seluruhnya.");
+        }
+
+        return redirect()->back()->with('success', "Pembersihan selesai! {$deletedCount} berkas snapshot presensi lama (> {$daysInt} hari) berhasil dihapus. Ruang disk terbebas: {$freedMb} MB.");
+    }
+
+    public function organizeLegacyStorage()
+    {
+        $this->adminOnly();
+
+        $migratedCount = 0;
+        $migratedFiles = 0;
+
+        // 1. Migrasi folder legacy face_enrollments/{id}
+        $legacyFolders = Storage::disk('public')->directories('face_enrollments');
+        foreach ($legacyFolders as $lf) {
+            $userId = basename($lf);
+            if (is_numeric($userId)) {
+                $user = User::find($userId);
+                if ($user) {
+                    $newFolder = $user->getStorageFolder() . '/face_enrollments';
+                    $files = Storage::disk('public')->files($lf);
+                    foreach ($files as $file) {
+                        $filename = basename($file);
+                        $target = $newFolder . '/' . $filename;
+                        Storage::disk('public')->put($target, Storage::disk('public')->get($file));
+                        Storage::disk('public')->delete($file);
+                        $migratedFiles++;
+                    }
+                    Storage::disk('public')->deleteDirectory($lf);
+                    $migratedCount++;
+                }
+            }
+        }
+
+        // 2. Migrasi avatar dan banner profil legacy (profiles/)
+        $usersWithPhotos = User::whereNotNull('avatar')->orWhereNotNull('banner')->get();
+        foreach ($usersWithPhotos as $u) {
+            $updated = false;
+            if ($u->avatar && str_starts_with($u->avatar, 'profiles/avatars/')) {
+                if (Storage::disk('public')->exists($u->avatar)) {
+                    $ext = pathinfo($u->avatar, PATHINFO_EXTENSION) ?: 'jpg';
+                    $target = $u->getStorageFolder() . '/avatar/avatar.' . $ext;
+                    Storage::disk('public')->put($target, Storage::disk('public')->get($u->avatar));
+                    Storage::disk('public')->delete($u->avatar);
+                    $u->avatar = $target;
+                    $updated = true;
+                    $migratedFiles++;
+                }
+            }
+            if ($u->banner && str_starts_with($u->banner, 'profiles/banners/')) {
+                if (Storage::disk('public')->exists($u->banner)) {
+                    $ext = pathinfo($u->banner, PATHINFO_EXTENSION) ?: 'jpg';
+                    $target = $u->getStorageFolder() . '/banner/banner.' . $ext;
+                    Storage::disk('public')->put($target, Storage::disk('public')->get($u->banner));
+                    Storage::disk('public')->delete($u->banner);
+                    $u->banner = $target;
+                    $updated = true;
+                    $migratedFiles++;
+                }
+            }
+            if ($updated) {
+                $u->save();
+                $migratedCount++;
+            }
+        }
+
+        if ($migratedCount === 0 && $migratedFiles === 0) {
+            return redirect()->back()->with('info', "Semua berkas akun sudah rapi dalam struktur accounts/{nisn}_{username}/! Tidak ada berkas lama yang perlu dipindahkan lagi.");
+        }
+
+        return redirect()->back()->with('success', "Migrasi struktur sukses! {$migratedCount} akun ({$migratedFiles} berkas) berhasil dirapikan ke format accounts/{nisn}_{username}/.");
+    }
+
+    public function deleteStudentFile(Request $request)
+    {
+        $this->adminOnly();
+
+        $path = $request->input('path');
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            return redirect()->back()->with('error', 'Berkas tidak ditemukan di storage.');
+        }
+
+        // Keamanan: Hanya izinkan penghapusan di dalam accounts/, face_enrollments/, profiles/, atau face_scans/
+        $allowedPrefixes = ['accounts/', 'face_enrollments/', 'profiles/', 'face_scans/'];
+        $isAllowed = false;
+        foreach ($allowedPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $isAllowed = true;
+                break;
+            }
+        }
+
+        if (!$isAllowed) {
+            return redirect()->back()->with('error', 'Direktori berkas tidak diizinkan untuk dihapus.');
+        }
+
+        Storage::disk('public')->delete($path);
+
+        // Jika yang dihapus adalah foto profil atau banner siswa, reset di DB
+        $user = User::where('avatar', $path)->orWhere('banner', $path)->first();
+        if ($user) {
+            if ($user->avatar === $path) $user->avatar = null;
+            if ($user->banner === $path) $user->banner = null;
+            $user->save();
+        }
+
+        return redirect()->back()->with('success', "Berkas " . basename($path) . " berhasil dihapus dari penyimpanan.");
     }
 
     // =========================================================

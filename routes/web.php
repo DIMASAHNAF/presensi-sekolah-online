@@ -32,6 +32,7 @@ Route::middleware(['auth', 'role:siswa'])->group(function () {
     // Re-enroll wajah untuk siswa yang sudah ada (belum punya face_descriptor)
     Route::get('/siswa/enroll-wajah', [SiswaController::class, 'showEnrollWajah'])->name('siswa.enroll');
     Route::post('/siswa/enroll-wajah', [SiswaController::class, 'enrollWajah'])->name('siswa.enroll.store');
+    Route::post('/siswa/profile', [SiswaController::class, 'updateProfile'])->name('siswa.profile.update');
 });
 
 //  GURU & ADMIN DASHBOARD
@@ -83,9 +84,16 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     // Pengaturan Lokasi & Geofencing
     Route::get('/pengaturan-lokasi', [DashboardController::class, 'lokasiIndex'])->name('.lokasi');
     Route::post('/pengaturan-lokasi', [DashboardController::class, 'updateLokasi'])->name('.lokasi.update');
+
+    // Manajemen Storage Mount 100GB
+    Route::get('/storage', [DashboardController::class, 'storageIndex'])->name('.storage');
+    Route::post('/storage/cleanup', [DashboardController::class, 'cleanupStorage'])->name('.storage.cleanup');
+    Route::post('/storage/organize-legacy', [DashboardController::class, 'organizeLegacyStorage'])->name('.storage.organize');
+    Route::delete('/storage/file', [DashboardController::class, 'deleteStudentFile'])->name('.storage.file.delete');
 });
 
 //  AUTH
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+

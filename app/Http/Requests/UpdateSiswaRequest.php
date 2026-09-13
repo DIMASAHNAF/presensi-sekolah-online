@@ -20,6 +20,11 @@ class UpdateSiswaRequest extends FormRequest
             'email' => 'nullable|email|unique:users,email,'.$siswa->id,
             'nisn' => 'required|string|digits:10|unique:users,nisn,'.$siswa->id,
             'kelas_id' => 'nullable|exists:kelas,id',
+            'password' => 'nullable|string|min:6',
+            'bio' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'remove_avatar' => 'nullable|boolean',
+            'remove_banner' => 'nullable|boolean',
         ];
     }
 }

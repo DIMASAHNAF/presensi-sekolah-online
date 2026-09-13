@@ -84,7 +84,7 @@
 
                 <div class="mb-10 text-center lg:text-left">
                     <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang 👋</h2>
-                    <p class="text-slate-500 mt-2">Silakan masuk menggunakan NIK Anda.</p>
+                    <p class="text-slate-500 mt-2">Silakan masuk menggunakan NIK atau Username Anda.</p>
                 </div>
 
                 @if ($errors->any())
@@ -102,15 +102,15 @@
                     @csrf
 
                     <div class="input-field group" :class="focused === 'nik' ? 'ring-2 ring-blue-100 rounded-xl' : ''">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 transition-colors group-focus-within:text-blue-600">Nomor Induk Kependudukan (NIK)</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 transition-colors group-focus-within:text-blue-600">NIK atau Username</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-id-card text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <i class="fas fa-user-shield text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
                             </div>
                             <input type="text" name="nik" value="{{ old('nik') }}" required autofocus
                                    @focus="focused = 'nik'" @blur="focused = ''"
                                    class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-200" 
-                                   placeholder="Masukkan NIK terdaftar">
+                                   placeholder="Contoh: 1234567890123456 atau budi.santoso">
                         </div>
                     </div>
 
