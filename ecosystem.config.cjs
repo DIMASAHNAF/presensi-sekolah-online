@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'face-api',
     script: 'uvicorn',
-    args: 'face_api:app --host 127.0.0.1 --port 8000',
+    args: 'face_api:app --host 127.0.0.1 --port 8000 --workers 4',
     cwd: '/var/www/presensi-sekolah/python',
     interpreter: 'none',
     autorestart: true,

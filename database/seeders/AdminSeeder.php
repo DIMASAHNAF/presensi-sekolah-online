@@ -11,20 +11,26 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         // =============================================
-        // ADMIN — ubah password sebelum production!
+        // KREDENSIAL ADMIN UTAMA
+        // Ubah variabel di bawah ini jika ingin mengganti
         // =============================================
+        $username = 'admin';
+        $password = 'Adminsmkn1beringin2k26';
+        $nik      = 'Admin001';
+        $email    = 'admin@sekolah.sch.id';
+
         User::updateOrCreate(
-            ['nik' => 'ADMIN001'],
+            ['role' => 'admin'],
             [
-                'name' => 'Administrator',
-                'username' => 'admin',
-                'email' => 'admin@sekolah.sch.id',
-                'nik' => 'ADMIN001',
-                'role' => 'admin',
-                'password' => Hash::make('Admin@1234'),
+                'name'     => 'Administrator',
+                'username' => $username,
+                'email'    => $email,
+                'nik'      => $nik,
+                'role'     => 'admin',
+                'password' => Hash::make($password),
             ]
         );
 
-        $this->command->info('✅ Admin seeded: NIK=ADMIN001 | Password=Admin@1234');
+        $this->command->info("✅ Admin seeded: Username={$username} | NIK={$nik} | Password={$password}");
     }
 }

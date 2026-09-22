@@ -1,8 +1,8 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Manajemen Storage 100GB')
+@section('title', 'Manajemen Storage NFS')
 @section('page-title', 'Manajemen Storage')
-@section('page-subtitle', 'Monitoring kapasitas mount 100GB, direktori akun, dan pembersih snapshot presensi')
+@section('page-subtitle', 'Monitoring kapasitas mount NFS Storage, direktori akun, dan pembersih snapshot presensi')
 
 @section('content')
 
@@ -29,9 +29,7 @@
 
 <div x-data="{ previewModal: false, previewUrl: '', previewTitle: '' }">
 
-    {{-- ────────────────────────────────────────────── --}}
-    {{-- 1. HERO: MOUNT POINT 100GB & DISK GAUGE        --}}
-    {{-- ────────────────────────────────────────────── --}}
+    {{-- 1. HERO: MOUNT POINT NFS & DISK GAUAGE         --}}
     <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-800 mb-6 relative overflow-hidden">
         {{-- Subtle radial background glow --}}
         <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -42,7 +40,7 @@
                 <div class="flex items-center gap-2.5 flex-wrap">
                     <span class="px-3 py-1 rounded-full text-[10px] font-extrabold font-mono uppercase bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Storage Mounted (100 GB)
+                        Storage Mounted (NFS Network)
                     </span>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-white/10 text-slate-300 border border-white/15">
                         {{ $diskInfo['is_writable'] ? 'Izin Akses: Read/Write OK' : 'Akses: Read-Only' }}
@@ -50,7 +48,7 @@
                 </div>
 
                 <h2 class="text-xl sm:text-2xl font-black font-heading tracking-tight text-white">
-                    Penyimpanan Lokal Berkecepatan Tinggi
+                    Penyimpanan Terpusat Jaringan (NFS)
                 </h2>
                 
                 <p class="text-xs text-slate-300 leading-relaxed font-mono flex items-center gap-2">

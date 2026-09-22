@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => '/mnt/data-presensi-smk/storage_private',
+            'root' => '/mnt/nfs/storage_private',
             'serve' => true,
             'throw' => true,
             'report' => false,
@@ -40,7 +40,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => '/mnt/data-presensi-smk/storage_public',
+            'root' => '/mnt/nfs/storage_public',
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => true,
@@ -49,7 +49,7 @@ return [
 
         'data_smk' => [
             'driver' => 'local',
-            'root' => '/mnt/data-presensi-smk',
+            'root' => '/mnt/nfs',
             'throw' => false,
         ],
 
@@ -80,7 +80,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => '/mnt/data-presensi-smk/storage_public',
+        public_path('storage') => '/mnt/nfs/storage_public',
     ],
 
 ];

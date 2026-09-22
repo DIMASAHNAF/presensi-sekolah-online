@@ -1145,7 +1145,7 @@ class DashboardController extends Controller
     {
         $this->adminOnly();
 
-        $mountPath = '/mnt/data-presensi-smk/storage_public';
+        $mountPath = '/mnt/nfs/storage_public';
         $storagePath = is_dir($mountPath) ? $mountPath : storage_path('app/public');
 
         // Disk Capacity Metrics (OS Native)

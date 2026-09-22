@@ -138,7 +138,7 @@ class SiswaController extends Controller
             } catch (\Throwable $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menyimpan foto profil ke storage 100GB (/mnt/data-presensi-smk). Error: ' . $e->getMessage(),
+                    'message' => 'Gagal menyimpan foto profil ke storage NFS (/mnt/nfs). Error: ' . $e->getMessage(),
                 ], 422);
             }
         } elseif ($request->boolean('remove_avatar') || $request->input('remove_avatar') === '1') {
@@ -162,7 +162,7 @@ class SiswaController extends Controller
             } catch (\Throwable $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menyimpan banner cover ke storage 100GB (/mnt/data-presensi-smk). Error: ' . $e->getMessage(),
+                    'message' => 'Gagal menyimpan banner cover ke storage NFS (/mnt/nfs). Error: ' . $e->getMessage(),
                 ], 422);
             }
         } elseif ($request->boolean('remove_banner') || $request->input('remove_banner') === '1') {
