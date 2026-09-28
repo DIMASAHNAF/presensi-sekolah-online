@@ -1,5 +1,5 @@
 # 1. Gunakan image PHP 8.2 dengan web server Apache bawaan
-FROM php:8.2-apache
+FROM php:8.2-apache-bullseye
 
 # 2. Instal library sistem yang dibutuhkan Linux untuk PDF, Excel, dan Zip
 RUN apt-get update && apt-get install -y \
