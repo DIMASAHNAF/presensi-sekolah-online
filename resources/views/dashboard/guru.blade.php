@@ -58,7 +58,11 @@
                                 <button @click="openEdit = true; editData = { id: {{ $guru->id }}, nama: '{{ $guru->name }}', nik: '{{ $guru->nik }}', username: '{{ $guru->username }}', email: '{{ $guru->email }}' }" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST" onsubmit="return confirm('Hapus guru {{ $guru->name }} secara permanen?')">
+                                <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST"
+                                      data-confirm="Hapus guru {{ $guru->name }} secara permanen?"
+                                      data-confirm-title="Hapus Akun Guru?"
+                                      data-confirm-type="danger"
+                                      data-confirm-btn="Hapus Guru">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-red-100 transition-colors" title="Hapus Guru">
                                         <i class="fas fa-trash-alt"></i>

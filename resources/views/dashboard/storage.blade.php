@@ -125,7 +125,12 @@
                 </span>
             </div>
 
-            <form action="{{ route('dashboard.storage.cleanup') }}" method="POST" onsubmit="return confirm('Pembersihan akan menghapus foto snapshot presensi harian pada server sesuai batas waktu yang dipilih.\n\nCatatan: Data kehadiran siswa di database tetap tersimpan rapi.\nLanjutkan?')" class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+            <form action="{{ route('dashboard.storage.cleanup') }}" method="POST" 
+                  data-confirm="Pembersihan akan menghapus foto snapshot presensi harian pada server sesuai batas waktu yang dipilih.&#10;&#10;Catatan: Data kehadiran siswa di database tetap tersimpan rapi."
+                  data-confirm-title="Bersihkan Snapshot Presensi Harian?"
+                  data-confirm-type="warning"
+                  data-confirm-btn="Bersihkan Sekarang"
+                  class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
                 @csrf
                 <div class="flex-1">
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Batas Usia Snapshot</label>
@@ -184,7 +189,11 @@
                     @endif
                 </p>
 
-                <form action="{{ route('dashboard.storage.organize') }}" method="POST" onsubmit="return confirm('Pindai dan rapikan seluruh berkas pendaftaran ke struktur folder baru per akun?')">
+                <form action="{{ route('dashboard.storage.organize') }}" method="POST"
+                      data-confirm="Pindai dan rapikan seluruh berkas pendaftaran ke struktur folder baru per akun?"
+                      data-confirm-title="Rapikan Struktur Berkas Akun?"
+                      data-confirm-type="info"
+                      data-confirm-btn="Mulai Rapikan">
                     @csrf
                     <button type="submit" 
                             class="font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 shrink-0 {{ $hasLegacyFolders ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
@@ -278,7 +287,12 @@
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 {{-- Tombol Hapus Berkas Spesifik --}}
-                                <form action="{{ route('dashboard.storage.file.delete') }}" method="POST" onsubmit="return confirm('Hapus berkas {{ $file['type'] }} milik {{ $st->name }} secara permanen?')" class="inline-block">
+                                <form action="{{ route('dashboard.storage.file.delete') }}" method="POST" 
+                                      data-confirm="Hapus berkas {{ $file['type'] }} milik {{ $st->name }} secara permanen?"
+                                      data-confirm-title="Hapus Berkas Penyimpanan?"
+                                      data-confirm-type="danger"
+                                      data-confirm-btn="Hapus Berkas"
+                                      class="inline-block">
                                     @csrf @method('DELETE')
                                     <input type="hidden" name="path" value="{{ $file['path'] }}">
                                     <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 font-bold text-xs transition" title="Hapus Berkas dari Storage">

@@ -129,7 +129,12 @@
 
             {{-- Action Buttons --}}
             <div class="flex items-center gap-2 w-full lg:w-auto justify-end shrink-0">
-                <form action="{{ route('dashboard.siswa.reset-all-faces') }}" method="POST" onsubmit="return confirm('PERINGATAN KRITIS!\n\nTindakan ini akan menghapus seluruh data vektor biometrik wajah SEMUA siswa.\nSemua siswa akan diwajibkan melakukan scan/enroll ulang saat presensi berikutnya.\n\nApakah Anda yakin ingin mereset semua wajah?')" class="inline-block">
+                <form action="{{ route('dashboard.siswa.reset-all-faces') }}" method="POST" 
+                      data-confirm="Tindakan ini akan menghapus seluruh data vektor biometrik wajah SEMUA siswa. Semua siswa akan diwajibkan melakukan scan/enroll ulang saat presensi berikutnya. Apakah Anda yakin?"
+                      data-confirm-title="PERINGATAN KRITIS: Reset Semua Wajah Siswa?"
+                      data-confirm-type="danger"
+                      data-confirm-btn="Ya, Reset Semua Wajah"
+                      class="inline-block">
                     @csrf
                     <button type="submit" class="bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 px-3.5 py-2 rounded-xl text-xs font-bold transition border border-rose-200 flex items-center gap-1.5">
                         <i class="fas fa-triangle-exclamation"></i>
@@ -291,7 +296,12 @@
 
                                 {{-- 3. RESET WAJAH --}}
                                 @if($hasFace)
-                                <form action="{{ route('dashboard.siswa.reset-face', $siswa) }}" method="POST" onsubmit="return confirm('Reset biometrik wajah siswa {{ $siswa->name }}? Vektor 128-d akan dihapus dan siswa harus scan ulang.')" class="inline-block">
+                                <form action="{{ route('dashboard.siswa.reset-face', $siswa) }}" method="POST" 
+                                      data-confirm="Reset biometrik wajah siswa {{ $siswa->name }}? Vektor 128-d akan dihapus dan siswa harus scan ulang."
+                                      data-confirm-title="Reset Biometrik Wajah?"
+                                      data-confirm-type="warning"
+                                      data-confirm-btn="Reset Wajah"
+                                      class="inline-block">
                                     @csrf
                                     <button type="submit" class="p-2 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-600 border border-slate-200 hover:border-amber-200 transition" title="Reset Wajah Face ID">
                                         <i class="fas fa-face-smile text-xs"></i>
@@ -300,7 +310,12 @@
                                 @endif
 
                                 {{-- 4. HAPUS AKUN --}}
-                                <form action="{{ route('dashboard.siswa.destroy', $siswa) }}" method="POST" onsubmit="return confirm('Hapus akun siswa {{ $siswa->name }} secara permanen? Data absensi terkait akan terpengaruh.')" class="inline-block">
+                                <form action="{{ route('dashboard.siswa.destroy', $siswa) }}" method="POST" 
+                                      data-confirm="Hapus akun siswa {{ $siswa->name }} secara permanen? Data absensi terkait akan terpengaruh."
+                                      data-confirm-title="Hapus Akun Siswa?"
+                                      data-confirm-type="danger"
+                                      data-confirm-btn="Hapus Permanen"
+                                      class="inline-block">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition" title="Hapus Siswa">
                                         <i class="fas fa-trash-can text-xs"></i>
@@ -466,7 +481,11 @@
                             </button>
 
                             <template x-if="inspectData.has_face">
-                                <form :action="'{{ route('dashboard.siswa') }}/' + inspectData.id + '/reset-face'" method="POST" onsubmit="return confirm('Reset wajah siswa ini sekarang?')">
+                                <form :action="'{{ route('dashboard.siswa') }}/' + inspectData.id + '/reset-face'" method="POST"
+                                      data-confirm="Reset biometrik wajah siswa ini sekarang? Vektor 128-d akan dihapus dan siswa harus mendaftar ulang."
+                                      data-confirm-title="Reset Biometrik Wajah?"
+                                      data-confirm-type="warning"
+                                      data-confirm-btn="Reset Wajah">
                                     @csrf
                                     <button type="submit" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5">
                                         <i class="fas fa-rotate-left"></i> Reset Wajah

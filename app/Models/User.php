@@ -121,4 +121,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Presensi::class, 'siswa_id');
     }
+
+    /** Rekap nilai siswa */
+    public function nilaiSiswa()
+    {
+        return $this->hasMany(NilaiSiswa::class, 'siswa_id');
+    }
 }

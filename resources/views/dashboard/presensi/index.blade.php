@@ -291,11 +291,14 @@
 
                 @if(auth()->user()->isAdmin())
                     <div class="mt-4 pt-3 border-t border-slate-100 text-right">
-                        <form action="{{ route('dashboard.presensi.delete-all') }}" method="POST" class="inline-block">
+                        <form action="{{ route('dashboard.presensi.delete-all') }}" method="POST" class="inline-block"
+                              data-confirm="SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi presensi dari database? Tindakan ini tidak bisa dibatalkan."
+                              data-confirm-title="Kosongkan Seluruh Riwayat Presensi?"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Ya, Hapus Seluruh Riwayat">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                class="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-md transition"
-                                onclick="return confirm('SANGAT BERBAHAYA: Anda yakin ingin menghapus SELURUH riwayat sesi presensi dari database? Tindakan ini tidak bisa dibatalkan.')">
+                                class="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-md transition">
                                 <i class="fas fa-trash-can mr-1"></i> Kosongkan Semua Riwayat Presensi
                             </button>
                         </form>

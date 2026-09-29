@@ -7,6 +7,7 @@ use App\Models\JamPelajaran;
 use App\Models\Kelas;
 use App\Models\LogPresensi;
 use App\Models\MataPelajaran;
+use App\Models\NilaiSiswa;
 use App\Models\Presensi;
 use App\Models\SchoolSetting;
 use App\Models\SesiPresensi;
@@ -89,8 +90,49 @@ class DashboardController extends Controller
                 ->latest('tanggal')->latest('created_at')->take(5)->get();
         }
 
+        // ── Data Rekap Nilai Siswa (CRUD Dashboard Guru & Admin) ──
+        $kelasList = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
+
+        $selectedKelasId = request('nilai_kelas_id');
+        $selectedMapelId = request('nilai_mapel_id');
+        $selectedJenis   = request('nilai_jenis');
+
+        $queryNilai = NilaiSiswa::with(['siswa.kelas', 'guru', 'mataPelajaran', 'kelas'])
+            ->latest('tanggal')
+            ->latest('created_at');
+
+        if (!empty($selectedKelasId)) {
+            $queryNilai->where('kelas_id', $selectedKelasId);
+        }
+        if (!empty($selectedMapelId)) {
+            $queryNilai->where('mapel_id', $selectedMapelId);
+        }
+        if (!empty($selectedJenis)) {
+            $queryNilai->where('jenis_penilaian', $selectedJenis);
+        }
+
+        // Jika Guru (bukan Admin), prioritaskan nilai yang dia input atau beri akses fleksibel
+        if (!$user->isAdmin()) {
+            // Bisa lihat nilai miliknya atau filter umum
+            if (request('hanya_saya', '0') === '1') {
+                $queryNilai->where('guru_id', $user->id);
+            }
+        }
+
+        $listNilai = $queryNilai->paginate(15)->withQueryString();
+
+        // Statistik Nilai Ringkas
+        $statsNilai = [
+            'total_input' => NilaiSiswa::count(),
+            'rata_rata'   => round((float) NilaiSiswa::avg('nilai') ?: 0, 1),
+            'tertinggi'   => NilaiSiswa::max('nilai') ?? 0,
+            'terendah'    => NilaiSiswa::min('nilai') ?? 0,
+        ];
+
         return view('dashboard.index', compact(
-            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'presensiHariIni'
+            'user', 'stats', 'chartLabels', 'chartHadir', 'chartAlpa', 'recentSesi', 'sesiHariIni', 'presensiHariIni',
+            'kelasList', 'mapelList', 'listNilai', 'statsNilai'
         ));
     }
 
@@ -1462,6 +1504,106 @@ class DashboardController extends Controller
         }
 
         return redirect()->back()->with('success', "Berkas " . basename($path) . " berhasil dihapus dari penyimpanan.");
+    }
+
+    // =========================================================
+    //  REKAP & CRUD NILAI SISWA (DASHBOARD GURU)
+    // =========================================================
+    public function siswaPerKelasJson(Kelas $kelas)
+    {
+        $siswa = User::where('role', 'siswa')
+            ->where('kelas_id', $kelas->id)
+            ->select('id', 'name', 'nisn', 'username')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'kelas'  => $kelas->nama_kelas,
+            'siswa'  => $siswa
+        ]);
+    }
+
+    public function storeNilai(Request $request)
+    {
+        $validated = $request->validate([
+            'kelas_id'        => 'required|exists:kelas,id',
+            'siswa_id'        => 'required|exists:users,id',
+            'mapel_id'        => 'nullable|exists:mata_pelajarans,id',
+            'jenis_penilaian' => 'required|in:tugas,ulangan_harian,uts,uas,praktik,sikap',
+            'judul'           => 'required|string|max:150',
+            'nilai'           => 'required|numeric|min:0|max:100',
+            'tanggal'         => 'nullable|date',
+            'catatan'         => 'nullable|string|max:500',
+        ], [
+            'kelas_id.required'        => 'Kelas wajib dipilih.',
+            'siswa_id.required'        => 'Siswa wajib dipilih.',
+            'jenis_penilaian.required' => 'Jenis penilaian wajib ditentukan.',
+            'judul.required'           => 'Judul penilaian wajib diisi.',
+            'nilai.required'           => 'Nilai siswa wajib diisi.',
+            'nilai.numeric'            => 'Nilai harus berupa angka (0 - 100).',
+            'nilai.min'                => 'Nilai minimal adalah 0.',
+            'nilai.max'                => 'Nilai maksimal adalah 100.',
+        ]);
+
+        // Pastikan siswa benar-benar berada di kelas tersebut
+        $siswa = User::where('id', $validated['siswa_id'])->where('role', 'siswa')->firstOrFail();
+        if ($siswa->kelas_id != $validated['kelas_id']) {
+            return redirect()->back()->with('error', 'Siswa yang dipilih tidak sesuai dengan rombel kelas.');
+        }
+
+        $validated['guru_id'] = auth()->id();
+        if (empty($validated['tanggal'])) {
+            $validated['tanggal'] = today()->toDateString();
+        }
+
+        NilaiSiswa::create($validated);
+
+        return redirect()->to(route('dashboard') . '#rekap-nilai-section')
+            ->with('success', "Nilai untuk {$siswa->name} berhasil ditambahkan!");
+    }
+
+    public function updateNilai(Request $request, NilaiSiswa $nilaiSiswa)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $nilaiSiswa->guru_id !== $user->id) {
+            return redirect()->back()->with('error', 'Anda hanya dapat mengubah nilai yang Anda input sendiri.');
+        }
+
+        $validated = $request->validate([
+            'mapel_id'        => 'nullable|exists:mata_pelajarans,id',
+            'jenis_penilaian' => 'required|in:tugas,ulangan_harian,uts,uas,praktik,sikap',
+            'judul'           => 'required|string|max:150',
+            'nilai'           => 'required|numeric|min:0|max:100',
+            'tanggal'         => 'nullable|date',
+            'catatan'         => 'nullable|string|max:500',
+        ], [
+            'jenis_penilaian.required' => 'Jenis penilaian wajib ditentukan.',
+            'judul.required'           => 'Judul penilaian wajib diisi.',
+            'nilai.required'           => 'Nilai siswa wajib diisi.',
+            'nilai.numeric'            => 'Nilai harus berupa angka (0 - 100).',
+            'nilai.min'                => 'Nilai minimal adalah 0.',
+            'nilai.max'                => 'Nilai maksimal adalah 100.',
+        ]);
+
+        $nilaiSiswa->update($validated);
+
+        return redirect()->to(route('dashboard') . '#rekap-nilai-section')
+            ->with('success', "Data nilai {$nilaiSiswa->siswa->name} berhasil diperbarui!");
+    }
+
+    public function destroyNilai(NilaiSiswa $nilaiSiswa)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $nilaiSiswa->guru_id !== $user->id) {
+            return redirect()->back()->with('error', 'Anda hanya dapat menghapus nilai yang Anda input sendiri.');
+        }
+
+        $namaSiswa = $nilaiSiswa->siswa->name ?? 'Siswa';
+        $nilaiSiswa->delete();
+
+        return redirect()->to(route('dashboard') . '#rekap-nilai-section')
+            ->with('success', "Data nilai untuk {$namaSiswa} berhasil dihapus.");
     }
 
     // =========================================================

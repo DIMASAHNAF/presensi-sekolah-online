@@ -60,6 +60,12 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::post('/presensi/{sesiPresensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.presensi.reset');
     Route::delete('/presensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.presensi.delete-all');
 
+    // Rekap & CRUD Nilai Siswa (Dashboard Guru & Admin)
+    Route::get('/kelas/{kelas}/siswa-json', [DashboardController::class, 'siswaPerKelasJson'])->name('.kelas.siswa-json');
+    Route::post('/nilai', [DashboardController::class, 'storeNilai'])->name('.nilai.store');
+    Route::put('/nilai/{nilaiSiswa}', [DashboardController::class, 'updateNilai'])->name('.nilai.update');
+    Route::delete('/nilai/{nilaiSiswa}', [DashboardController::class, 'destroyNilai'])->name('.nilai.destroy');
+
     // Admin-only CRUD
     Route::get('/siswa', [DashboardController::class, 'siswaIndex'])->name('.siswa');
     Route::post('/siswa', [DashboardController::class, 'storeSiswa'])->name('.siswa.store');

@@ -38,7 +38,10 @@
                 </p>
             </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <a href="#rekap-nilai-section" class="btn-secondary text-xs py-2.5">
+                <i class="fas fa-graduation-cap text-xs text-blue-600"></i> Rekap Nilai
+            </a>
             <a href="{{ route('dashboard.presensi') }}" class="btn-primary text-xs py-2.5">
                 <i class="fas fa-clipboard-list text-xs"></i> Kelola Presensi
             </a>
@@ -422,9 +425,10 @@
                 @endforeach
             </div>
         @endif
-    </div>
-
 </div>
+
+{{-- Rekap & CRUD Nilai Siswa Dashboard --}}
+@include('dashboard.rekap-nilai')
 
 @endsection
 

@@ -42,4 +42,10 @@ class Kelas extends Model
 
         return $guru ? User::find($guru->guru_id) : null;
     }
+
+    /** Rekap nilai seluruh siswa di kelas ini */
+    public function nilaiSiswa()
+    {
+        return $this->hasMany(NilaiSiswa::class, 'kelas_id');
+    }
 }

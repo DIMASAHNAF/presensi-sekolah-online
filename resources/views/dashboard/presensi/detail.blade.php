@@ -155,11 +155,16 @@
                 {{-- Tutup Sesi: HANYA tampil untuk sesi tipe kelas (pagi) --}}
                 @if($sesiPresensi->tipe === 'kelas')
                     <div class="mt-3.5 pt-3.5 border-t border-slate-100">
-                        <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST">
+                        <form action="{{ route('dashboard.presensi.close', $sesiPresensi) }}" method="POST"
+                              @if($sesiPresensi->is_active)
+                                  data-confirm="Tutup sesi presensi ini? Siswa tidak bisa scan wajah lagi."
+                                  data-confirm-title="Kunci / Tutup Sesi Presensi?"
+                                  data-confirm-type="warning"
+                                  data-confirm-btn="Ya, Tutup Sesi"
+                              @endif>
                             @csrf @method('PATCH')
                             @if($sesiPresensi->is_active)
-                                <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold"
-                                    onclick="return confirm('Tutup sesi presensi ini? Siswa tidak bisa scan wajah lagi.')">
+                                <button type="submit" class="w-full btn-danger justify-center py-2 text-xs font-semibold">
                                     <i class="fas fa-lock text-xs"></i> Kunci / Tutup Sesi Presensi
                                 </button>
                             @else
@@ -182,11 +187,14 @@
 
                 @if(auth()->user()->isAdmin())
                     <div class="mt-3 pt-3 border-t border-slate-100">
-                        <form action="{{ route('dashboard.presensi.reset', $sesiPresensi) }}" method="POST">
+                        <form action="{{ route('dashboard.presensi.reset', $sesiPresensi) }}" method="POST"
+                              data-confirm="BAHAYA: Yakin ingin MERESET seluruh kehadiran kelas ini? Semua siswa akan dikembalikan ke status Alpa dan log riwayat akan dihapus."
+                              data-confirm-title="PERINGATAN: Reset Kehadiran Kelas?"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Reset Semua Kehadiran">
                             @csrf
                             <button type="submit"
-                                class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold justify-center py-2 rounded-lg text-xs transition flex items-center gap-1.5"
-                                onclick="return confirm('BAHAYA: Yakin ingin MERESET seluruh kehadiran kelas ini? Semua siswa akan dikembalikan ke status Alpa dan log riwayat akan dihapus.')">
+                                class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold justify-center py-2 rounded-lg text-xs transition flex items-center gap-1.5">
                                 <i class="fas fa-trash-can text-xs"></i> Reset Presensi Kelas
                             </button>
                         </form>

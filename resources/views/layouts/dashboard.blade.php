@@ -235,6 +235,7 @@
 
 <x-page-loader />
 <x-toast />
+<x-alert-dialog />
 
 {{-- ===== SIDEBAR ===== --}}
 <aside class="sidebar-bg fixed top-0 left-0 h-full z-40 text-white flex flex-col
@@ -274,6 +275,12 @@
            class="nav-link {{ request()->routeIs('dashboard.presensi*') ? 'active' : '' }}">
             <i class="fas fa-clipboard-user icon"></i>
             <span>@if(auth()->user()->isAdmin()) Semua Presensi @else Kelola Presensi @endif</span>
+        </a>
+
+        <a href="{{ route('dashboard') }}#rekap-nilai-section"
+           class="nav-link">
+            <i class="fas fa-graduation-cap icon"></i>
+            <span>Rekap Nilai Siswa</span>
         </a>
 
         @if(auth()->user()->isAdmin())

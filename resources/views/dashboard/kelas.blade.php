@@ -25,7 +25,11 @@
             <h2 class="font-bold text-slate-800">Daftar Kelas</h2>
             <div class="flex gap-2">
                 <!-- Reset Kelas (Sesi) button -->
-                <form action="{{ route('dashboard.reset-sesi') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mereset (menutup) semua sesi kelas hari ini? Riwayat hari ini akan tetap ada namun sesi akan berakhir.')">
+                <form action="{{ route('dashboard.reset-sesi') }}" method="POST"
+                      data-confirm="Apakah Anda yakin ingin mereset (menutup) semua sesi kelas hari ini? Riwayat hari ini akan tetap ada namun sesi akan berakhir."
+                      data-confirm-title="Reset Semua Sesi Kelas Hari Ini?"
+                      data-confirm-type="warning"
+                      data-confirm-btn="Ya, Akhiri Sesi">
                     @csrf
                     <button type="submit" class="btn-secondary !text-red-600 !bg-red-50 hover:!bg-red-100">
                         <i class="fas fa-rotate-left"></i> Reset Kelas (Akhiri Sesi)
@@ -62,7 +66,11 @@
                             <button @click="openEdit = true; editData = { id: {{ $kelas->id }}, nama: '{{ $kelas->nama_kelas }}', tingkat: '{{ $kelas->tingkat }}', jurusan: '{{ $kelas->jurusan }}' }" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form action="{{ route('dashboard.kelas.destroy', $kelas) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus kelas ini?')">
+                            <form action="{{ route('dashboard.kelas.destroy', $kelas) }}" method="POST" class="inline-block"
+                                  data-confirm="Hapus kelas {{ $kelas->nama_kelas }} secara permanen?"
+                                  data-confirm-title="Hapus Kelas?"
+                                  data-confirm-type="danger"
+                                  data-confirm-btn="Hapus Kelas">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded">
                                     <i class="fas fa-trash"></i>
