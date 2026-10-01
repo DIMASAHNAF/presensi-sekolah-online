@@ -240,9 +240,9 @@
         <aside class="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 sticky top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 justify-between z-30 select-none">
             <div>
                 {{-- Brand Header --}}
-                <div class="flex items-center justify-between gap-2 pb-5 border-b border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center gap-2 min-w-0">
-                        <div class="w-9 h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-1 flex items-center justify-center shadow-xs shrink-0">
+                <div class="pb-5 border-b border-slate-100 dark:border-slate-800 space-y-2.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-1.5 flex items-center justify-center shadow-xs shrink-0">
                             <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
                         </div>
                         <div class="min-w-0">
@@ -250,9 +250,11 @@
                             <span class="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
                         </div>
                     </div>
-                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
-                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 flex items-center justify-center shrink-0 shadow-xs">
-                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-4 sm:h-5 w-auto max-w-[70px] object-contain">
+                    
+                    {{-- Logo Kolaborasi Badge --}}
+                    <div class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Kolaborasi</span>
+                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-4 sm:h-5 w-auto max-w-[125px] object-contain">
                     </div>
                 </div>
 
@@ -2475,3 +2477,4 @@
 </body>
 
 </html>
+
