@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk — Sistem Presensi SMKN 1 Beringin</title>
+    <title>Masuk â€” Sistem Presensi SMKN 1 Beringin</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
     <!-- PWA Settings -->
@@ -129,8 +129,16 @@
 
                 {{-- Header & Logo --}}
                 <div class="text-center space-y-2 mb-6 relative z-10">
-                    <div class="mx-auto w-14 h-14 rounded-xl border border-slate-200 bg-white p-2 flex items-center justify-center relative shadow-xs">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
+                    <div class="flex items-center justify-center gap-2.5 sm:gap-3">
+                        <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl border border-slate-200 bg-white p-2 flex items-center justify-center relative shadow-xs shrink-0">
+                            <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
+                        </div>
+
+                        <div class="h-6 w-px bg-slate-300"></div>
+
+                        <div class="h-13 sm:h-14 px-3 py-2 rounded-xl border border-slate-200 bg-white flex items-center justify-center relative shadow-xs shrink-0">
+                            <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-6 sm:h-7 w-auto max-w-[140px] sm:max-w-[165px] object-contain">
+                        </div>
                     </div>
 
                     <div>
@@ -211,7 +219,7 @@
                                 </span>
                                 <input :type="showPasswordSiswa ? 'text' : 'password'"
                                        name="password" required
-                                       placeholder="••••••••"
+                                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                        @focus="focusedInput = 'siswa-pass'"
                                        @blur="focusedInput = null"
                                        class="w-full bg-slate-50/70 border border-slate-200/90 focus:border-slate-900 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-xl pl-10 pr-11 py-3 outline-none focus:ring-2 focus:ring-slate-900/10 transition-all duration-200">
@@ -286,7 +294,7 @@
                                 </span>
                                 <input :type="showPasswordGuru ? 'text' : 'password'"
                                        name="password" required
-                                       placeholder="••••••••"
+                                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                        @focus="focusedInput = 'guru-pass'"
                                        @blur="focusedInput = null"
                                        class="w-full bg-slate-50/70 border border-slate-200 focus:border-blue-700 focus:bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-lg pl-10 pr-11 py-2.5 outline-none focus:ring-2 focus:ring-blue-700/15 transition-all duration-200">

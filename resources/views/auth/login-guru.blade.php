@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -82,8 +82,18 @@
                     <h1 class="text-2xl font-bold text-slate-800">Portal Guru</h1>
                 </div>
 
+                <div class="mb-6 flex items-center justify-center lg:justify-start gap-3">
+                    <div class="w-11 h-11 bg-white border border-slate-200 rounded-xl p-1.5 flex items-center justify-center shadow-xs">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo Sekolah" class="w-full h-full object-contain">
+                    </div>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <div class="h-11 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-xs">
+                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-6 w-auto max-w-[130px] object-contain">
+                    </div>
+                </div>
+
                 <div class="mb-10 text-center lg:text-left">
-                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang 👋</h2>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang ðŸ‘‹</h2>
                     <p class="text-slate-500 mt-2">Silakan masuk menggunakan NIK atau Username Anda.</p>
                 </div>
 
@@ -126,7 +136,7 @@
                             <input :type="showPass ? 'text' : 'password'" name="password" required
                                    @focus="focused = 'password'" @blur="focused = ''"
                                    class="block w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-200"
-                                   placeholder="••••••••">
+                                   placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
                             <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors focus:outline-none">
                                 <i class="fas fa-fw" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>

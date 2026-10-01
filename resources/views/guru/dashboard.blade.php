@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru — SMKN 1 Beringin</title>
+    <title>Dashboard Guru â€” SMKN 1 Beringin</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,9 +25,13 @@
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow p-6 border border-green-100 dark:border-slate-800 transition-colors duration-200">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1" class="w-10 h-10 object-contain">
+                    <div class="flex items-center gap-2.5">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1" class="w-10 h-10 object-contain">
+                        <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-6 w-auto max-w-[120px] object-contain">
+                    </div>
                     <div>
-                        <h1 class="text-xl font-bold text-green-700 dark:text-green-400">Halo, {{ auth()->user()->name }} 👋</h1>
+                        <h1 class="text-xl font-bold text-green-700 dark:text-green-400">Halo, {{ auth()->user()->name }} ðŸ‘‹</h1>
                         <p class="text-gray-500 dark:text-slate-400 text-sm">Selamat datang di dashboard guru SMKN 1 Beringin.</p>
                     </div>
                 </div>

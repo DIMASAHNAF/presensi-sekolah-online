@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — Presensi SMKN 1 Beringin</title>
-    <meta name="description" content="Sistem Presensi Sekolah SMKN 1 Beringin — Panel Manajemen">
+    <title>@yield('title', 'Dashboard') â€” Presensi SMKN 1 Beringin</title>
+    <meta name="description" content="Sistem Presensi Sekolah SMKN 1 Beringin â€” Panel Manajemen">
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1d4ed8">
@@ -48,13 +48,13 @@
         h1, h2, h3, .font-heading { font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* ─── Base ─────────────────────────────────────────────── */
+        /* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         body {
             background-color: #f0f4f8;
             color: #1e293b;
         }
 
-        /* ─── Sidebar (Light / Materially style) ───────────────── */
+        /* â”€â”€â”€ Sidebar (Light / Materially style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .sidebar-bg {
             background: #ffffff;
             border-right: 1px solid #e2e8f0;
@@ -100,7 +100,7 @@
         .nav-link.active .icon { color: #1d4ed8; }
         .nav-link:hover .icon { color: #475569; }
 
-        /* ─── Stat Cards (Materially style) ─────────────────────── */
+        /* â”€â”€â”€ Stat Cards (Materially style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stat-card {
             background: #ffffff;
             border-radius: 0.75rem;
@@ -130,7 +130,7 @@
         .stat-card.accent-amber  { --card-accent: #d97706; }
         .stat-card.accent-red    { --card-accent: #dc2626; }
 
-        /* ─── Buttons ─────────────────────────────────────────────── */
+        /* â”€â”€â”€ Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .btn-primary {
             background: #1d4ed8;
             color: #ffffff;
@@ -182,7 +182,7 @@
             color: #9f1239;
         }
 
-        /* ─── Status Badges ───────────────────────────────────────── */
+        /* â”€â”€â”€ Status Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .badge-hadir  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
         .badge-izin   { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
         .badge-sakit  { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
@@ -193,16 +193,16 @@
             font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em;
         }
 
-        /* ─── Table ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .table-row:hover td { background: #f8fafc; }
 
-        /* ─── Header ──────────────────────────────────────────────── */
+        /* â”€â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .main-header {
             background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
         }
 
-        /* ─── Card wrapper ────────────────────────────────────────── */
+        /* â”€â”€â”€ Card wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .content-card {
             background: #ffffff;
             border-radius: 0.75rem;
@@ -210,7 +210,7 @@
             box-shadow: 0 1px 3px rgba(15,23,42,0.05);
         }
 
-        /* ─── Misc ────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Misc â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [x-cloak] { display: none !important; }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -244,13 +244,19 @@
        x-cloak>
 
     {{-- School Header (blue accent top bar) --}}
-    <div class="sidebar-logo-area flex items-center gap-3 px-5 py-4 shrink-0">
-        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/30 overflow-hidden p-1">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1" class="w-full h-full object-contain">
+    <div class="sidebar-logo-area flex items-center justify-between gap-2 px-4 py-3.5 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/30 overflow-hidden p-1">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1" class="w-full h-full object-contain">
+            </div>
+            <div class="min-w-0">
+                <p class="font-heading font-extrabold text-xs text-white tracking-tight truncate leading-tight">SMKN 1 BERINGIN</p>
+                <p class="text-blue-200 text-[9px] font-semibold tracking-widest uppercase">Sistem Presensi</p>
+            </div>
         </div>
-        <div class="min-w-0">
-            <p class="font-heading font-extrabold text-sm text-white tracking-tight truncate leading-tight">SMKN 1 BERINGIN</p>
-            <p class="text-blue-200 text-[10px] font-semibold tracking-widest mt-0.5 uppercase">Sistem Presensi</p>
+        <div class="h-6 w-px bg-white/25 shrink-0"></div>
+        <div class="bg-white/95 rounded-lg px-2 py-1 flex items-center justify-center shrink-0 shadow-xs">
+            <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-4 sm:h-5 w-auto max-w-[80px] object-contain">
         </div>
     </div>
 
@@ -498,3 +504,4 @@
 @stack('scripts')
 </body>
 </html>
+

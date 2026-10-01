@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Presensi">
     <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
-    <title>Portal Presensi Siswa — SMKN 1 Beringin</title>
+    <title>Portal Presensi Siswa â€” SMKN 1 Beringin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -65,7 +65,7 @@
             min-height: 100vh;
         }
 
-        /* ── Profile Header ── */
+        /* â”€â”€ Profile Header â”€â”€ */
         .profile-hero {
             background: #1d4ed8;
             position: relative;
@@ -80,7 +80,7 @@
             top: -60px; right: -40px;
         }
 
-        /* ── Stat pill cards ── */
+        /* â”€â”€ Stat pill cards â”€â”€ */
         .stat-pill {
             border-radius: 1rem;
             padding: 1rem 0.5rem 0.85rem;
@@ -93,7 +93,7 @@
         .stat-pill.sakit  { background: #dbeafe; border: 1.5px solid #93c5fd; }
         .stat-pill.alpa   { background: #fee2e2; border: 1.5px solid #fca5a5; }
 
-        /* ── Micro Badges ── */
+        /* â”€â”€ Micro Badges â”€â”€ */
         .badge-hadir {
             background: #f0fdf4;
             color: #15803d;
@@ -147,7 +147,7 @@
             }
         }
 
-        /* ── Face Oval HUD ── */
+        /* â”€â”€ Face Oval HUD â”€â”€ */
         .face-oval {
             position: absolute;
             top: 50%;
@@ -234,19 +234,25 @@
 
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
 
-        {{-- ────────────────────────────────────────────── --}}
+        {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         {{-- 1. DESKTOP SIDEBAR (lg:flex)                    --}}
-        {{-- ────────────────────────────────────────────── --}}
+        {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         <aside class="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 sticky top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 justify-between z-30 select-none">
             <div>
                 {{-- Brand Header --}}
-                <div class="flex items-center gap-3 pb-5 border-b border-slate-100 dark:border-slate-800">
-                    <div class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-1.5 flex items-center justify-center shadow-xs shrink-0">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
+                <div class="flex items-center justify-between gap-2 pb-5 border-b border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-9 h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-1 flex items-center justify-center shadow-xs shrink-0">
+                            <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-heading font-black text-xs uppercase tracking-wider block text-slate-900 dark:text-white truncate">SMKN 1 BERINGIN</span>
+                            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
+                        </div>
                     </div>
-                    <div class="min-w-0">
-                        <span class="font-heading font-black text-xs uppercase tracking-wider block text-slate-900 dark:text-white truncate">SMKN 1 BERINGIN</span>
-                        <span class="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
+                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 flex items-center justify-center shrink-0 shadow-xs">
+                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-4 sm:h-5 w-auto max-w-[70px] object-contain">
                     </div>
                 </div>
 
@@ -344,22 +350,19 @@
             </div>
         </aside>
 
-        {{-- ────────────────────────────────────────────── --}}
+        {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         {{-- 2. RIGHT WRAPPER (Topbars + Content + Bottom)   --}}
-        {{-- ────────────────────────────────────────────── --}}
+        {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         <div class="flex-1 flex flex-col min-w-0 min-h-screen">
 
             {{-- Mobile Top Navbar (lg:hidden) --}}
             <header class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
                 <div class="px-4 py-2.5 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="flex items-center gap-2 min-w-0">
                         <div class="w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 flex items-center justify-center shadow-xs shrink-0">
                             <img src="{{ asset('images/logo.png') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
                         </div>
-                        <div class="min-w-0">
-                            <span class="font-heading font-extrabold text-[11px] uppercase tracking-wider block text-slate-900 dark:text-white truncate">SMKN 1 BERINGIN</span>
-                            <span class="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
-                        </div>
+                        <img src="{{ asset('images/logo-kolaborasi.png') }}" alt="Logo Kolaborasi" class="h-4 w-auto max-w-[65px] object-contain shrink-0">
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <x-sky-toggle size="8px" id="siswa-sky-toggle-mobile" />
@@ -393,11 +396,11 @@
             {{-- MAIN TABS CONTENT AREA --}}
             <main class="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 py-5 pb-28 lg:pb-12 space-y-6">
 
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 {{-- TAB 1: BERANDA (OVERVIEW & SCAN CEPAT)     --}}
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 <div x-show="activeTab === 'beranda'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
-                    {{-- KARTU PROFIL SISWA — Cover & Avatar Style --}}
+                    {{-- KARTU PROFIL SISWA â€” Cover & Avatar Style --}}
                     <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" data-aos="fade-down">
                         {{-- 1. Cover Banner Image --}}
                         <div class="relative h-28 sm:h-36 w-full bg-slate-800 overflow-hidden group">
@@ -500,7 +503,7 @@
                                 <div class="mt-3">
                                     <template x-if="profileBio">
                                         <p class="text-xs text-slate-600 dark:text-slate-300 italic leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800"
-                                           x-text="'“' + profileBio + '”'"></p>
+                                           x-text="'â€œ' + profileBio + 'â€'"></p>
                                     </template>
                                 </div>
 
@@ -776,9 +779,9 @@
                     </div>
                 </div>
 
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 {{-- TAB 2: KEHADIRAN & RIWAYAT                 --}}
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 <div x-show="activeTab === 'kehadiran'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
                     {{-- Header Kehadiran --}}
                     <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
@@ -796,7 +799,7 @@
                         </div>
                     </div>
 
-                    {{-- STAT CARDS — Colored Pills --}}
+                    {{-- STAT CARDS â€” Colored Pills --}}
                     <div class="grid grid-cols-4 gap-2.5">
                         <div class="stat-pill hadir shadow-sm">
                             <div class="w-8 h-8 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
@@ -935,9 +938,9 @@
                     </div>
                 </div>
 
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 {{-- TAB 3: TEMAN SEKELAS (DIREKTORI SOSIAL)    --}}
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 <div x-show="activeTab === 'teman'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
                     {{-- Header Teman --}}
                     <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
@@ -1022,7 +1025,7 @@
                                         <p class="text-[11px] font-mono text-slate-400" x-text="'@' + (item.username || 'siswa')"></p>
 
                                         <template x-if="item.bio">
-                                            <p class="text-[11px] text-slate-600 dark:text-slate-300 italic mt-2 line-clamp-2" x-text="'“' + item.bio + '”'"></p>
+                                            <p class="text-[11px] text-slate-600 dark:text-slate-300 italic mt-2 line-clamp-2" x-text="'â€œ' + item.bio + 'â€'"></p>
                                         </template>
                                     </div>
                                 </div>
@@ -1036,9 +1039,9 @@
                     </div>
                 </div>
 
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 {{-- TAB 4: AKUN & PROFIL                       --}}
-                {{-- ══════════════════════════════════════════ --}}
+                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
                 <div x-show="activeTab === 'profil'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
                     {{-- Header Profil --}}
                     <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
@@ -1137,9 +1140,9 @@
 
             </main>
 
-            {{-- ────────────────────────────────────────────── --}}
+            {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             {{-- 3. MOBILE FLOATING BOTTOM BAR (lg:hidden)       --}}
-            {{-- ────────────────────────────────────────────── --}}
+            {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <nav class="lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 select-none">
                 <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/90 rounded-2xl shadow-2xl px-2 py-1.5 flex items-center justify-around">
                     {{-- 1. Beranda --}}
@@ -1179,9 +1182,9 @@
         </div>
     </div>
 
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     {{-- FACE SCANNER MODAL (ROUNDED-3XL LIGHT THEME) --}}
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     <div x-show="isScanning" x-cloak
         class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
         <div @click.away="closeFaceScanner()"
@@ -1245,7 +1248,7 @@
                     class="absolute inset-0 bg-emerald-950/85 flex items-center justify-center z-30">
                     <div class="text-center text-white checkmark-pop">
                         <i class="fas fa-circle-check text-5xl text-emerald-400"></i>
-                        <p class="mt-2 font-heading font-extrabold text-lg text-white">TERVERIFIKASI HADIR ✓</p>
+                        <p class="mt-2 font-heading font-extrabold text-lg text-white">TERVERIFIKASI HADIR âœ“</p>
                     </div>
                 </div>
                 <div x-show="scanState === 'failed'"
@@ -1281,9 +1284,9 @@
         </div>
     </div>
 
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     {{-- MODAL EDIT PROFILE (IMAGE 1 SHADCN / X STYLE) --}}
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     <div x-show="showEditProfile" x-cloak
         class="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
         <div @click.away="closeEditProfileModal()"
@@ -1455,9 +1458,9 @@
         </div>
     </div>
 
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     {{-- MODAL DETAIL TEMAN SEKELAS (WHO'S IN CLASS)   --}}
-    {{-- ──────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     <div x-show="showClassmateModal" x-cloak
         class="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
         <div @click.away="closeClassmateModal()"
@@ -1517,7 +1520,7 @@
                 {{-- Bio --}}
                 <div class="mt-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                     <template x-if="selectedClassmate?.bio">
-                        <p class="text-xs text-slate-700 dark:text-slate-200 italic leading-relaxed" x-text="'“' + selectedClassmate.bio + '”'"></p>
+                        <p class="text-xs text-slate-700 dark:text-slate-200 italic leading-relaxed" x-text="'â€œ' + selectedClassmate.bio + 'â€'"></p>
                     </template>
                     <template x-if="!selectedClassmate?.bio">
                         <p class="text-xs text-slate-400 dark:text-slate-500 italic">Teman ini belum menulis biografi profil.</p>
@@ -1545,9 +1548,9 @@
         </div>
     </div>
 
-    {{-- ──────────────────────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     {{-- MODAL REKAP LENGKAP PRESENSI (CEK DATA KEHADIRAN SELAMA INI) --}}
-    {{-- ──────────────────────────────────────────────────────────── --}}
+    {{-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     <div x-show="showRiwayatLengkap" x-cloak
         class="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
         <div @click.away="showRiwayatLengkap = false"
@@ -1774,7 +1777,7 @@
         setInterval(updateSiswaClock, 60000);
 
 
-        // ── Web Audio API Synthesizer (No external MP3 files needed) ──
+        // â”€â”€ Web Audio API Synthesizer (No external MP3 files needed) â”€â”€
         const audioFx = {
             ctx: null,
             getCtx() {
@@ -1856,15 +1859,15 @@
 
         function dashboardApp() {
             return {
-                // ── App Shell Navigation State ──
+                // â”€â”€ App Shell Navigation State â”€â”€
                 activeTab: (['beranda', 'kehadiran', 'teman', 'profil'].includes(window.location.hash.replace('#', '')) ? window.location.hash.replace('#', '') : 'beranda'),
 
-                // ── Classmate Social Directory State ──
+                // â”€â”€ Classmate Social Directory State â”€â”€
                 classmateSearch: '',
                 classmateFilter: 'semua',
                 classmatesList: {!! json_encode($temanSekelas) !!},
 
-                // ── Profile & Social State ──
+                // â”€â”€ Profile & Social State â”€â”€
                 showEditProfile: false,
                 showClassmateModal: false,
                 selectedClassmate: null,
@@ -1899,14 +1902,14 @@
                 riwayatSearch: '',
                 riwayatSemuaList: {!! json_encode($riwayatSemuaFormatted) !!},
 
-                // ── Sesi polling state ──
+                // â”€â”€ Sesi polling state â”€â”€
                 sesiLoading: true,
                 sesiData: null,
                 sudahHadir: false,
                 currentSesiId: null,
                 pollInterval: null,
 
-                // ── Geofencing state ──
+                // â”€â”€ Geofencing state â”€â”€
                 schoolLat: {{ $schoolSetting->latitude }},
                 schoolLng: {{ $schoolSetting->longitude }},
                 schoolRadius: {{ $schoolSetting->radius_meters }},
@@ -1917,16 +1920,16 @@
                 geoStatus: 'checking',
                 isRequestingGeo: false,
 
-                // ── IP Whitelist state ──
+                // â”€â”€ IP Whitelist state â”€â”€
                 ipWhitelistActive: {{ $schoolSetting->is_ip_whitelist_active ? 'true' : 'false' }},
                 clientIp: '{{ \App\Models\SchoolSetting::getClientIp(request()) }}',
                 isIpAllowed: {{ $schoolSetting->isIpAllowed(\App\Models\SchoolSetting::getClientIp(request())) ? 'true' : 'false' }},
 
-                // ── PWA install prompt ──
+                // â”€â”€ PWA install prompt â”€â”€
                 showInstallPrompt: false,
                 deferredPrompt: null,
 
-                // ── Face scanner state ──
+                // â”€â”€ Face scanner state â”€â”€
                 isScanning: false,
                 scanState: 'idle',
                 scanMessage: '',
@@ -2069,7 +2072,7 @@
                         .catch(() => { this.sesiLoading = false; });
                 },
 
-                // ── Buka Modal Pemindai Wajah ──
+                // â”€â”€ Buka Modal Pemindai Wajah â”€â”€
                 async openFaceScanner() {
                     if (!this.isFaceEnrolled) {
                         audioFx.playError();
@@ -2238,7 +2241,7 @@
                                 audioFx.playSuccess();
                                 this.scanState = 'success';
                                 this.scanSuccess = true;
-                                this.scanMessage = '🎉 Berhasil! Anda tercatat HADIR.';
+                                this.scanMessage = 'ðŸŽ‰ Berhasil! Anda tercatat HADIR.';
                                 this.sudahHadir = true;
                                 this.stopCamera();
                                 setTimeout(() => {
@@ -2283,7 +2286,7 @@
                     }
                 },
 
-                // ── Profile Methods ──
+                // â”€â”€ Profile Methods â”€â”€
                 openEditProfileModal() {
                     this.editUsername = this.profileUsername;
                     this.editBio = this.profileBio || '';
@@ -2407,7 +2410,7 @@
                     }
                 },
 
-                // ── Classmate Modal Methods ──
+                // â”€â”€ Classmate Modal Methods â”€â”€
                 openClassmateModal(teman) {
                     if (!teman) return;
                     if (!teman.avatar_url && teman.avatar) {
@@ -2425,7 +2428,7 @@
                     this.selectedClassmate = null;
                 },
 
-                // ── Riwayat Filter Method ──
+                // â”€â”€ Riwayat Filter Method â”€â”€
                 filteredRiwayat() {
                     return this.riwayatSemuaList.filter(item => {
                         // Filter status
@@ -2445,7 +2448,7 @@
                     });
                 },
 
-                // ── App Shell Tab Switching & Classmate Filtering ──
+                // â”€â”€ App Shell Tab Switching & Classmate Filtering â”€â”€
                 switchTab(tab) {
                     this.activeTab = tab;
                     window.location.hash = tab;
