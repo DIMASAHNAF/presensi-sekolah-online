@@ -1,0 +1,671 @@
+/* ═══════════════════════════════════════════════════════════════
+   PRESTASI & PRESENSI SEKOLAH — ENHANCED HIGH-CONTRAST DARK THEME
+   Guarantees 100% text readability, high contrast, and luminous UI
+   ═══════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b1120 !important;
+  color: #f1f5f9 !important;
+}
+
+/* ── Smooth Theme Transition ── */
+html, body, aside, header, nav, .content-card, .stat-card, .main-header, .stat-pill, .bg-white {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   1. UNIVERSAL BACKGROUND & BORDER OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Any card or section with .bg-white or .content-card converts to dark slate-900 */
+html.dark .bg-white:not(.theme-switch__container):not(.theme-switch__clouds),
+html.dark .content-card {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+/* Sub-panels, inputs, and light-slate blocks convert to slate-800 */
+html.dark .bg-slate-50,
+html.dark [class*="bg-slate-50/"],
+html.dark .bg-slate-100,
+html.dark [class*="bg-slate-100/"] {
+  background-color: #162032 !important;
+  border-color: #1e293b !important;
+}
+
+/* Medium grey containers (like search icon buttons) */
+html.dark .bg-slate-200,
+html.dark [class*="bg-slate-200/"] {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .bg-slate-300,
+html.dark [class*="bg-slate-300/"] {
+  background-color: #475569 !important;
+  border-color: #64748b !important;
+  color: #ffffff !important;
+}
+
+/* Borders */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300,
+html.dark [class*="border-slate-100/"],
+html.dark [class*="border-slate-200/"],
+html.dark [class*="border-slate-300/"],
+html.dark .border-green-100,
+html.dark .border-green-200 {
+  border-color: #1e293b !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. HIGH-CONTRAST TYPOGRAPHY IN DARK MODE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Headings and Primary Titles -> Pure Crisp White */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #ffffff !important;
+}
+
+/* Subheadings and Primary Body Text -> Slate 200 (Never dark!) */
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-gray-700,
+html.dark .text-gray-600 {
+  color: #e2e8f0 !important;
+}
+
+/* Labels, Descriptions, and Secondary Info -> Slate 300 (Guaranteed >7:1 WCAG AAA Contrast) */
+html.dark .text-slate-500,
+html.dark .text-gray-500 {
+  color: #cbd5e1 !important;
+}
+
+/* Metadata, Timestamps, and Subtle Captions -> Clear Silver (#a8b3cf) */
+html.dark .text-slate-400,
+html.dark .text-gray-400 {
+  color: #a8b3cf !important;
+}
+
+/* Light text preservation */
+html.dark .text-white {
+  color: #ffffff !important;
+}
+html.dark .text-slate-100 {
+  color: #f1f5f9 !important;
+}
+html.dark .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+html.dark .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* Strong / Bold elements inherit high readability */
+html.dark strong,
+html.dark b {
+  color: inherit;
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. UNIVERSAL LUMINOUS ACCENT TEXT COLORS (NO FADED TEXT)
+   Replaces dark-mode invisible saturated colors with bright pastels
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Blue text luminous in dark mode */
+html.dark .text-blue-500,
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark .text-blue-800,
+html.dark .text-blue-900 {
+  color: #93c5fd !important; /* Tailwind blue-300 */
+}
+
+/* Emerald & Green text luminous in dark mode */
+html.dark .text-emerald-500,
+html.dark .text-emerald-600,
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-emerald-900,
+html.dark .text-green-500,
+html.dark .text-green-600,
+html.dark .text-green-700,
+html.dark .text-green-800,
+html.dark .text-green-900 {
+  color: #6ee7b7 !important; /* Tailwind emerald-300 */
+}
+
+/* Amber & Yellow text luminous in dark mode */
+html.dark .text-amber-500,
+html.dark .text-amber-600,
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900,
+html.dark .text-yellow-500,
+html.dark .text-yellow-600,
+html.dark .text-yellow-700,
+html.dark .text-yellow-800 {
+  color: #fde68a !important; /* Tailwind amber-200 */
+}
+
+/* Rose & Red text luminous in dark mode */
+html.dark .text-rose-500,
+html.dark .text-rose-600,
+html.dark .text-rose-700,
+html.dark .text-rose-800,
+html.dark .text-rose-900,
+html.dark .text-red-500,
+html.dark .text-red-600,
+html.dark .text-red-700,
+html.dark .text-red-800,
+html.dark .text-red-900 {
+  color: #fca5a5 !important; /* Tailwind rose-300 */
+}
+
+/* Sky text luminous in dark mode */
+html.dark .text-sky-500,
+html.dark .text-sky-600,
+html.dark .text-sky-700,
+html.dark .text-sky-800,
+html.dark .text-sky-900 {
+  color: #7dd3fc !important; /* Tailwind sky-300 */
+}
+
+/* Indigo text luminous in dark mode */
+html.dark .text-indigo-500,
+html.dark .text-indigo-600,
+html.dark .text-indigo-700,
+html.dark .text-indigo-800,
+html.dark .text-indigo-900 {
+  color: #a5b4fc !important; /* Tailwind indigo-300 */
+}
+
+/* Teal text luminous in dark mode */
+html.dark .text-teal-500,
+html.dark .text-teal-600,
+html.dark .text-teal-700,
+html.dark .text-teal-800,
+html.dark .text-teal-900 {
+  color: #5eead4 !important; /* Tailwind teal-300 */
+}
+
+/* Purple & Violet text luminous in dark mode */
+html.dark .text-purple-500,
+html.dark .text-purple-600,
+html.dark .text-purple-700,
+html.dark .text-purple-800,
+html.dark .text-purple-900,
+html.dark .text-violet-500,
+html.dark .text-violet-600,
+html.dark .text-violet-700,
+html.dark .text-violet-800,
+html.dark .text-violet-900 {
+  color: #d8b4fe !important; /* Tailwind purple-300 */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. TRANSLUCENT TINTED CONTAINERS (PILLS, ALERTS, NOTICES)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Blue tinted boxes */
+html.dark .bg-blue-50,
+html.dark [class*="bg-blue-50/"],
+html.dark .bg-blue-100,
+html.dark [class*="bg-blue-100/"] {
+  background-color: rgba(30, 64, 175, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #93c5fd !important;
+}
+html.dark .bg-blue-50 i,
+html.dark .bg-blue-100 i,
+html.dark [class*="bg-blue-50/"] i {
+  color: #93c5fd !important;
+}
+
+/* Emerald & Green tinted boxes */
+html.dark .bg-emerald-50,
+html.dark [class*="bg-emerald-50/"],
+html.dark .bg-emerald-100,
+html.dark [class*="bg-emerald-100/"],
+html.dark .bg-green-50,
+html.dark [class*="bg-green-50/"],
+html.dark .bg-green-100,
+html.dark [class*="bg-green-100/"] {
+  background-color: rgba(6, 95, 70, 0.28) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .bg-emerald-50 i,
+html.dark .bg-emerald-100 i,
+html.dark [class*="bg-emerald-50/"] i,
+html.dark .bg-green-50 i {
+  color: #6ee7b7 !important;
+}
+
+/* Amber & Yellow tinted boxes */
+html.dark .bg-amber-50,
+html.dark [class*="bg-amber-50/"],
+html.dark .bg-amber-100,
+html.dark [class*="bg-amber-100/"],
+html.dark .bg-yellow-50,
+html.dark [class*="bg-yellow-50/"],
+html.dark .bg-yellow-100,
+html.dark [class*="bg-yellow-100/"] {
+  background-color: rgba(146, 64, 14, 0.25) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #fde68a !important;
+}
+html.dark .bg-amber-50 i,
+html.dark .bg-amber-100 i,
+html.dark [class*="bg-amber-50/"] i {
+  color: #fde68a !important;
+}
+
+/* Rose & Red tinted boxes */
+html.dark .bg-rose-50,
+html.dark [class*="bg-rose-50/"],
+html.dark .bg-rose-100,
+html.dark [class*="bg-rose-100/"],
+html.dark .bg-red-50,
+html.dark [class*="bg-red-50/"],
+html.dark .bg-red-100,
+html.dark [class*="bg-red-100/"] {
+  background-color: rgba(159, 18, 57, 0.25) !important;
+  border-color: rgba(244, 63, 94, 0.4) !important;
+  color: #fca5a5 !important;
+}
+html.dark .bg-rose-50 i,
+html.dark .bg-rose-100 i,
+html.dark [class*="bg-rose-50/"] i,
+html.dark .bg-red-50 i {
+  color: #fca5a5 !important;
+}
+
+/* Sky tinted boxes */
+html.dark .bg-sky-50,
+html.dark [class*="bg-sky-50/"],
+html.dark .bg-sky-100,
+html.dark [class*="bg-sky-100/"] {
+  background-color: rgba(7, 89, 133, 0.25) !important;
+  border-color: rgba(14, 165, 233, 0.4) !important;
+  color: #7dd3fc !important;
+}
+
+/* Indigo tinted boxes */
+html.dark .bg-indigo-50,
+html.dark [class*="bg-indigo-50/"],
+html.dark .bg-indigo-100,
+html.dark [class*="bg-indigo-100/"] {
+  background-color: rgba(55, 48, 163, 0.25) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  color: #a5b4fc !important;
+}
+
+/* Teal tinted boxes */
+html.dark .bg-teal-50,
+html.dark [class*="bg-teal-50/"],
+html.dark .bg-teal-100,
+html.dark [class*="bg-teal-100/"] {
+  background-color: rgba(17, 94, 89, 0.25) !important;
+  border-color: rgba(20, 184, 166, 0.4) !important;
+  color: #5eead4 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. SIDEBAR & NAVIGATION (ADMIN & GURU)
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .sidebar-bg {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dark .sidebar-category {
+  color: #94a3b8 !important;
+}
+
+html.dark .nav-link {
+  color: #cbd5e1 !important;
+}
+
+html.dark .nav-link .icon {
+  color: #94a3b8 !important;
+}
+
+html.dark .nav-link:hover {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+html.dark .nav-link:hover .icon {
+  color: #93c5fd !important;
+}
+
+html.dark .nav-link.active {
+  background-color: rgba(29, 78, 216, 0.25) !important;
+  color: #93c5fd !important;
+  border-left-color: #3b82f6 !important;
+}
+
+html.dark .nav-link.active .icon {
+  color: #60a5fa !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. MAIN HEADER & NAVBAR
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .main-header,
+html.dark header.sticky,
+html.dark header {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+html.dark .main-header .bg-slate-50,
+html.dark header .bg-slate-50 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. SISWA DASHBOARD SPECIFIC FIXES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Siswa 4 Stat Pills (Hadir, Izin, Sakit, Alpa) */
+html.dark .stat-pill.hadir {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+html.dark .stat-pill.hadir p {
+  color: #6ee7b7 !important;
+}
+
+html.dark .stat-pill.izin {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+}
+html.dark .stat-pill.izin p {
+  color: #fde68a !important;
+}
+
+html.dark .stat-pill.sakit {
+  background: rgba(14, 165, 233, 0.18) !important;
+  border-color: rgba(14, 165, 233, 0.45) !important;
+}
+html.dark .stat-pill.sakit p {
+  color: #7dd3fc !important;
+}
+
+html.dark .stat-pill.alpa {
+  background: rgba(244, 63, 94, 0.18) !important;
+  border-color: rgba(244, 63, 94, 0.45) !important;
+}
+html.dark .stat-pill.alpa p {
+  color: #fca5a5 !important;
+}
+
+/* Active Session Card - Bottom Radar Area */
+html.dark div[class*="border-blue-500/20"] {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+/* Hover effects */
+html.dark .hover\:bg-slate-50:hover,
+html.dark [class*="hover:bg-slate-50"]:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark [class*="hover:bg-slate-100"]:hover {
+  background-color: #162032 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. ADMIN & GURU DASHBOARD STAT CARDS
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .stat-card {
+  background-color: #0f172a !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.dark .stat-card .w-9.h-9.bg-white,
+html.dark .stat-card .w-9.h-9.bg-slate-100 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* Stat card main numbers */
+html.dark .stat-card p.font-heading {
+  color: #ffffff !important;
+}
+
+/* Stat card descriptions */
+html.dark .stat-card p.text-xs {
+  color: #cbd5e1 !important;
+}
+
+/* Stat card bottom action links */
+html.dark .stat-card .text-blue-600 {
+  color: #93c5fd !important;
+}
+html.dark .stat-card .text-amber-600 {
+  color: #fde68a !important;
+}
+html.dark .stat-card .text-emerald-600 {
+  color: #6ee7b7 !important;
+}
+html.dark .stat-card .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. STATUS BADGES
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .badge {
+  font-weight: 700 !important;
+}
+
+html.dark .badge-hadir {
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+html.dark .badge-izin {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+html.dark .badge-sakit {
+  background: rgba(59, 130, 246, 0.22) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+html.dark .badge-alpa {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   10. TABLES & DATA GRIDS
+   ═══════════════════════════════════════════════════════════════ */
+html.dark table {
+  border-color: #1e293b !important;
+}
+
+html.dark thead,
+html.dark thead tr,
+html.dark thead th {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+html.dark tbody tr {
+  border-color: #1e293b !important;
+}
+
+html.dark tbody tr td {
+  color: #cbd5e1 !important;
+}
+
+html.dark .table-row:hover td,
+html.dark tbody tr:hover td {
+  background-color: #162032 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   11. BUTTONS & FORMS
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .btn-secondary {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .btn-secondary:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+html.dark .btn-danger {
+  background-color: rgba(159, 18, 57, 0.25) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+
+html.dark .btn-danger:hover {
+  background-color: rgba(159, 18, 57, 0.4) !important;
+  color: #ffffff !important;
+  border-color: rgba(244, 63, 94, 0.6) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #162032 !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  background-color: #1e293b !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dark select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   12. MODALS & POPUPS
+   ═══════════════════════════════════════════════════════════════ */
+html.dark .modal-content,
+html.dark [x-show].fixed .bg-white {
+  background-color: #0f172a !important;
+  border: 1px solid #1e293b !important;
+  color: #ffffff !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark [x-show].fixed .bg-slate-50,
+html.dark .modal-content .bg-slate-50 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark [x-show].fixed .border-slate-100,
+html.dark [x-show].fixed .border-slate-200 {
+  border-color: #1e293b !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   13. PAGINATION (LARAVEL TAILWIND PAGINATION)
+   ═══════════════════════════════════════════════════════════════ */
+html.dark nav[role="navigation"] {
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark nav[role="navigation"] a,
+html.dark nav[role="navigation"] span[aria-disabled="true"],
+html.dark nav[role="navigation"] span[aria-current] {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark nav[role="navigation"] a:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark nav[role="navigation"] span[aria-current="page"] > span,
+html.dark nav[role="navigation"] span[aria-current="page"] {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+}
+
+html.dark nav[role="navigation"] svg {
+  color: #cbd5e1 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   14. SCROLLBARS & FOOTER
+   ═══════════════════════════════════════════════════════════════ */
+html.dark ::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+html.dark footer {
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark footer strong {
+  color: #e2e8f0 !important;
+}
