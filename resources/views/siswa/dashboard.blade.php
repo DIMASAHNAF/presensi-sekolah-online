@@ -21,6 +21,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -58,6 +59,29 @@
         [x-cloak] {
             display: none !important;
         }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .magic-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .magic-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-20deg);
+            animation: shimmer 3s infinite linear;
+        }
+
 
         body {
             background-color: #f1f5f9;
@@ -415,782 +439,40 @@
                 {{-- ══════════════════════════════════════════ --}}
                 {{-- TAB 1: BERANDA (OVERVIEW & SCAN CEPAT)     --}}
                 {{-- ══════════════════════════════════════════ --}}
-                <div x-show="activeTab === 'beranda'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
-                    {{-- KARTU PROFIL SISWA — Cover & Avatar Style --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" data-aos="fade-down">
-                        {{-- 1. Cover Banner Image --}}
-                        <div class="relative h-28 sm:h-36 w-full bg-slate-800 overflow-hidden group">
-                            <template x-if="profileBannerUrl">
-                                <img :src="profileBannerUrl" 
-                                     alt="Cover Profil" 
-                                     class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                            </template>
-                            <template x-if="!profileBannerUrl">
-                                <div class="w-full h-full bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 flex items-center justify-center relative overflow-hidden">
-                                    <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
-                                </div>
-                            </template>
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-black/20 to-transparent"></div>
-
-                            {{-- Status Bar on Banner --}}
-                            <div class="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] sm:text-xs text-white border border-white/20 shadow-sm">
-                                @if($user->isFaceEnrolled())
-                                    <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
-                                    <span class="font-semibold text-white">Face ID Aktif</span>
-                                @else
-                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                    <span class="font-semibold text-amber-300">Belum Rekam Wajah</span>
-                                @endif
-                                <span class="text-white/40">&bull;</span>
-                                <span id="siswa-clock" class="font-mono">--:--</span>
-                            </div>
-
-                            {{-- Tombol Edit Profile di Pojok Kanan Banner --}}
-                            <button type="button" @click="openEditProfileModal()" 
-                                    class="absolute top-3 right-3 bg-black/60 hover:bg-black/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/25 transition-all shadow-md flex items-center gap-1.5 hover:scale-105 active:scale-95">
-                                <i class="fas fa-pen-to-square text-xs"></i>
-                                <span class="hidden sm:inline">Edit Profil</span>
-                            </button>
-                        </div>
-
-                        {{-- 2. Floating Avatar & Profile Details --}}
-                        <div class="px-4 sm:px-5 pb-5 pt-0 relative">
-                            <div class="flex items-end justify-between -mt-10 mb-3 flex-wrap gap-2">
-                                {{-- Avatar --}}
-                                <div class="relative">
-                                    <div class="w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 border-white dark:border-slate-900 overflow-hidden shadow-xl bg-blue-700 text-white shrink-0">
-                                        <template x-if="profileAvatarUrl">
-                                            <img :src="profileAvatarUrl" alt="{{ $user->name }}" class="w-full h-full object-cover">
-                                        </template>
-                                        <template x-if="!profileAvatarUrl">
-                                            <div class="w-full h-full flex items-center justify-center font-heading font-extrabold text-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
-                                                {{ strtoupper($initials) }}
-                                            </div>
-                                        </template>
-                                    </div>
-                                    @if($user->isFaceEnrolled())
-                                        <span class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm" title="Biometrik Wajah Terdaftar">
-                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        </span>
-                                    @else
-                                        <span class="absolute bottom-0 right-0 w-6 h-6 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm" title="Wajah Belum Terdaftar / Direset">
-                                            <i class="fas fa-triangle-exclamation text-[10px] text-white"></i>
-                                        </span>
-                                    @endif
-                                </div>
-
-                                {{-- Persentase Kehadiran Badge (Klik untuk beralih ke Tab Kehadiran) --}}
-                                <button type="button" @click="switchTab('kehadiran')" 
-                                        class="text-right bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 transition-all shadow-xs group"
-                                        title="Buka Rekap Kehadiran">
-                                    <div class="flex items-center gap-1.5 justify-end">
-                                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Kehadiran</span>
-                                        <i class="fas fa-chart-pie text-[11px] text-emerald-500"></i>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <p class="text-xl font-black font-heading text-emerald-600 dark:text-emerald-400 leading-tight">
-                                            {{ $persentaseKehadiran }}%
-                                        </p>
-                                        <i class="fas fa-chevron-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
-                                    </div>
-                                </button>
-                            </div>
-
-                            {{-- Student Name & Class Info --}}
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h1 class="font-heading font-black text-xl text-slate-900 dark:text-white tracking-tight leading-snug">
-                                        {{ $user->name }}
-                                    </h1>
-                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px]" title="Siswa Terverifikasi">
-                                        <i class="fas fa-check text-[10px]"></i>
-                                    </span>
-                                </div>
-
-                                <div class="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                                    <span class="font-bold text-slate-700 dark:text-slate-300 font-mono" x-text="'@' + profileUsername">
-                                        {{ '@' . ($user->username ?? 'siswa') }}
-                                    </span>
-                                    <span>&bull;</span>
-                                    <span>SMKN 1 Beringin</span>
-                                </div>
-
-                                {{-- Bio Siswa --}}
-                                <div class="mt-3">
-                                    <template x-if="profileBio">
-                                        <p class="text-xs text-slate-600 dark:text-slate-300 italic leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800"
-                                           x-text="'“' + profileBio + '”'"></p>
-                                    </template>
-                                </div>
-
-                                {{-- Website / Social Media Link --}}
-                                <template x-if="profileWebsite">
-                                    <div class="mt-2.5">
-                                        <a :href="profileWebsite.startsWith('http') ? profileWebsite : 'https://' + profileWebsite"
-                                           target="_blank" rel="noopener noreferrer"
-                                           class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                                            <i class="fas fa-link text-[10px]"></i>
-                                            <span x-text="profileWebsite.replace(/^https?:\/\//, '')"></span>
-                                        </a>
-                                    </div>
-                                </template>
-
-                                {{-- Kelas & NISN Pills --}}
-                                <div class="grid grid-cols-2 gap-2.5 mt-3.5">
-                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                            <i class="fas fa-school text-xs"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="text-[9px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Kelas</p>
-                                            <p class="text-xs font-black text-slate-800 dark:text-slate-100 truncate font-heading">{{ $user->kelas->nama_kelas ?? 'X TJKT' }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                                            <i class="fas fa-id-card text-xs"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="text-[9px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">NISN</p>
-                                            <p class="text-xs font-black text-slate-800 dark:text-slate-100 truncate font-mono">{{ $user->nisn ?? '-' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Bottom Action/Notice Bar on Profile Card --}}
-                        @if(!$user->isFaceEnrolled())
-                            <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-white border-t border-amber-400/30">
-                                <div class="flex items-center gap-2.5 text-xs font-bold min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
-                                        <i class="fas fa-triangle-exclamation text-sm text-white"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="leading-tight font-extrabold text-white truncate sm:overflow-visible">Wajah Belum Terdaftar / Direset</p>
-                                        <p class="text-[10px] text-amber-100 font-medium hidden sm:block">Wajib rekam biometrik wajah untuk verifikasi presensi</p>
-                                    </div>
-                                </div>
-                                <a href="{{ route('siswa.enroll') }}" class="shrink-0 bg-white hover:bg-amber-50 text-amber-800 hover:text-amber-900 text-xs font-black px-3.5 py-1.5 rounded-xl transition-all shadow-sm hover:shadow active:scale-95 flex items-center gap-1.5">
-                                    <i class="fas fa-camera text-xs text-amber-600"></i>
-                                    <span>Rekam Wajah</span>
-                                </a>
-                            </div>
-                        @elseif(!$user->bio)
-                            <div class="bg-blue-50/70 dark:bg-blue-950/40 border-t border-blue-100 dark:border-blue-900/50 px-4 sm:px-5 py-2.5 flex items-center justify-between">
-                                <div class="flex items-center gap-2 text-xs text-blue-800 dark:text-blue-200">
-                                    <i class="fas fa-sparkles text-blue-500"></i>
-                                    <span>Lengkapi bio profil & link sosmed kamu!</span>
-                                </div>
-                                <button type="button" @click="openEditProfileModal()" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold">
-                                    Atur &rarr;
-                                </button>
-                            </div>
-                        @else
-                            <div class="bg-blue-700 dark:bg-blue-950/80 px-4 sm:px-5 py-2 flex items-center gap-2 text-white text-xs font-semibold border-t border-blue-600/40">
-                                <i class="fas fa-shield-check text-blue-200 text-xs"></i>
-                                <span class="text-[11px] text-blue-100">Sistem biometrik Face ID aktif & terverifikasi</span>
-                            </div>
-                        @endif
-                    </div>
-
-                    {{-- SESI PRESENSI AKTIF CARD (PRIORITAS SCAN UTAMA) --}}
-                    <div>
-                        {{-- Loading State --}}
-                        <div x-show="sesiLoading"
-                            class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center justify-center gap-3">
-                            <div class="w-12 h-12 rounded-full border-4 border-blue-100 dark:border-slate-800 border-t-blue-600 animate-spin"></div>
-                            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Menghubungkan ke server presensi...</span>
-                        </div>
-
-                        {{-- 1. Ada sesi aktif, SUDAH HADIR --}}
-                        <div x-show="!sesiLoading && sesiData && sudahHadir" x-cloak
-                            class="bg-blue-600 rounded-2xl shadow-sm border border-blue-700 overflow-hidden text-white">
-                            <div class="px-5 py-4 flex items-start justify-between">
-                                <div>
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
-                                        <span>SESI SEDANG BERLANGSUNG</span>
-                                    </div>
-                                    <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
-                                    <p x-text="'Guru: ' + sesiData?.guru" class="text-blue-100 text-xs mt-0.5 font-medium"></p>
-                                </div>
-                                <div class="bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
-                                    <i class="fas fa-circle-check text-xl text-emerald-600 dark:text-emerald-400"></i>
-                                    <p class="text-[10px] font-extrabold mt-0.5 font-mono text-emerald-600 dark:text-emerald-400">HADIR</p>
-                                </div>
-                            </div>
-                            <div class="bg-emerald-50 dark:bg-emerald-950/70 border-t border-emerald-100 dark:border-emerald-900/60 px-5 py-3 flex items-center gap-2.5 text-emerald-900 dark:text-emerald-200">
-                                <i class="fas fa-shield-halved text-emerald-600 dark:text-emerald-400 text-base shrink-0"></i>
-                                <span class="text-xs font-semibold">Kehadiran Anda telah terverifikasi biometrik. Selamat belajar!</span>
-                            </div>
-                        </div>
-
-                        {{-- 2. Ada sesi aktif, BELUM HADIR --}}
-                        <div x-show="!sesiLoading && sesiData && !sudahHadir" x-cloak
-                            class="bg-blue-600 rounded-2xl shadow-sm border border-blue-700 overflow-hidden text-white">
-                            <div class="px-5 py-4 flex items-start justify-between">
-                                <div>
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
-                                        <span>SESI PRESENSI DIBUKA</span>
-                                    </div>
-                                    <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
-                                    <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-mono font-medium"></p>
-                                    <p x-text="'Pengampu: ' + sesiData?.guru" class="text-blue-200 text-xs mt-0.5 font-medium"></p>
-                                </div>
-                                <div class="bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
-                                    <i class="far fa-clock text-xl text-amber-500 dark:text-amber-400"></i>
-                                    <p class="text-[10px] font-extrabold mt-0.5 font-mono text-amber-600 dark:text-amber-400">BELUM</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-5 border-t border-blue-500/20 dark:border-slate-800">
-                                {{-- WiFi Whitelist Radar --}}
-                                <div x-show="ipWhitelistActive" class="mb-4 pb-3.5 border-b border-slate-100 dark:border-slate-800">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xs text-slate-700 dark:text-slate-200 font-bold flex items-center gap-1.5">
-                                            <i class="fas fa-wifi text-blue-600 dark:text-blue-400"></i> WiFi Sekolah:
-                                        </span>
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
-                                              :class="isIpAllowed ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
-                                            IP: <span x-text="clientIp"></span>
-                                        </span>
-                                    </div>
-                                    <div x-show="isIpAllowed"
-                                        class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/80 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
-                                        <i class="fas fa-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
-                                        <span>Terhubung ke WiFi Resmi SMKN 1 Beringin.</span>
-                                    </div>
-                                    <div x-show="!isIpAllowed"
-                                        class="bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800/80 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 dark:text-rose-200 space-y-1">
-                                        <div class="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-100">
-                                            <i class="fas fa-triangle-exclamation text-rose-500"></i>
-                                            <span>Bukan Jaringan WiFi Sekolah</span>
-                                        </div>
-                                        <p class="text-[11px] text-rose-700 dark:text-rose-300 pl-6">Silakan sambungkan perangkat ke WiFi SMKN 1 Beringin untuk scan presensi.</p>
-                                    </div>
-                                </div>
-
-                                {{-- Tombol Mulai Scan Wajah --}}
-                                @if(!$user->isFaceEnrolled())
-                                    <div class="space-y-3">
-                                        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                                            <i class="fas fa-triangle-exclamation text-amber-500 text-base mt-0.5 shrink-0"></i>
-                                            <div>
-                                                <p class="font-extrabold text-amber-900 dark:text-amber-100">Wajib Rekam Wajah Terlebih Dahulu</p>
-                                                <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
-                                                    Data biometrik wajah Anda belum terdaftar atau baru saja direset oleh pihak sekolah. Anda wajib merekam foto wajah biometrik terlebih dahulu sebelum dapat presensi.
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <a href="{{ route('siswa.enroll') }}"
-                                            class="w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm hover:shadow transition-all active:scale-[0.99]">
-                                            <i class="fas fa-camera text-base"></i>
-                                            <span>Rekam Wajah Sekarang &rarr;</span>
-                                        </a>
-                                    </div>
-                                @else
-                                    <button @click="openFaceScanner()"
-                                        :disabled="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed)"
-                                        :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]'"
-                                        class="w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm transition-all">
-                                        <i class="fas text-base" :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
-                                        <span x-text="ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah')"></span>
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- 3. Tidak ada sesi aktif --}}
-                        <div x-show="!sesiLoading && !sesiData" x-cloak
-                            class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                            <div class="bg-slate-50 dark:bg-slate-800/60 px-6 py-8 text-center border-b border-slate-100 dark:border-slate-800">
-                                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-hourglass-half text-2xl"></i>
-                                </div>
-                                <h2 class="text-base font-heading font-extrabold text-slate-800 dark:text-white mb-1">Belum Ada Sesi Aktif</h2>
-                                <p class="text-xs text-slate-500 dark:text-slate-300 leading-relaxed max-w-xs mx-auto">Menunggu guru pengampu membuka sesi presensi kelas hari ini.</p>
-                            </div>
-                            <div class="border-t border-slate-100 dark:border-slate-800 px-6 py-3 flex items-center justify-center gap-2">
-                                <i class="fas fa-arrows-rotate text-blue-400 text-[10px] fa-spin"></i>
-                                <span class="text-[11px] text-slate-400 dark:text-slate-400 font-mono">Auto-sinkron setiap 5 detik</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- TEMAN SEKELAS HARI INI (HORIZONTAL STORY ROW) --}}
-                    @if($temanSekelas->isNotEmpty())
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm" data-aos="fade-up">
-                        <div class="flex items-center justify-between mb-3 px-1">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
-                                    <i class="fas fa-users text-xs"></i>
-                                </div>
-                                <h3 class="font-heading font-extrabold text-xs sm:text-sm text-slate-800 dark:text-white">
-                                    Teman Sekelas <span class="text-slate-400 dark:text-slate-500 font-mono font-normal">({{ $temanSekelas->count() }})</span>
-                                </h3>
-                            </div>
-                            <button type="button" @click="switchTab('teman')" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-bold">
-                                Lihat Semua &rarr;
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-3.5 overflow-x-auto pb-2 pt-1 -mx-1 px-1">
-                            <div @click="openEditProfileModal()" class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start">
-                                <div class="w-14 h-14 rounded-full border-2 border-dashed border-blue-400 dark:border-blue-500 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:scale-105 transition-transform bg-blue-50/50 dark:bg-blue-950/40">
-                                    <i class="fas fa-plus text-sm"></i>
-                                </div>
-                                <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 truncate max-w-[64px]">Profilku</span>
-                            </div>
-
-                            @foreach($temanSekelas as $teman)
-                            <div @click="openClassmateModal(@js($teman))"
-                                 class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start transition-transform hover:scale-105">
-                                <div class="relative w-14 h-14 rounded-full p-0.5 border-2 {{ $teman->status_hari_ini === 'hadir' ? 'border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700' }}">
-                                    @if($teman->avatar_url)
-                                        <img src="{{ $teman->avatar_url }}" alt="{{ $teman->name }}" class="w-full h-full rounded-full object-cover">
-                                    @else
-                                        <div class="w-full h-full rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 font-heading font-bold text-xs">
-                                            {{ strtoupper(mb_substr($teman->name, 0, 2)) }}
-                                        </div>
-                                    @endif
-                                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 {{ $teman->status_hari_ini === 'hadir' ? 'bg-emerald-500' : ($teman->status_hari_ini === 'izin' ? 'bg-amber-500' : ($teman->status_hari_ini === 'sakit' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600')) }}"></span>
-                                </div>
-                                <span class="text-[11px] font-medium text-slate-700 dark:text-slate-200 truncate max-w-[68px] text-center leading-tight">
-                                    {{ explode(' ', trim($teman->name))[0] }}
-                                </span>
-                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold {{ $teman->status_hari_ini === 'hadir' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60' : 'text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800' }}">
-                                    {{ $teman->status_hari_ini === 'hadir' ? 'Hadir' : 'Belum' }}
-                                </span>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- PWA Install Banner --}}
-                    <div x-show="showInstallPrompt" x-cloak
-                        class="bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-slate-800/90 dark:to-slate-900 rounded-2xl p-4 text-slate-800 dark:text-slate-100 shadow-sm flex items-center justify-between gap-3 border border-blue-200/80 dark:border-slate-700"
-                        data-aos="fade-down">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
-                                <i class="fas fa-mobile-screen-button text-lg"></i>
-                            </div>
-                            <div>
-                                <p class="font-extrabold text-xs text-slate-900 dark:text-white font-heading">Pasang Aplikasi Presensi (PWA)</p>
-                                <p class="text-[11px] text-slate-600 dark:text-slate-300">Akses instan dari layar utama HP Anda</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button @click="installApp()"
-                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition">
-                                Pasang
-                            </button>
-                            <button @click="showInstallPrompt = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs p-1">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ══════════════════════════════════════════ --}}
-                {{-- TAB 2: KEHADIRAN & RIWAYAT                 --}}
-                {{-- ══════════════════════════════════════════ --}}
-                <div x-show="activeTab === 'kehadiran'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
-                    {{-- Header Kehadiran --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                            <span class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Rekapitulasi Presensi</span>
-                            <h2 class="font-heading font-black text-xl text-slate-900 dark:text-white">Kehadiran & Riwayat</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Semester Berjalan &bull; {{ $user->kelas->nama_kelas ?? 'Kelas Siswa' }}</p>
-                        </div>
-                        <div class="text-right flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl px-4 py-2.5">
-                            <div>
-                                <p class="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-300">Persentase</p>
-                                <p class="text-2xl font-black font-heading text-emerald-600 dark:text-emerald-400 leading-none">{{ $persentaseKehadiran }}%</p>
-                            </div>
-                            <i class="fas fa-circle-check text-2xl text-emerald-500"></i>
-                        </div>
-                    </div>
-
-                    {{-- STAT CARDS — Colored Pills --}}
-                    <div class="grid grid-cols-4 gap-2.5">
-                        <div class="stat-pill hadir shadow-sm">
-                            <div class="w-8 h-8 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
-                                <i class="fas fa-user-check text-xs"></i>
-                            </div>
-                            <p class="text-xl font-heading font-extrabold text-emerald-800 dark:text-emerald-300 leading-none">{{ $stats['hadir'] }}</p>
-                            <p class="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold mt-1">Hadir</p>
-                        </div>
-                        <div class="stat-pill izin shadow-sm">
-                            <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
-                                <i class="fas fa-envelope-open-text text-xs"></i>
-                            </div>
-                            <p class="text-xl font-heading font-extrabold text-amber-800 dark:text-amber-300 leading-none">{{ $stats['izin'] }}</p>
-                            <p class="text-[10px] text-amber-700 dark:text-amber-300 font-bold mt-1">Izin</p>
-                        </div>
-                        <div class="stat-pill sakit shadow-sm">
-                            <div class="w-8 h-8 bg-sky-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
-                                <i class="fas fa-hospital-user text-xs"></i>
-                            </div>
-                            <p class="text-xl font-heading font-extrabold text-sky-800 dark:text-sky-300 leading-none">{{ $stats['sakit'] }}</p>
-                            <p class="text-[10px] text-sky-700 dark:text-sky-300 font-bold mt-1">Sakit</p>
-                        </div>
-                        <div class="stat-pill alpa shadow-sm">
-                            <div class="w-8 h-8 bg-rose-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
-                                <i class="fas fa-user-xmark text-xs"></i>
-                            </div>
-                            <p class="text-xl font-heading font-extrabold text-rose-800 dark:text-rose-300 leading-none">{{ $stats['alpa'] }}</p>
-                            <p class="text-[10px] text-rose-700 dark:text-rose-300 font-bold mt-1">Alpa</p>
-                        </div>
-                    </div>
-
-                    {{-- Search & Filter Controls --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" x-model="riwayatSearch"
-                                   placeholder="Cari mata pelajaran, guru, atau tanggal..."
-                                   class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-                        </div>
-
-                        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-                            <button type="button" @click="riwayatFilter = 'semua'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition shrink-0"
-                                :class="riwayatFilter === 'semua' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'">
-                                Semua (<span x-text="riwayatSemuaList.length"></span>)
-                            </button>
-                            <button type="button" @click="riwayatFilter = 'hadir'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition shrink-0"
-                                :class="riwayatFilter === 'hadir' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'">
-                                Hadir
-                            </button>
-                            <button type="button" @click="riwayatFilter = 'izin'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition shrink-0"
-                                :class="riwayatFilter === 'izin' ? 'bg-amber-600 text-white' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'">
-                                Izin
-                            </button>
-                            <button type="button" @click="riwayatFilter = 'sakit'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition shrink-0"
-                                :class="riwayatFilter === 'sakit' ? 'bg-sky-600 text-white' : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'">
-                                Sakit
-                            </button>
-                            <button type="button" @click="riwayatFilter = 'alpa'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition shrink-0"
-                                :class="riwayatFilter === 'alpa' ? 'bg-rose-600 text-white' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'">
-                                Alpa
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Riwayat Presensi List --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h3 class="font-heading font-extrabold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                                <i class="fas fa-list-check text-blue-600 dark:text-blue-400"></i>
-                                <span>Daftar Riwayat Presensi</span>
-                            </h3>
-                            <span class="text-[10px] font-mono text-slate-400" x-text="filteredRiwayat().length + ' catatan'"></span>
-                        </div>
-
-                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <template x-for="(item, idx) in filteredRiwayat()" :key="idx">
-                                <div class="px-5 py-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition flex items-start justify-between gap-3">
-                                    <div class="flex items-start gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5"
-                                             :class="{
-                                                 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400': item.status === 'hadir',
-                                                 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400': item.status === 'izin',
-                                                 'bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400': item.status === 'sakit',
-                                                 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400': item.status === 'alpa',
-                                             }">
-                                            <i class="fas text-sm"
-                                               :class="{
-                                                   'fa-check': item.status === 'hadir',
-                                                   'fa-envelope': item.status === 'izin',
-                                                   'fa-hospital': item.status === 'sakit',
-                                                   'fa-times': item.status === 'alpa',
-                                               }"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-heading font-bold text-xs text-slate-900 dark:text-white truncate" x-text="item.mapel"></h4>
-                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                                                <i class="fas fa-chalkboard-user text-[10px] opacity-70"></i>
-                                                <span x-text="item.guru"></span>
-                                            </p>
-                                            <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-mono">
-                                                <span x-text="item.tanggal"></span>
-                                                <template x-if="item.waktu && item.waktu !== '-'">
-                                                    <span>&bull; <span x-text="item.waktu"></span> WIB</span>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="shrink-0 text-right">
-                                        <span class="badge text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full inline-block"
-                                              :class="{
-                                                  'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800': item.status === 'hadir',
-                                                  'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800': item.status === 'izin',
-                                                  'bg-sky-100 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 border border-sky-300 dark:border-sky-800': item.status === 'sakit',
-                                                  'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-800': item.status === 'alpa',
-                                              }"
-                                              x-text="item.status.toUpperCase()"></span>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <template x-if="filteredRiwayat().length === 0">
-                                <div class="py-12 text-center">
-                                    <div class="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-400">
-                                        <i class="fas fa-calendar-xmark text-2xl"></i>
-                                    </div>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Tidak ada riwayat presensi yang cocok</p>
-                                    <p class="text-xs text-slate-400 mt-1">Coba ubah kata kunci pencarian atau filter status.</p>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ══════════════════════════════════════════ --}}
-                {{-- TAB 3: TEMAN SEKELAS (DIREKTORI SOSIAL)    --}}
-                {{-- ══════════════════════════════════════════ --}}
-                <div x-show="activeTab === 'teman'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
-                    {{-- Header Teman --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                            <span class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Komunitas Kelas</span>
-                            <h2 class="font-heading font-black text-xl text-slate-900 dark:text-white">Teman Sekelas</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar siswa resmi di kelas {{ $user->kelas->nama_kelas ?? 'Anda' }}</p>
-                        </div>
-                        <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-2xl px-4 py-2.5 text-center">
-                            <p class="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Total Siswa</p>
-                            <p class="text-2xl font-black font-heading text-indigo-600 dark:text-indigo-400 leading-none">{{ $temanSekelas->count() }}</p>
-                        </div>
-                    </div>
-
-                    {{-- Search & Classmate Filters --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" x-model="classmateSearch"
-                                   placeholder="Cari nama, username @, atau bio teman..."
-                                   class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" @click="classmateFilter = 'semua'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition"
-                                :class="classmateFilter === 'semua' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'">
-                                Semua
-                            </button>
-                            <button type="button" @click="classmateFilter = 'hadir'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition"
-                                :class="classmateFilter === 'hadir' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'">
-                                Hadir Hari Ini
-                            </button>
-                            <button type="button" @click="classmateFilter = 'belum'"
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition"
-                                :class="classmateFilter === 'belum' ? 'bg-slate-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'">
-                                Belum Hadir
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Classmate Cards Grid --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <template x-for="item in filteredClassmates()" :key="item.id">
-                            <div @click="openClassmateModal(item)"
-                                 class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer group flex flex-col justify-between">
-                                <div>
-                                    {{-- Banner Mini --}}
-                                    <div class="h-16 bg-slate-800 relative overflow-hidden">
-                                        <template x-if="item.banner_url || item.banner">
-                                            <img :src="item.banner_url || '/storage/' + item.banner" class="w-full h-full object-cover">
-                                        </template>
-                                        <template x-if="!item.banner_url && !item.banner">
-                                            <div class="w-full h-full bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
-                                                <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:12px_12px] opacity-40"></div>
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    {{-- Body Card --}}
-                                    <div class="px-4 pb-3 pt-0 relative">
-                                        <div class="flex items-end justify-between -mt-7 mb-2">
-                                            {{-- Avatar --}}
-                                            <div class="relative w-14 h-14 rounded-full border-3 border-white dark:border-slate-900 overflow-hidden shadow-md bg-blue-600 text-white shrink-0">
-                                                <template x-if="item.avatar_url || item.avatar">
-                                                    <img :src="item.avatar_url || '/storage/' + item.avatar" class="w-full h-full object-cover">
-                                                </template>
-                                                <template x-if="!item.avatar_url && !item.avatar">
-                                                    <div class="w-full h-full flex items-center justify-center font-heading font-extrabold text-sm"
-                                                         x-text="item.name.substring(0, 2).toUpperCase()"></div>
-                                                </template>
-                                            </div>
-
-                                            {{-- Status Badge --}}
-                                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold"
-                                                  :class="item.status_hari_ini === 'hadir' ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'">
-                                                <span x-text="item.status_hari_ini === 'hadir' ? 'Hadir' : 'Belum'"></span>
-                                            </span>
-                                        </div>
-
-                                        <h4 class="font-heading font-extrabold text-sm text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition" x-text="item.name"></h4>
-                                        <p class="text-[11px] font-mono text-slate-400" x-text="'@' + (item.username || 'siswa')"></p>
-
-                                        <template x-if="item.bio">
-                                            <p class="text-[11px] text-slate-600 dark:text-slate-300 italic mt-2 line-clamp-2" x-text="'“' + item.bio + '”'"></p>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-blue-600 dark:text-blue-400 font-bold">
-                                    <span>Lihat Profil Lengkap</span>
-                                    <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                {{-- ══════════════════════════════════════════ --}}
-                {{-- TAB 4: AKUN & PROFIL                       --}}
-                {{-- ══════════════════════════════════════════ --}}
-                <div x-show="activeTab === 'profil'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
-                    {{-- Header Profil --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                            <span class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Identitas & Akun</span>
-                            <h2 class="font-heading font-black text-xl text-slate-900 dark:text-white">Pengaturan Akun</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kelola foto profil, bio, dan status keamanan biometrik Anda</p>
-                        </div>
-                        <button type="button" @click="openEditProfileModal()"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
-                            <i class="fas fa-pen-to-square"></i>
-                            <span>Edit Profil</span>
-                        </button>
-                    </div>
-
-                    {{-- Detail Dapodik (Data Terkunci) --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                        <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-                            <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
-                                <i class="fas fa-shield-halved"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-heading font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">Data Resmi Siswa (Dapodik)</h3>
-                                <p class="text-[11px] text-slate-400">Data ini tersinkronisasi otomatis dengan server sekolah.</p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama Lengkap</p>
-                                <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-heading">{{ $user->name }}</p>
-                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px]"></i> Terkunci</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NISN</p>
-                                <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-mono">{{ $user->nisn ?? '-' }}</p>
-                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px]"></i> Terkunci</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kelas & Rombel</p>
-                                <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-heading">{{ $user->kelas->nama_kelas ?? 'Siswa' }}</p>
-                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px]"></i> Terkunci</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Username Akun</p>
-                                <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-mono" x-text="'@' + profileUsername"></p>
-                                <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 mt-1"><i class="fas fa-pen text-[9px]"></i> Dapat diubah di Edit Profil</span>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/50 text-xs text-blue-800 dark:text-blue-200 flex items-start gap-2.5">
-                            <i class="fas fa-circle-info text-blue-500 mt-0.5 shrink-0"></i>
-                            <span>Untuk perubahan nama resmi, NISN, atau kelas, silakan menghubungi operator kurikulum sekolah.</span>
-                        </div>
-                    </div>
-
-                    {{-- Biometrik Wajah Card --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
-                                    <i class="fas fa-face-viewfinder"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-heading font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">Biometrik Face ID</h3>
-                                    <p class="text-[11px] text-slate-400">Perekaman wajah untuk presensi real-time</p>
-                                </div>
-                            </div>
-                            @if($user->isFaceEnrolled())
-                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold font-mono uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
-                                    Face ID Aktif
-                                </span>
-                            @else
-                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold font-mono uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    Belum Rekam Wajah
-                                </span>
-                            @endif
-                        </div>
-
-                        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
-                            <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100">Perekaman Ulang Wajah (Re-Enroll)</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">Jika wajah Anda sering gagal terdeteksi atau berubah penampilan.</p>
-                            </div>
-                            <a href="{{ route('siswa.enroll') }}"
-                               class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-2xs">
-                                Rekam Ulang &rarr;
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-
-            {{-- ────────────────────────────────────────────── --}}
-            {{-- 3. MOBILE FLOATING BOTTOM BAR (lg:hidden)       --}}
-            {{-- ────────────────────────────────────────────── --}}
-            <nav class="lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto z-40 select-none">
-                <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/90 rounded-2xl shadow-2xl px-2 py-1.5 flex items-center justify-around">
+                @include('siswa.partials.beranda')
+                @include('siswa.partials.kehadiran')
+                @include('siswa.partials.teman')
+                @include('siswa.partials.profil')
                     {{-- 1. Beranda --}}
-                    <button type="button" @click="switchTab('beranda')"
-                        class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all"
-                        :class="activeTab === 'beranda' ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-400 dark:text-slate-500 font-medium hover:text-slate-700 dark:hover:text-slate-300'">
+                    <button type="button" x-ref="beranda_btn" @click="switchTab('beranda')"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        :class="activeTab === 'beranda' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-house-chimney text-base"></i>
-                        <span class="text-[10px] mt-1 tracking-tight">Beranda</span>
+                        <span x-show="activeTab === 'beranda'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Beranda</span>
                     </button>
 
                     {{-- 2. Kehadiran --}}
-                    <button type="button" @click="switchTab('kehadiran')"
-                        class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all relative"
-                        :class="activeTab === 'kehadiran' ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-400 dark:text-slate-500 font-medium hover:text-slate-700 dark:hover:text-slate-300'">
+                    <button type="button" x-ref="kehadiran_btn" @click="switchTab('kehadiran')"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        :class="activeTab === 'kehadiran' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-chart-pie text-base"></i>
-                        <span class="text-[10px] mt-1 tracking-tight">Kehadiran</span>
+                        <span x-show="activeTab === 'kehadiran'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Hadir</span>
                     </button>
 
                     {{-- 3. Teman --}}
-                    <button type="button" @click="switchTab('teman')"
-                        class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all relative"
-                        :class="activeTab === 'teman' ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-400 dark:text-slate-500 font-medium hover:text-slate-700 dark:hover:text-slate-300'">
+                    <button type="button" x-ref="teman_btn" @click="switchTab('teman')"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        :class="activeTab === 'teman' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-user-group text-base"></i>
-                        <span class="text-[10px] mt-1 tracking-tight">Teman</span>
+                        <span x-show="activeTab === 'teman'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Teman</span>
                     </button>
 
                     {{-- 4. Profil --}}
-                    <button type="button" @click="switchTab('profil')"
-                        class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all"
-                        :class="activeTab === 'profil' ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-400 dark:text-slate-500 font-medium hover:text-slate-700 dark:hover:text-slate-300'">
+                    <button type="button" x-ref="profil_btn" @click="switchTab('profil')"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        :class="activeTab === 'profil' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-id-card text-base"></i>
-                        <span class="text-[10px] mt-1 tracking-tight">Profil</span>
+                        <span x-show="activeTab === 'profil'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Profil</span>
                     </button>
                 </div>
             </nav>
@@ -2417,11 +1699,41 @@
                     });
                 },
 
+                // ── Sliding Pill Logic ──
+                pillLeft: 0,
+                pillWidth: 0,
+                pillTop: 0,
+                pillHeight: 0,
+
+                initPill() {
+                    // Update initial position after elements are rendered
+                    this.$nextTick(() => {
+                        this.updatePillPosition();
+                        // re-update slightly later for safety on mobile rendering
+                        setTimeout(() => this.updatePillPosition(), 300);
+                    });
+                    
+                    window.addEventListener('resize', () => this.updatePillPosition());
+                },
+
+                updatePillPosition() {
+                    const activeBtn = this.$refs[this.activeTab + '_btn'];
+                    if (activeBtn) {
+                        this.pillLeft = activeBtn.offsetLeft;
+                        this.pillTop = activeBtn.offsetTop;
+                        this.pillWidth = activeBtn.offsetWidth;
+                        this.pillHeight = activeBtn.offsetHeight;
+                    }
+                },
+
                 // ── App Shell Tab Switching & Classmate Filtering ──
                 switchTab(tab) {
                     this.activeTab = tab;
                     window.location.hash = tab;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.$nextTick(() => {
+                        this.updatePillPosition();
+                    });
                 },
 
                 filteredClassmates() {
@@ -2440,6 +1752,27 @@
                 },
             };
         }
+    </script>
+    <script>
+        document.addEventListener('alpine:initialized', () => {
+            // Animate Profile Card and other cards using GSAP
+            gsap.fromTo(".gsap-stagger-item", 
+                { y: 30, opacity: 0 }, 
+                { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", stagger: 0.15 }
+            );
+
+            // Animate Bottom Nav
+            gsap.fromTo("nav.lg\\:hidden", 
+                { y: 100, opacity: 0 }, 
+                { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: "elastic.out(1, 0.5)" }
+            );
+            
+            // Animate Tab Buttons
+            gsap.fromTo("nav.lg\\:hidden button",
+                { scale: 0, opacity: 0 },
+                { scale: 1, opacity: 1, duration: 0.5, stagger: 0.1, delay: 0.6, ease: "back.out(1.7)" }
+            );
+        });
     </script>
 </body>
 

@@ -49,36 +49,44 @@ class SiswaController extends Controller
             ];
         });
 
+        $presensiStats = Presensi::where('siswa_id', $user->id)
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
         $stats = [
-            'hadir' => Presensi::where('siswa_id', $user->id)->where('status', 'hadir')->count(),
-            'izin'  => Presensi::where('siswa_id', $user->id)->where('status', 'izin')->count(),
-            'sakit' => Presensi::where('siswa_id', $user->id)->where('status', 'sakit')->count(),
-            'alpa'  => Presensi::where('siswa_id', $user->id)->where('status', 'alpa')->count(),
+            'hadir' => $presensiStats->get('hadir', 0),
+            'izin'  => $presensiStats->get('izin', 0),
+            'sakit' => $presensiStats->get('sakit', 0),
+            'alpa'  => $presensiStats->get('alpa', 0),
         ];
 
         $totalPresensi = $riwayatSemua->count();
         $persentaseKehadiran = $totalPresensi > 0 ? round(($stats['hadir'] / $totalPresensi) * 100) : 100;
 
-        // Teman Sekelas (Social Classroom row)
         $temanSekelas = collect();
         if ($user->kelas_id) {
             $temanSekelas = User::where('kelas_id', $user->kelas_id)
                 ->where('role', 'siswa')
                 ->where('id', '!=', $user->id)
                 ->orderBy('name')
-                ->get()
-                ->map(function ($teman) {
-                    $absenHariIni = Presensi::where('siswa_id', $teman->id)
-                        ->whereHas('sesiPresensi', function ($q) {
-                            $q->where('tanggal', today());
-                        })
-                        ->latest()
-                        ->first();
+                ->get();
 
-                    $teman->status_hari_ini = $absenHariIni ? $absenHariIni->status : 'belum';
-                    $teman->jam_absen = ($absenHariIni && $absenHariIni->created_at) ? $absenHariIni->created_at->format('H:i') : null;
-                    return $teman;
-                });
+            // Resolve N+1: Get all presensi for these friends today in a single query
+            $absenHariIniList = Presensi::whereIn('siswa_id', $temanSekelas->pluck('id'))
+                ->whereHas('sesiPresensi', function ($q) {
+                    $q->whereDate('tanggal', today());
+                })
+                ->orderBy('created_at', 'asc') // So keyBy keeps the latest one
+                ->get()
+                ->keyBy('siswa_id');
+
+            $temanSekelas->transform(function ($teman) use ($absenHariIniList) {
+                $absenHariIni = $absenHariIniList->get($teman->id);
+                $teman->status_hari_ini = $absenHariIni ? $absenHariIni->status : 'belum';
+                $teman->jam_absen = ($absenHariIni && $absenHariIni->created_at) ? $absenHariIni->created_at->format('H:i') : null;
+                return $teman;
+            });
         }
 
         $schoolSetting = SchoolSetting::getSettings();

@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles, WithTitle
+class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles, WithTitle, \Maatwebsite\Excel\Concerns\WithColumnWidths
 {
     protected $sesiPresensi;
 
@@ -20,9 +20,20 @@ class PresensiSesiExport implements FromView, ShouldAutoSize, WithStyles, WithTi
 
     public function view(): View
     {
-        return view('dashboard.presensi.print', [
+        return view('dashboard.presensi.excel', [
             'sesiPresensi' => $this->sesiPresensi
         ]);
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 5,
+            'B' => 30,
+            'C' => 15,
+            'D' => 12,
+            'E' => 45,
+        ];
     }
 
     public function styles(Worksheet $sheet)

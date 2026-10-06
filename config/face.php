@@ -26,4 +26,12 @@ return [
     | Jumlah minimum foto yang harus berhasil diproses saat enrollment.
     */
     'min_enroll_samples' => env('FACE_MIN_SAMPLES', 3),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Face API URL
+    |--------------------------------------------------------------------------
+    | URL endpoint FastAPI Face Recognition.
+    */
+    'api_url' => env('FACE_API_URL', 'http://127.0.0.1:8005'),
 ];

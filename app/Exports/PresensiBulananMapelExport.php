@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PresensiBulananMapelExport implements FromView, ShouldAutoSize, WithTitle
+class PresensiBulananMapelExport implements FromView, ShouldAutoSize, WithTitle, \Maatwebsite\Excel\Concerns\WithColumnWidths
 {
     protected $kelas, $mapel, $bulanDate, $sesiList, $siswaList, $matrix, $guruNama, $guruNik;
 
@@ -25,7 +25,7 @@ class PresensiBulananMapelExport implements FromView, ShouldAutoSize, WithTitle
 
     public function view(): View
     {
-        return view('dashboard.presensi.print-bulanan-mapel', [
+        return view('dashboard.presensi.excel-bulanan-mapel', [
             'kelas' => $this->kelas,
             'mapel' => $this->mapel,
             'bulanDate' => $this->bulanDate,
@@ -35,6 +35,15 @@ class PresensiBulananMapelExport implements FromView, ShouldAutoSize, WithTitle
             'guruNama' => $this->guruNama,
             'guruNik' => $this->guruNik
         ]);
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 5,
+            'B' => 15,
+            'C' => 30,
+        ];
     }
 
     public function title(): string

@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PresensiHarianExport implements FromView, ShouldAutoSize, WithStyles, WithTitle
+class PresensiHarianExport implements FromView, ShouldAutoSize, WithStyles, WithTitle, \Maatwebsite\Excel\Concerns\WithColumnWidths
 {
     protected $kelas, $tanggal, $sesiList, $siswaList;
 
@@ -23,12 +23,20 @@ class PresensiHarianExport implements FromView, ShouldAutoSize, WithStyles, With
 
     public function view(): View
     {
-        return view('dashboard.presensi.print-harian', [
+        return view('dashboard.presensi.excel-harian', [
             'kelas' => $this->kelas,
             'tanggal' => $this->tanggal,
             'sesiList' => $this->sesiList,
             'siswaList' => $this->siswaList
         ]);
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 5,
+            'B' => 30,
+        ];
     }
 
     public function styles(Worksheet $sheet)
