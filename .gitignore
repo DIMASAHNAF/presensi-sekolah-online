@@ -29,3 +29,5 @@ python/venv/
 vendor/
 node_modules/
 .env
+*.zip
+*.rar
