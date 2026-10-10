@@ -21,8 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (request()->header('X-Forwarded-Proto') === 'https' || request()->isSecure()) {
-            URL::forceScheme('https');
+        if (!app()->runningInConsole()) {
+            if (request()->header('X-Forwarded-Proto') === 'https' || request()->isSecure()) {
+                URL::forceScheme('https');
+            }
         }
 
         // Set Carbon locale ke Bahasa Indonesia

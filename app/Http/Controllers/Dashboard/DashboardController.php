@@ -1468,17 +1468,229 @@ class DashboardController extends Controller
     // =========================================================
     //  REKAP & CRUD NILAI SISWA (DASHBOARD GURU & ADMIN)
     // =========================================================
+
+    /**
+     * Engine Perhitungan Nilai Akhir (NA) Standar SMK Kurikulum Merdeka / K13
+     * Komponen: Tugas (20%), Ulangan Harian (20%), Praktik (25%), PTS (15%), PAS (20%)
+     * Dihitung secara proporsional dinamis terhadap komponen yang sudah ada nilainya.
+     */
+    public static function hitungNilaiAkhir(array $komponen): ?float
+    {
+        $bobot = [
+            'tugas'          => 20, // 20% Formatif
+            'ulangan_harian' => 20, // 20% Sumatif Lingkup Materi
+            'praktik'        => 25, // 25% Unjuk Kerja / Proyek / Portofolio Kejuruan SMK
+            'uts'            => 15, // 15% Penilaian Tengah Semester
+            'uas'            => 20, // 20% Penilaian Akhir Semester
+        ];
+
+        $totalBobotTerisi = 0;
+        $totalSkorBerbobot = 0;
+
+        foreach ($bobot as $jenis => $b) {
+            if (isset($komponen[$jenis]) && $komponen[$jenis] !== null && $komponen[$jenis] !== '') {
+                $totalSkorBerbobot += ((float) $komponen[$jenis] * $b);
+                $totalBobotTerisi += $b;
+            }
+        }
+
+        if ($totalBobotTerisi === 0) {
+            return null;
+        }
+
+        return round($totalSkorBerbobot / $totalBobotTerisi, 1);
+    }
+
+    /**
+     * Predikat & Status Ketuntasan KKM
+     */
+    public static function getPredikatDanStatus(?float $nilaiAkhir, float $kkm = 75.0): array
+    {
+        if ($nilaiAkhir === null) {
+            return [
+                'predikat'    => '-',
+                'label'       => 'Belum Dinilai',
+                'status'      => 'belum_dinilai',
+                'is_tuntas'   => false,
+                'badge_class' => 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+            ];
+        }
+
+        $predikat = 'D';
+        $label = 'Kurang / Perlu Bimbingan';
+        if ($nilaiAkhir >= 88.0) {
+            $predikat = 'A';
+            $label = 'Sangat Baik (Mahir)';
+        } elseif ($nilaiAkhir >= 75.0) {
+            $predikat = 'B';
+            $label = 'Baik (Cakap)';
+        } elseif ($nilaiAkhir >= 65.0) {
+            $predikat = 'C';
+            $label = 'Cukup (Layak)';
+        }
+
+        $isTuntas = $nilaiAkhir >= $kkm;
+
+        return [
+            'predikat'    => $predikat,
+            'label'       => $label,
+            'status'      => $isTuntas ? 'tuntas' : 'remedial',
+            'is_tuntas'   => $isTuntas,
+            'badge_class' => $isTuntas
+                ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                : 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800',
+        ];
+    }
+
+    /**
+     * Builder Matriks Leger Nilai untuk Satu Rombel Kelas & Mapel
+     */
+    public function buildLegerData(?int $kelasId, ?int $mapelId = null, ?string $searchSiswa = null): array
+    {
+        $kkm = 75.0;
+        $legerData = [];
+        $statsLeger = [
+            'total_siswa'    => 0,
+            'siswa_dinilai'  => 0,
+            'siswa_tuntas'   => 0,
+            'siswa_remedial' => 0,
+            'persen_tuntas'  => 0,
+            'rata_rata'      => 0,
+            'tertinggi'      => 0,
+            'terendah'       => 0,
+            'kkm'            => $kkm,
+        ];
+
+        if (!$kelasId) {
+            return compact('legerData', 'statsLeger');
+        }
+
+        $siswaQuery = User::where('role', 'siswa')
+            ->where('kelas_id', $kelasId)
+            ->select('id', 'name', 'nisn', 'username', 'avatar');
+
+        if (!empty($searchSiswa)) {
+            $siswaQuery->where(function ($q) use ($searchSiswa) {
+                $q->where('name', 'like', "%{$searchSiswa}%")
+                  ->orWhere('nisn', 'like', "%{$searchSiswa}%");
+            });
+        }
+
+        $siswaList = $siswaQuery->orderBy('name')->get();
+
+        $nilaiQuery = NilaiSiswa::where('kelas_id', $kelasId);
+        if (!empty($mapelId)) {
+            $nilaiQuery->where('mapel_id', $mapelId);
+        }
+        $allNilai = $nilaiQuery->get()->groupBy('siswa_id');
+
+        $naList = [];
+        $tuntasCount = 0;
+        $remedialCount = 0;
+
+        foreach ($siswaList as $s) {
+            $siswaNilai = $allNilai->get($s->id, collect());
+
+            $tugasList   = $siswaNilai->where('jenis_penilaian', 'tugas');
+            $uhList      = $siswaNilai->where('jenis_penilaian', 'ulangan_harian');
+            $praktikList = $siswaNilai->where('jenis_penilaian', 'praktik');
+            $utsList     = $siswaNilai->where('jenis_penilaian', 'uts');
+            $uasList     = $siswaNilai->where('jenis_penilaian', 'uas');
+            $sikapList   = $siswaNilai->where('jenis_penilaian', 'sikap');
+
+            $tugasAvg   = $tugasList->isNotEmpty() ? round((float) $tugasList->avg('nilai'), 1) : null;
+            $uhAvg      = $uhList->isNotEmpty() ? round((float) $uhList->avg('nilai'), 1) : null;
+            $praktikAvg = $praktikList->isNotEmpty() ? round((float) $praktikList->avg('nilai'), 1) : null;
+            $utsAvg     = $utsList->isNotEmpty() ? round((float) $utsList->avg('nilai'), 1) : null;
+            $uasAvg     = $uasList->isNotEmpty() ? round((float) $uasList->avg('nilai'), 1) : null;
+            $sikapAvg   = $sikapList->isNotEmpty() ? round((float) $sikapList->avg('nilai'), 1) : null;
+
+            $komponen = [
+                'tugas'          => $tugasAvg,
+                'ulangan_harian' => $uhAvg,
+                'praktik'        => $praktikAvg,
+                'uts'            => $utsAvg,
+                'uas'            => $uasAvg,
+            ];
+
+            $na = self::hitungNilaiAkhir($komponen);
+            $predikatInfo = self::getPredikatDanStatus($na, $kkm);
+
+            if ($na !== null) {
+                $naList[] = $na;
+                if ($predikatInfo['is_tuntas']) {
+                    $tuntasCount++;
+                } else {
+                    $remedialCount++;
+                }
+            }
+
+            $legerData[] = [
+                'siswa'         => $s,
+                'tugas_avg'     => $tugasAvg,
+                'tugas_count'   => $tugasList->count(),
+                'uh_avg'        => $uhAvg,
+                'uh_count'      => $uhList->count(),
+                'praktik_avg'   => $praktikAvg,
+                'praktik_count' => $praktikList->count(),
+                'uts_avg'       => $utsAvg,
+                'uas_avg'       => $uasAvg,
+                'sikap_avg'     => $sikapAvg,
+                'nilai_akhir'   => $na,
+                'predikat'      => $predikatInfo['predikat'],
+                'label'         => $predikatInfo['label'],
+                'status'        => $predikatInfo['status'],
+                'is_tuntas'     => $predikatInfo['is_tuntas'],
+                'badge_class'   => $predikatInfo['badge_class'],
+                'total_entri'   => $siswaNilai->count(),
+                'rincian'       => $siswaNilai,
+            ];
+        }
+
+        $statsLeger = [
+            'total_siswa'    => $siswaList->count(),
+            'siswa_dinilai'  => count($naList),
+            'siswa_tuntas'   => $tuntasCount,
+            'siswa_remedial' => $remedialCount,
+            'persen_tuntas'  => count($naList) > 0 ? round(($tuntasCount / count($naList)) * 100, 1) : 0,
+            'rata_rata'      => count($naList) > 0 ? round(array_sum($naList) / count($naList), 1) : 0,
+            'tertinggi'      => count($naList) > 0 ? max($naList) : 0,
+            'terendah'       => count($naList) > 0 ? min($naList) : 0,
+            'kkm'            => $kkm,
+        ];
+
+        return compact('legerData', 'statsLeger');
+    }
+
     public function nilaiIndex(Request $request)
     {
         $user = auth()->user();
         $kelasList = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
 
+        $activeTab = $request->query('tab', 'leger'); // 'leger' | 'log'
+
         $selectedKelasId = $request->query('nilai_kelas_id');
         $selectedMapelId = $request->query('nilai_mapel_id');
         $selectedJenis   = $request->query('nilai_jenis');
         $search          = $request->query('search');
+        $searchSiswa     = $request->query('search_siswa');
 
+        // Jika kelas belum ditentukan di query, pilih X PPLG 3 atau kelas pertama
+        if (empty($selectedKelasId)) {
+            $defaultKelas = $kelasList->firstWhere('nama_kelas', 'X PPLG 3') ?? $kelasList->first();
+            $selectedKelasId = $defaultKelas ? $defaultKelas->id : null;
+        }
+
+        $selectedKelas = $selectedKelasId ? $kelasList->firstWhere('id', $selectedKelasId) : null;
+        $selectedMapel = $selectedMapelId ? $mapelList->firstWhere('id', $selectedMapelId) : null;
+
+        // 1. Ambil data Matriks Leger Sekelas
+        $legerResult = $this->buildLegerData($selectedKelasId, $selectedMapelId, $searchSiswa);
+        $legerData   = $legerResult['legerData'];
+        $statsLeger  = $legerResult['statsLeger'];
+
+        // 2. Ambil data Riwayat Log Entri Penilaian
         $queryNilai = NilaiSiswa::with(['siswa.kelas', 'guru', 'mataPelajaran', 'kelas'])
             ->latest('tanggal')
             ->latest('created_at');
@@ -1510,7 +1722,7 @@ class DashboardController extends Controller
 
         $listNilai = $queryNilai->paginate(15)->withQueryString();
 
-        // Statistik Nilai Ringkas
+        // Statistik Nilai Ringkas Keseluruhan
         $statsNilai = [
             'total_input' => NilaiSiswa::count(),
             'rata_rata'   => round((float) (NilaiSiswa::avg('nilai') ?: 0), 1),
@@ -1519,8 +1731,142 @@ class DashboardController extends Controller
         ];
 
         return view('dashboard.rekap-nilai', compact(
-            'user', 'kelasList', 'mapelList', 'listNilai', 'statsNilai'
+            'user', 'kelasList', 'mapelList', 'listNilai', 'statsNilai',
+            'activeTab', 'selectedKelas', 'selectedMapel', 'selectedKelasId', 'selectedMapelId',
+            'legerData', 'statsLeger'
         ));
+    }
+
+    /**
+     * Simpan Penilaian Sekelas Sekaligus (Bulk / Batch Input)
+     */
+    public function batchStoreNilai(Request $request)
+    {
+        $validated = $request->validate([
+            'kelas_id'        => 'required|exists:kelas,id',
+            'mapel_id'        => 'nullable|exists:mata_pelajarans,id',
+            'jenis_penilaian' => 'required|in:tugas,ulangan_harian,uts,uas,praktik,sikap',
+            'judul'           => 'required|string|max:150',
+            'tanggal'         => 'nullable|date',
+            'catatan_umum'    => 'nullable|string|max:500',
+            'nilai'           => 'required|array',
+        ], [
+            'kelas_id.required'        => 'Kelas wajib dipilih.',
+            'jenis_penilaian.required' => 'Jenis penilaian wajib ditentukan.',
+            'judul.required'           => 'Judul / materi penilaian wajib diisi.',
+            'nilai.required'           => 'Daftar nilai siswa wajib diisi.',
+        ]);
+
+        $kelas = Kelas::findOrFail($validated['kelas_id']);
+        $tanggal = $validated['tanggal'] ?: today()->toDateString();
+        $guruId = auth()->id();
+        $savedCount = 0;
+
+        DB::transaction(function () use ($validated, $tanggal, $guruId, &$savedCount) {
+            foreach ($validated['nilai'] as $siswaId => $skor) {
+                if ($skor === null || $skor === '') {
+                    continue; // Siswa yang tidak diisi skor dilewati
+                }
+
+                $skorFloat = (float) $skor;
+                if ($skorFloat < 0 || $skorFloat > 100) {
+                    continue;
+                }
+
+                // Verifikasi siswa berada di kelas tersebut
+                $siswa = User::where('id', $siswaId)->where('role', 'siswa')->first();
+                if (!$siswa || $siswa->kelas_id != $validated['kelas_id']) {
+                    continue;
+                }
+
+                NilaiSiswa::create([
+                    'siswa_id'        => $siswaId,
+                    'guru_id'         => $guruId,
+                    'kelas_id'        => $validated['kelas_id'],
+                    'mapel_id'        => $validated['mapel_id'] ?: null,
+                    'jenis_penilaian' => $validated['jenis_penilaian'],
+                    'judul'           => $validated['judul'],
+                    'nilai'           => $skorFloat,
+                    'tanggal'         => $tanggal,
+                    'catatan'         => $validated['catatan_umum'] ?: null,
+                ]);
+
+                $savedCount++;
+            }
+        });
+
+        return redirect()->route('dashboard.nilai', [
+            'tab'            => 'leger',
+            'nilai_kelas_id' => $validated['kelas_id'],
+            'nilai_mapel_id' => $validated['mapel_id'],
+        ])->with('success', "Berhasil menyimpan penilaian '{$validated['judul']}' untuk {$savedCount} siswa di kelas {$kelas->nama_kelas}!");
+    }
+
+    /**
+     * Unduh Leger Nilai ke Excel
+     */
+    public function exportLegerExcel(Request $request)
+    {
+        $kelasList = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
+
+        $selectedKelasId = $request->query('nilai_kelas_id');
+        $selectedMapelId = $request->query('nilai_mapel_id');
+
+        if (empty($selectedKelasId)) {
+            $defaultKelas = $kelasList->firstWhere('nama_kelas', 'X PPLG 3') ?? $kelasList->first();
+            $selectedKelasId = $defaultKelas ? $defaultKelas->id : null;
+        }
+
+        $selectedKelas = $selectedKelasId ? $kelasList->firstWhere('id', $selectedKelasId) : null;
+        $selectedMapel = $selectedMapelId ? $mapelList->firstWhere('id', $selectedMapelId) : null;
+
+        $legerRes = $this->buildLegerData($selectedKelasId, $selectedMapelId);
+
+        $namaKelasClean = $selectedKelas ? Str::slug($selectedKelas->nama_kelas) : 'Semua-Kelas';
+        $namaMapelClean = $selectedMapel ? '-' . Str::slug($selectedMapel->nama_mapel) : '';
+        $namaFile = "Leger-Nilai-{$namaKelasClean}{$namaMapelClean}-" . date('Ymd-His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\LegerNilaiExport(
+                $selectedKelas,
+                $selectedMapel,
+                $legerRes['legerData'],
+                $legerRes['statsLeger'],
+                auth()->user()
+            ),
+            $namaFile
+        );
+    }
+
+    /**
+     * Tampilan Cetak / Print Leger Nilai
+     */
+    public function printLeger(Request $request)
+    {
+        $kelasList = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
+
+        $selectedKelasId = $request->query('nilai_kelas_id');
+        $selectedMapelId = $request->query('nilai_mapel_id');
+
+        if (empty($selectedKelasId)) {
+            $defaultKelas = $kelasList->firstWhere('nama_kelas', 'X PPLG 3') ?? $kelasList->first();
+            $selectedKelasId = $defaultKelas ? $defaultKelas->id : null;
+        }
+
+        $selectedKelas = $selectedKelasId ? $kelasList->firstWhere('id', $selectedKelasId) : null;
+        $selectedMapel = $selectedMapelId ? $mapelList->firstWhere('id', $selectedMapelId) : null;
+
+        $legerRes = $this->buildLegerData($selectedKelasId, $selectedMapelId);
+
+        return view('dashboard.nilai.print-leger', [
+            'kelas'      => $selectedKelas,
+            'mapel'      => $selectedMapel,
+            'legerData'  => $legerRes['legerData'],
+            'statsLeger' => $legerRes['statsLeger'],
+            'guru'       => auth()->user(),
+        ]);
     }
 
     public function siswaPerKelasJson(Kelas $kelas)

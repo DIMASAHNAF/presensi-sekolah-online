@@ -119,8 +119,6 @@
                 <div x-show="capturedImages.length < 5 && isCameraReady && !isProcessing" class="bg-black/75 backdrop-blur-md text-white text-xs px-3.5 py-1.5 rounded-full font-bold border border-white/10 flex items-center gap-2 shadow-lg">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span x-text="'Langkah ' + (capturedImages.length + 1) + ' / 5'"></span>
-                    <span class="text-slate-400">•</span>
-                    <span class="text-yellow-300 font-mono" x-text="'Otomatis ' + stepCountdown + 's'"></span>
                 </div>
                 <div x-show="capturedImages.length >= 5 || isProcessing" class="bg-blue-600/90 backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full font-bold border border-blue-400/40 shadow-md">
                     <i class="fas fa-brain mr-1.5"></i> Memproses AI Server...
@@ -207,8 +205,6 @@
             isCameraReady: false,
             message: '',
             videoStream: null,
-            stepCountdown: 2,
-            stepTimer: null,
             showPulse: false,
 
             get currentInstruction() {
@@ -245,7 +241,6 @@
                         } catch (e) {}
                         this.isCameraReady = true;
                         this.message = '';
-                        this.armStepCountdown();
                     };
                 } catch (err) {
                     this.isCameraReady = false;
@@ -253,27 +248,8 @@
                 }
             },
 
-            armStepCountdown() {
-                if (this.stepTimer) clearInterval(this.stepTimer);
-                if (this.capturedImages.length >= 5 || this.isProcessing) return;
-
-                this.stepCountdown = 2;
-                this.stepTimer = setInterval(() => {
-                    if (this.capturedImages.length >= 5 || this.isProcessing) {
-                        clearInterval(this.stepTimer);
-                        return;
-                    }
-                    this.stepCountdown--;
-                    if (this.stepCountdown <= 0) {
-                        clearInterval(this.stepTimer);
-                        this.takeSnapshot();
-                    }
-                }, 1000);
-            },
-
             manualCapture() {
                 if (this.capturedImages.length >= 5 || this.isProcessing || !this.isCameraReady) return;
-                if (this.stepTimer) clearInterval(this.stepTimer);
                 this.takeSnapshot();
             },
 
@@ -281,10 +257,7 @@
                 this.triggerPulse();
                 this.captureFrame();
 
-                if (this.capturedImages.length < 5) {
-                    this.armStepCountdown();
-                } else {
-                    if (this.stepTimer) clearInterval(this.stepTimer);
+                if (this.capturedImages.length >= 5) {
                     this.submitEnroll();
                 }
             },
@@ -316,7 +289,6 @@
                 this.isFailed = false;
                 this.isProcessing = false;
                 this.message = '';
-                this.armStepCountdown();
             },
 
             async submitEnroll() {

@@ -82,6 +82,44 @@
             animation: shimmer 3s infinite linear;
         }
 
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-2.5px) scale(1.08); }
+        }
+
+        @keyframes pulse-ring-amber {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { box-shadow: 0 0 0 9px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        @keyframes pulse-ring-sky {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 9px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        @keyframes wiggle-smile {
+            0%, 100% { transform: rotate(-7deg) scale(1.15); }
+            50% { transform: rotate(7deg) scale(1.22); }
+        }
+
+        .anim-float {
+            animation: float-icon 2s ease-in-out infinite;
+        }
+
+        .anim-ring-amber {
+            animation: pulse-ring-amber 1.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+
+        .anim-ring-sky {
+            animation: pulse-ring-sky 1.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+
+        .anim-wiggle {
+            animation: wiggle-smile 0.35s ease-in-out infinite;
+        }
+
 
         body {
             background-color: #f1f5f9;
@@ -170,47 +208,38 @@
             }
         }
 
-        /* ── Face Oval HUD ── */
+        /* ── Face Oval HUD (Clean Apple FaceID / Fintech Style - No AI Slop) ── */
         .face-oval {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -55%);
-            width: 190px;
-            height: 240px;
-            border-radius: 50% / 45%;
-            border: 2.5px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
+            width: 195px;
+            height: 250px;
+            border-radius: 50% / 46%;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65);
             pointer-events: none;
             z-index: 5;
-            transition: border-color .3s, box-shadow .3s;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .face-oval.aligned {
+            border-color: #10b981;
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 0 3px rgba(16, 185, 129, 0.25);
+        }
+
+        .face-oval.action_success,
         .face-oval.detected {
             border-color: #10b981;
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55), 0 0 20px rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 0 6px rgba(16, 185, 129, 0.4);
+            transform: translate(-50%, -55%) scale(1.02);
         }
 
         .face-oval.success {
             border-color: #10b981;
-            box-shadow: 0 0 0 9999px rgba(6, 78, 59, 0.6), 0 0 30px rgba(16, 185, 129, 0.85);
-        }
-
-        .face-oval .scanner-laser {
-            position: absolute;
-            left: 5%;
-            right: 5%;
-            height: 2.5px;
-            background: linear-gradient(90deg, transparent, #38bdf8, #60a5fa, #38bdf8, transparent);
-            box-shadow: 0 0 12px #38bdf8, 0 0 22px #60a5fa;
-            border-radius: 50%;
-            animation: laser-scan 1.8s ease-in-out infinite alternate;
-        }
-
-        @keyframes laser-scan {
-            0% { top: 12%; opacity: 0.25; }
-            50% { opacity: 1; }
-            100% { top: 88%; opacity: 0.25; }
+            box-shadow: 0 0 0 9999px rgba(6, 78, 59, 0.7), 0 0 0 8px rgba(16, 185, 129, 0.5);
+            transform: translate(-50%, -55%) scale(1.03);
         }
 
         #video-scan {
@@ -507,87 +536,169 @@
             </div>
 
             {{-- Camera Viewport --}}
-            <div class="relative bg-slate-950 overflow-hidden" style="height: 310px;">
+            <div class="relative bg-slate-950 overflow-hidden select-none" style="height: 325px;">
                 <video id="video-scan" autoplay playsinline muted class="w-full h-full object-cover"
                     style="transform:scaleX(-1)"></video>
                 <canvas id="canvas-scan" class="hidden"></canvas>
 
-                {{-- Oval HUD --}}
+                {{-- Shutter Flash Effect --}}
+                <div x-show="showShutterFlash" x-transition.opacity.duration.120ms class="absolute inset-0 bg-white z-40 pointer-events-none"></div>
+
+                {{-- Face Oval HUD (Clean Apple FaceID Style - No AI Laser) --}}
                 <div class="face-oval"
-                    :class="scanState === 'processing' ? 'detected' : (scanState === 'success' ? 'success' : '')">
-                    <div class="scanner-laser" x-show="scanState === 'ready'"></div>
+                    :class="{
+                        'aligned': livenessState === 'face_aligned',
+                        'action_success': livenessState === 'action_success',
+                        'detected': scanState === 'processing',
+                        'success': scanState === 'success'
+                    }">
                 </div>
 
-                {{-- Status Pills --}}
-                <div x-show="scanState === 'ready'" class="absolute top-3 left-0 right-0 flex justify-center z-20">
-                    <div class="bg-black/70 backdrop-blur-md text-white text-[11px] px-3.5 py-1 rounded-full border border-white/15 flex items-center gap-1.5 shadow-lg">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Posisikan wajah di dalam oval</span>
+                {{-- Clean Top Instruction Pill (Single sleek frosted badge) --}}
+                <div x-show="scanState === 'ready'" class="absolute top-3 left-0 right-0 flex justify-center items-center z-20 px-3 pointer-events-none">
+                    <div class="backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full border shadow-lg flex items-center gap-2.5 transition-all duration-200 select-none pointer-events-auto"
+                        :class="{
+                            'bg-slate-900/80 border-white/20': livenessState === 'waiting_face',
+                            'bg-slate-900/90 border-emerald-400/60 shadow-emerald-500/20 ring-1 ring-emerald-400/30': livenessState === 'face_aligned',
+                            'bg-emerald-600/95 border-emerald-300 shadow-emerald-500/40 font-bold': livenessState === 'action_success'
+                        }">
+                        <span class="w-2 h-2 rounded-full transition-colors"
+                            :class="{
+                                'bg-amber-400 animate-pulse': livenessState === 'waiting_face',
+                                'bg-emerald-400': livenessState === 'face_aligned',
+                                'bg-white': livenessState === 'action_success'
+                            }"></span>
+                        <span class="font-medium tracking-wide" x-text="livenessPrompt"></span>
+
+                        {{-- Tombol ganti tantangan cepat --}}
+                        <button type="button" @click.stop="switchChallenge()" title="Ganti tantangan"
+                            class="ml-1 text-slate-400 hover:text-white transition p-1 rounded-full hover:bg-white/10 active:scale-90 cursor-pointer">
+                            <i class="fas fa-arrows-rotate text-[10px]"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div x-show="scanState === 'ready'" class="absolute bottom-3 left-0 right-0 flex justify-center z-20">
-                    <div class="bg-blue-600/90 backdrop-blur-md text-white text-xs px-3.5 py-1 rounded-full font-bold shadow-md border border-blue-400/40 flex items-center gap-1.5">
-                        <i class="fas fa-bolt text-yellow-300 text-xs"></i>
-                        <span>Pindai Otomatis: <strong class="text-yellow-300 font-mono" x-text="scanCountdown + 's'"></strong></span>
+                {{-- Clean Live Progress Meter with Animated Action Icon --}}
+                <div x-show="scanState === 'ready'" class="absolute bottom-3 left-4 right-4 flex justify-center z-20 pointer-events-none">
+                    <div class="w-full max-w-[295px] bg-slate-900/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-2xl flex items-center gap-2.5 pointer-events-auto">
+                        
+                        {{-- Animated Action Icon Container --}}
+                        <div class="relative flex items-center justify-center w-7 h-7 rounded-full shrink-0 transition-all duration-300"
+                             :class="{
+                                 'anim-ring-amber bg-amber-500/25 ring-2 ring-amber-400': currentChallenge && currentChallenge.type === 'smile' && actionProgress > 15,
+                                 'anim-ring-sky bg-sky-500/25 ring-2 ring-sky-400': currentChallenge && currentChallenge.type === 'blink' && actionProgress > 15,
+                                 'bg-white/10': actionProgress <= 15
+                             }">
+                            <template x-if="currentChallenge && currentChallenge.type === 'smile'">
+                                <span class="select-none transition-transform duration-200 inline-block"
+                                      :class="{
+                                          'text-xs anim-float': actionProgress === 0,
+                                          'text-sm scale-110': actionProgress > 0 && actionProgress < 40,
+                                          'text-base anim-wiggle': actionProgress >= 40 && actionProgress < 85,
+                                          'text-lg animate-bounce drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]': actionProgress >= 85
+                                      }">
+                                    <span x-show="actionProgress < 70">😊</span>
+                                    <span x-show="actionProgress >= 70">😁</span>
+                                </span>
+                            </template>
+                            <template x-if="currentChallenge && currentChallenge.type === 'blink'">
+                                <span class="select-none transition-transform duration-200 inline-block"
+                                      :class="{
+                                          'text-xs anim-float': actionProgress === 0,
+                                          'text-sm scale-110 animate-pulse': actionProgress > 0 && actionProgress < 50,
+                                          'text-base scale-125 animate-ping': actionProgress >= 50 && actionProgress < 85,
+                                          'text-lg animate-bounce drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]': actionProgress >= 85
+                                      }">
+                                    😉
+                                </span>
+                            </template>
+                            <template x-if="!currentChallenge">
+                                <span class="text-xs animate-spin select-none">🎯</span>
+                            </template>
+                        </div>
+
+                        {{-- Progress Track --}}
+                        <div class="flex-1 bg-white/15 rounded-full h-2.5 overflow-hidden relative">
+                            <div class="h-full rounded-full transition-all duration-100 ease-out relative"
+                                :class="actionProgress >= 80 ? 'bg-gradient-to-r from-emerald-400 to-teal-300 shadow-sm shadow-emerald-400/50' : 'bg-gradient-to-r from-blue-400 via-sky-400 to-amber-400'"
+                                :style="'width: ' + actionProgress + '%'">
+                                <div x-show="actionProgress > 5" class="absolute right-0 top-0 bottom-0 w-2 bg-white/80 rounded-full blur-[1px] animate-pulse"></div>
+                            </div>
+                        </div>
+
+                        {{-- Live Percentage & Micro-Animated Status --}}
+                        <div class="flex items-center gap-1.5 shrink-0 min-w-[40px] justify-end">
+                            <span class="font-mono text-xs font-bold transition-all duration-200"
+                                :class="actionProgress >= 80 ? 'text-emerald-400 font-extrabold text-sm' : 'text-slate-300'"
+                                x-text="actionProgress + '%'"></span>
+                            <template x-if="actionProgress > 0 && actionProgress < 88">
+                                <i class="fas fa-circle-notch fa-spin text-[9px] text-sky-400"></i>
+                            </template>
+                            <template x-if="actionProgress >= 88">
+                                <i class="fas fa-check text-xs text-emerald-400 animate-bounce"></i>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Overlays status --}}
-                <div x-show="scanState === 'initializing' || scanState === 'idle'" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white z-30">
-                    <i class="fas fa-circle-notch fa-spin text-3xl text-blue-400 mb-2"></i>
-                    <p class="text-xs font-semibold text-slate-200">Membuka kamera...</p>
+                {{-- Overlays Status (Clean Minimalist Fintech) --}}
+                <div x-show="scanState === 'initializing' || scanState === 'idle'" class="absolute inset-0 bg-slate-950/85 flex flex-col items-center justify-center text-white z-30">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-blue-400 mb-2"></i>
+                    <p class="text-xs font-medium text-slate-300">Menyiapkan kamera...</p>
                 </div>
 
                 <div x-show="scanState === 'processing'"
-                    class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center backdrop-blur-sm z-30 text-center px-4">
-                    <div class="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mb-3">
-                        <i class="fas fa-brain fa-pulse text-2xl text-blue-400"></i>
-                    </div>
-                    <p class="font-heading font-extrabold text-white text-sm">Menganalisis Biometrik Server...</p>
-                    <p class="text-slate-400 text-[11px] mt-1">Mencocokkan 128-D vector wajah di AI server</p>
+                    class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center backdrop-blur-sm z-30 text-center px-4">
+                    <i class="fas fa-circle-notch fa-spin text-3xl text-emerald-400 mb-3"></i>
+                    <p class="font-heading font-bold text-white text-sm">Memverifikasi Kehadiran...</p>
+                    <p class="text-slate-400 text-xs mt-1">Mencocokkan biometrik wajah Anda</p>
                 </div>
 
                 <div x-show="scanState === 'success'"
-                    class="absolute inset-0 bg-emerald-950/90 flex items-center justify-center z-30">
+                    class="absolute inset-0 bg-emerald-950/95 flex items-center justify-center z-30">
                     <div class="text-center text-white checkmark-pop">
-                        <i class="fas fa-circle-check text-5xl text-emerald-400"></i>
-                        <p class="mt-2 font-heading font-extrabold text-lg text-white">TERVERIFIKASI HADIR ✓</p>
+                        <div class="w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-2xl text-emerald-400"></i>
+                        </div>
+                        <p class="font-heading font-extrabold text-base text-white">Presensi Berhasil ✓</p>
+                        <p class="text-xs text-emerald-300/80 mt-0.5">Kehadiran telah tercatat</p>
                     </div>
                 </div>
 
                 <div x-show="scanState === 'failed'"
-                    class="absolute inset-0 bg-rose-950/90 flex items-center justify-center z-30">
+                    class="absolute inset-0 bg-rose-950/95 flex items-center justify-center z-30">
                     <div class="text-center text-white shake px-4">
-                        <i class="fas fa-circle-xmark text-5xl text-rose-400"></i>
-                        <p class="mt-2 font-heading font-bold text-sm">Verifikasi Gagal</p>
+                        <div class="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-400 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-times text-2xl text-rose-400"></i>
+                        </div>
+                        <p class="font-heading font-bold text-sm text-white">Verifikasi Gagal</p>
+                        <p class="text-xs text-rose-300/80 mt-1" x-text="scanMessage"></p>
                     </div>
                 </div>
             </div>
 
-            {{-- Bottom Action & Feedback --}}
-            <div class="p-5 bg-white dark:bg-slate-900">
-                <div x-show="scanMessage" class="text-xs font-bold p-3 rounded-xl mb-3 text-center transition-all"
+            {{-- Bottom Action & Controls (Clean & Functional) --}}
+            <div class="p-4 sm:p-5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+                <div x-show="scanMessage && scanState !== 'failed'" class="text-xs font-semibold p-2.5 rounded-xl mb-3 text-center transition-all"
                     :class="scanSuccess ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
                     <span x-text="scanMessage"></span>
                 </div>
 
-                {{-- Tombol Scan Manual & Otomatis --}}
                 <div x-show="scanState === 'ready'">
                     <button type="button" @click="captureAndSend()"
-                        class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-extrabold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-md cursor-pointer shadow-blue-500/20 active:scale-[0.98]">
-                        <i class="fas fa-camera text-base"></i>
-                        <span>Pindai Wajah Sekarang</span>
+                        class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
+                        <i class="fas fa-camera text-sm"></i>
+                        <span>Ambil Foto Manual</span>
                     </button>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center mt-2.5 font-medium">
-                        <i class="fas fa-shield-halved text-emerald-500 mr-1"></i> Verifikasi instan ditenagai Server AI
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center mt-2 font-medium">
+                        Otomatis terpotret saat gerakan terdeteksi, atau tekan tombol manual di atas.
                     </p>
                 </div>
 
                 <div x-show="scanState === 'failed'">
                     <button type="button" @click="retryScan()"
-                        class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-sm cursor-pointer active:scale-[0.98]">
-                        <i class="fas fa-rotate-right"></i> Coba Pindai Ulang
+                        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
+                        <i class="fas fa-rotate-right text-sm"></i> Coba Pindai Ulang
                     </button>
                 </div>
             </div>
@@ -1071,6 +1182,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init({ once: true, duration: 400, offset: 20 });
@@ -1244,9 +1356,36 @@
                 scanState: 'idle', // 'idle' | 'initializing' | 'ready' | 'processing' | 'success' | 'failed'
                 scanMessage: '',
                 scanSuccess: false,
-                scanCountdown: 2,
-                countdownTimer: null,
                 videoStream: null,
+
+                // E-Wallet Randomized Challenge States
+                challenges: [
+                    {
+                        type: 'blink',
+                        label: 'Kedipkan Mata Anda 😉',
+                        actionText: 'Kedipkan mata perlahan 😉',
+                        shortLabel: 'Kedip',
+                        emoji: '😉',
+                        hint: 'Kedipkan mata Anda ke arah kamera untuk verifikasi otomatis'
+                    },
+                    {
+                        type: 'smile',
+                        label: 'Silakan Tersenyum 😊',
+                        actionText: 'Tersenyum ke kamera 😊',
+                        shortLabel: 'Senyum',
+                        emoji: '😊',
+                        hint: 'Tersenyumlah ke arah kamera untuk verifikasi otomatis'
+                    }
+                ],
+                currentChallenge: null,
+                actionProgress: 0,
+                livenessState: 'waiting_face', // 'waiting_face' | 'face_aligned' | 'action_success'
+                livenessPrompt: 'Posisikan wajah di dalam oval',
+                livenessSubPrompt: 'Posisikan seluruh wajah di dalam bingkai oval',
+                isAiLoaded: false,
+                isLoadingAi: false,
+                showShutterFlash: false,
+                aiLoopTimer: null,
 
                 init() {
                     const initialHash = window.location.hash.replace('#', '');
@@ -1272,6 +1411,12 @@
                         window.addEventListener('load', () => {
                             navigator.serviceWorker.register('/sw.js').catch(console.warn);
                         });
+                    }
+
+                    if (window.faceapi) {
+                        this.preloadFaceApi();
+                    } else {
+                        window.addEventListener('load', () => this.preloadFaceApi());
                     }
 
                     window.addEventListener('beforeinstallprompt', (e) => {
@@ -1402,7 +1547,6 @@
                     this.scanState = 'initializing';
                     this.scanMessage = 'Membuka kamera...';
                     this.scanSuccess = false;
-                    this.scanCountdown = 2;
 
                     try {
                         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1431,27 +1575,502 @@
                     }
                 },
 
+                pickRandomChallenge() {
+                    const list = this.challenges;
+                    const next = list[Math.floor(Math.random() * list.length)];
+                    this.currentChallenge = next;
+                    this.actionProgress = 0;
+                    this.updateLivenessPrompt();
+                },
+
+                switchChallenge() {
+                    const list = this.challenges;
+                    let next = list[Math.floor(Math.random() * list.length)];
+                    if (this.currentChallenge && list.length > 1) {
+                        while (next.type === this.currentChallenge.type) {
+                            next = list[Math.floor(Math.random() * list.length)];
+                        }
+                    }
+                    this.currentChallenge = next;
+                    this.actionProgress = 0;
+                    audioFx.playBlink();
+                    this.updateLivenessPrompt();
+                },
+
+                updateLivenessPrompt() {
+                    const ch = this.currentChallenge || this.challenges[0];
+                    if (this.livenessState === 'action_success') {
+                        this.livenessPrompt = 'Gerakan terverifikasi! ✓';
+                    } else if (this.livenessState === 'face_aligned') {
+                        this.livenessPrompt = ch.actionText;
+                    } else {
+                        this.livenessPrompt = 'Posisikan wajah di dalam oval';
+                    }
+                },
+
                 armScanner() {
                     this.scanState = 'ready';
                     this.scanMessage = '';
-                    this.scanCountdown = 2;
-                    if (this.countdownTimer) clearInterval(this.countdownTimer);
+                    this.livenessState = 'waiting_face';
+                    this.actionProgress = 0;
+                    this.pickRandomChallenge();
+                    this.startLivenessDetection();
+                },
 
-                    this.countdownTimer = setInterval(() => {
-                        if (this.scanState !== 'ready') {
-                            clearInterval(this.countdownTimer);
+                triggerShutterFlash() {
+                    this.showShutterFlash = true;
+                    setTimeout(() => {
+                        this.showShutterFlash = false;
+                    }, 140);
+                },
+
+                startLivenessDetection() {
+                    if (this.aiLoopTimer) {
+                        cancelAnimationFrame(this.aiLoopTimer);
+                        clearTimeout(this.aiLoopTimer);
+                        this.aiLoopTimer = null;
+                    }
+
+                    this.actionProgress = 0;
+                    this.livenessState = 'waiting_face';
+                    this.updateLivenessPrompt();
+
+                    // Canvas analisa offscreen berkecepatan tinggi (96x128)
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = 96;
+                    offCanvas.height = 128;
+                    const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+
+                    // Baseline akumulator saat wajah stabil
+                    let baselineSmileRatio = null;
+                    let baselineCornerLift = null;
+                    let baselineInnerRatio = null;
+                    let baselineEyeContrast = null;
+
+                    let prevCheekY = null;
+                    let stableFrames = 0;
+                    const WARMUP_FRAMES = 25; // ~0.8 detik wajah harus diam sebelum aksi diaktifkan
+
+                    let smileHoldCount = 0;
+                    let blinkPhase = 'idle'; // 'idle' | 'closed'
+                    let blinkClosedStart = 0;
+                    let currentProgressVal = 0;
+                    let isTriggered = false;
+
+                    const processFrame = () => {
+                        if (this.scanState !== 'ready' || !this.isScanning || isTriggered) {
                             return;
                         }
-                        this.scanCountdown--;
-                        if (this.scanCountdown <= 0) {
-                            clearInterval(this.countdownTimer);
-                            this.captureAndSend();
+
+                        const video = document.getElementById('video-scan');
+                        if (!video || video.paused || video.ended || video.readyState < 2) {
+                            this.aiLoopTimer = requestAnimationFrame(processFrame);
+                            return;
                         }
-                    }, 1000);
+
+                        try {
+                            const vw = video.videoWidth || 640;
+                            const vh = video.videoHeight || 480;
+
+                            // Area crop oval tengah di video (proporsi tepat dengan .face-oval)
+                            const cropW = vw * 0.58;
+                            const cropH = vh * 0.74;
+                            const cropX = (vw - cropW) / 2;
+                            const cropY = (vh - cropH) * 0.42;
+
+                            offCtx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, 96, 128);
+                            const imgData = offCtx.getImageData(0, 0, 96, 128);
+                            const data = imgData.data;
+
+                            // ── 1. Analisis Fotometrik & Struktur Anatomi Wajah Penuh ──
+                            let totalOvalPix = 0;
+                            let skinPix = 0;
+
+                            let foreheadSkinPix = 0;
+                            let leftEyeYSum = 0, leftEyeCount = 0;
+                            let rightEyeYSum = 0, rightEyeCount = 0;
+                            let noseBridgeYSum = 0, noseBridgeCount = 0;
+                            
+                            // Pipi (kiri & kanan) sebagai referensi warna kulit dasar & lebar wajah
+                            let cheekYSum = 0, cheekCount = 0;
+                            let cheekRSum = 0, cheekGSum = 0, cheekBSum = 0;
+                            let cheekCrSum = 0, cheekCbSum = 0;
+                            let leftCheekXSum = 0, leftCheekCount = 0;
+                            let rightCheekXSum = 0, rightCheekCount = 0;
+                            
+                            // Mulut & Bibir
+                            let lipPixelCount = 0;
+                            const colLips = new Uint8Array(96);
+                            const colLipYSum = new Float32Array(96);
+                            let innerMouthYSum = 0, innerMouthCount = 0;
+
+                            // Dagu
+                            let chinSkinPix = 0;
+
+                            // Gradien vertikal mata
+                            let eyeVerticalGrad = 0;
+
+                            for (let y = 0; y < 128; y++) {
+                                for (let x = 0; x < 96; x++) {
+                                    const idx = (y * 96 + x) * 4;
+                                    const r = data[idx];
+                                    const g = data[idx + 1];
+                                    const b = data[idx + 2];
+
+                                    // Luminance (Y) & Chrominance (Cb, Cr)
+                                    const Y = 0.299 * r + 0.587 * g + 0.114 * b;
+                                    const Cb = 128 - 0.1687 * r - 0.3313 * g + 0.5 * b;
+                                    const Cr = 128 + 0.5 * r - 0.4187 * g - 0.0813 * b;
+
+                                    // Titik di dalam elips oval tengah
+                                    const dx = (x - 48) / 38;
+                                    const dy = (y - 60) / 50;
+                                    const inOval = (dx * dx + dy * dy) <= 1.0;
+
+                                    const isSkin = (Y >= 35 && Y <= 245 && Cr >= 126 && Cr <= 178 && Cb >= 72 && Cb <= 135 && (Cr - Cb) >= 2);
+
+                                    if (inOval) {
+                                        totalOvalPix++;
+                                        if (isSkin) skinPix++;
+                                    }
+
+                                    // Zona 1: Dahi (y: 16..30, x: 28..68)
+                                    if (y >= 16 && y <= 30 && x >= 28 && x <= 68) {
+                                        if (isSkin) foreheadSkinPix++;
+                                    }
+
+                                    // Zona 2: Mata Kiri (x: 22..40, y: 38..50), Hidung Tengah (x: 44..52, y: 38..50), Mata Kanan (x: 56..74, y: 38..50)
+                                    if (y >= 38 && y <= 50) {
+                                        if (x >= 22 && x <= 40) {
+                                            leftEyeYSum += Y;
+                                            leftEyeCount++;
+                                            if (y > 38) {
+                                                const prevIdx = ((y - 1) * 96 + x) * 4;
+                                                const prevY = 0.299 * data[prevIdx] + 0.587 * data[prevIdx + 1] + 0.114 * data[prevIdx + 2];
+                                                eyeVerticalGrad += Math.abs(Y - prevY);
+                                            }
+                                        } else if (x >= 44 && x <= 52) {
+                                            noseBridgeYSum += Y;
+                                            noseBridgeCount++;
+                                        } else if (x >= 56 && x <= 74) {
+                                            rightEyeYSum += Y;
+                                            rightEyeCount++;
+                                            if (y > 38) {
+                                                const prevIdx = ((y - 1) * 96 + x) * 4;
+                                                const prevY = 0.299 * data[prevIdx] + 0.587 * data[prevIdx + 1] + 0.114 * data[prevIdx + 2];
+                                                eyeVerticalGrad += Math.abs(Y - prevY);
+                                            }
+                                        }
+                                    }
+
+                                    // Zona 3: Pipi (y: 54..72, x: 18..36 & x: 60..78)
+                                    if (y >= 54 && y <= 72) {
+                                        if (x >= 18 && x <= 36) {
+                                            cheekYSum += Y;
+                                            cheekRSum += r; cheekGSum += g; cheekBSum += b;
+                                            cheekCrSum += Cr; cheekCbSum += Cb;
+                                            leftCheekXSum += x; leftCheekCount++;
+                                            cheekCount++;
+                                        } else if (x >= 60 && x <= 78) {
+                                            cheekYSum += Y;
+                                            cheekRSum += r; cheekGSum += g; cheekBSum += b;
+                                            cheekCrSum += Cr; cheekCbSum += Cb;
+                                            rightCheekXSum += x; rightCheekCount++;
+                                            cheekCount++;
+                                        }
+                                    }
+
+                                    // Zona 4: Mulut & Bibir (y: 82..98, x: 26..70)
+                                    // PENTING: Deteksi warna bibir relatif terhadap warna kulit pipi pengguna
+                                    if (y >= 82 && y <= 98 && x >= 26 && x <= 70) {
+                                        const avgCheekR = cheekCount > 0 ? (cheekRSum / cheekCount) : 160;
+                                        const avgCheekG = cheekCount > 0 ? (cheekGSum / cheekCount) : 120;
+                                        const avgCheekCr = cheekCount > 0 ? (cheekCrSum / cheekCount) : 148;
+                                        const avgCheekCb = cheekCount > 0 ? (cheekCbSum / cheekCount) : 108;
+                                        const cheekRedRatio = avgCheekG > 0 ? (avgCheekR / avgCheekG) : 1.25;
+                                        const cheekCrCbDiff = avgCheekCr - avgCheekCb;
+
+                                        // Bibir manusia jauh lebih merah/pekat dibanding kulit pipinya sendiri
+                                        const isLipColor = (
+                                            ((r / (g + 1)) >= (cheekRedRatio + 0.11) && (r - g) >= (avgCheekR - avgCheekG + 7) && (Cr - Cb) >= (cheekCrCbDiff + 6) && r >= 50 && Y <= 220) ||
+                                            ((Cr - Cb) >= (cheekCrCbDiff + 12) && r > g * 1.25 && r >= 50 && Y <= 220)
+                                        );
+
+                                        if (isLipColor) {
+                                            lipPixelCount++;
+                                            colLips[x]++;
+                                            colLipYSum[x] += y;
+                                        }
+
+                                        // Area bukaan tengah mulut (gigi / ekspresi: x: 42..54, y: 86..94)
+                                        if (y >= 86 && y <= 94 && x >= 42 && x <= 54) {
+                                            innerMouthYSum += Y;
+                                            innerMouthCount++;
+                                        }
+                                    }
+
+                                    // Zona 5: Dagu (y: 104..118, x: 32..64)
+                                    if (y >= 104 && y <= 118 && x >= 32 && x <= 64) {
+                                        if (isSkin) chinSkinPix++;
+                                    }
+                                }
+                            }
+
+                            // ── 2. EKSTRAKSI LEBAR BIBIR KONTINU (KEBAL NOISE PIKSEL TEPI) ──
+                            let centerLipCol = 48;
+                            let maxCenterLipPix = 0;
+                            for (let cx = 40; cx <= 56; cx++) {
+                                if (colLips[cx] > maxCenterLipPix) {
+                                    maxCenterLipPix = colLips[cx];
+                                    centerLipCol = cx;
+                                }
+                            }
+
+                            let denseLipLeft = centerLipCol;
+                            let denseLipRight = centerLipCol;
+                            let mouthWidth = 0;
+                            let cornerLift = 0;
+
+                            if (maxCenterLipPix >= 2) {
+                                let gap = 0;
+                                for (let cx = centerLipCol - 1; cx >= 24; cx--) {
+                                    if (colLips[cx] >= 1) {
+                                        denseLipLeft = cx;
+                                        gap = 0;
+                                    } else {
+                                        gap++;
+                                        if (gap >= 2) break;
+                                    }
+                                }
+
+                                gap = 0;
+                                for (let cx = centerLipCol + 1; cx <= 72; cx++) {
+                                    if (colLips[cx] >= 1) {
+                                        denseLipRight = cx;
+                                        gap = 0;
+                                    } else {
+                                        gap++;
+                                        if (gap >= 2) break;
+                                    }
+                                }
+
+                                mouthWidth = denseLipRight - denseLipLeft + 1;
+
+                                const leftCornerY = colLips[denseLipLeft] > 0 ? (colLipYSum[denseLipLeft] / colLips[denseLipLeft]) : 90;
+                                const rightCornerY = colLips[denseLipRight] > 0 ? (colLipYSum[denseLipRight] / colLips[denseLipRight]) : 90;
+                                const centerLipY = colLips[centerLipCol] > 0 ? (colLipYSum[centerLipCol] / colLips[centerLipCol]) : 90;
+                                const avgCornerY = (leftCornerY + rightCornerY) / 2;
+                                cornerLift = centerLipY - avgCornerY;
+                            }
+
+                            // ── 3. VALIDASI ANATOMI WAJAH UTUH (ANTI-JIDAT & ANTI-SEBAGIAN WAJAH) ──
+                            const skinRatio = totalOvalPix > 0 ? (skinPix / totalOvalPix) : 0;
+                            const leftEyeAvgY = leftEyeCount > 0 ? (leftEyeYSum / leftEyeCount) : 0;
+                            const rightEyeAvgY = rightEyeCount > 0 ? (rightEyeYSum / rightEyeCount) : 0;
+                            const eyeAvgY = (leftEyeAvgY + rightEyeAvgY) / 2;
+                            const noseBridgeAvgY = noseBridgeCount > 0 ? (noseBridgeYSum / noseBridgeCount) : 0;
+                            const cheekAvgY = cheekCount > 0 ? (cheekYSum / cheekCount) : 0;
+                            const innerMouthAvgY = innerMouthCount > 0 ? (innerMouthYSum / innerMouthCount) : 0;
+
+                            const leftCheekCenterX = leftCheekCount > 0 ? (leftCheekXSum / leftCheekCount) : 27;
+                            const rightCheekCenterX = rightCheekCount > 0 ? (rightCheekXSum / rightCheekCount) : 69;
+                            const faceSpan = Math.max(30, rightCheekCenterX - leftCheekCenterX);
+
+                            // Rasio ternormalisasi geometris: kebal jarak dan kebal pencahayaan
+                            const smileRatio = faceSpan > 20 ? (mouthWidth / faceSpan) : 0;
+                            const normalizedInnerY = cheekAvgY > 15 ? (innerMouthAvgY / cheekAvgY) : 0;
+
+                            // Syarat kelengkapan fitur wajah utuh:
+                            const hasDualEyes = (leftEyeCount > 0 && rightEyeCount > 0 && 
+                                                 noseBridgeAvgY > leftEyeAvgY + 1.5 && 
+                                                 noseBridgeAvgY > rightEyeAvgY + 1.5 && 
+                                                 cheekAvgY > eyeAvgY + 2.0);
+                            const hasForehead = foreheadSkinPix >= 35;
+                            const hasRealMouth = lipPixelCount >= 14 && mouthWidth >= 16;
+                            const hasChin = chinSkinPix >= 20;
+
+                            const isFullFace = (
+                                skinRatio >= 0.22 &&
+                                hasForehead &&
+                                hasDualEyes &&
+                                hasRealMouth &&
+                                hasChin &&
+                                Math.abs(leftEyeAvgY - rightEyeAvgY) <= 24
+                            );
+
+                            if (!isFullFace) {
+                                stableFrames = Math.max(0, stableFrames - 2);
+                                if (stableFrames === 0) {
+                                    if (this.livenessState !== 'waiting_face') {
+                                        this.livenessState = 'waiting_face';
+                                        this.updateLivenessPrompt();
+                                    }
+                                    currentProgressVal = Math.max(0, currentProgressVal - 5);
+                                    this.actionProgress = Math.round(currentProgressVal);
+                                    baselineSmileRatio = null;
+                                    baselineCornerLift = null;
+                                    baselineInnerRatio = null;
+                                    baselineEyeContrast = null;
+                                    smileHoldCount = 0;
+                                    blinkPhase = 'idle';
+                                }
+                                this.aiLoopTimer = requestAnimationFrame(processFrame);
+                                return;
+                            }
+
+                            // Posisi wajah utuh terdeteksi!
+                            stableFrames++;
+
+                            // ── FASE WARM-UP (~0.8 detik tahan posisi stabil dulu) ──
+                            if (stableFrames < WARMUP_FRAMES) {
+                                this.livenessState = 'face_aligned';
+                                this.livenessPrompt = 'Tahan posisi wajah...';
+                                this.actionProgress = 0;
+                                currentProgressVal = 0;
+
+                                // Rekam baseline netral saat wajah diam
+                                if (baselineSmileRatio === null) {
+                                    baselineSmileRatio = smileRatio;
+                                    baselineCornerLift = cornerLift;
+                                    baselineInnerRatio = normalizedInnerY;
+                                    baselineEyeContrast = eyeVerticalGrad;
+                                } else {
+                                    baselineSmileRatio = baselineSmileRatio * 0.85 + smileRatio * 0.15;
+                                    baselineCornerLift = baselineCornerLift * 0.85 + cornerLift * 0.15;
+                                    baselineInnerRatio = baselineInnerRatio * 0.85 + normalizedInnerY * 0.15;
+                                    baselineEyeContrast = baselineEyeContrast * 0.85 + eyeVerticalGrad * 0.15;
+                                }
+
+                                prevCheekY = cheekAvgY;
+                                this.aiLoopTimer = requestAnimationFrame(processFrame);
+                                return;
+                            }
+
+                            // Wajah sudah stabil! Tampilkan instruksi aksi
+                            const challengeType = this.currentChallenge ? this.currentChallenge.type : 'blink';
+                            const ch = this.currentChallenge || this.challenges[0];
+                            if (this.livenessPrompt === 'Tahan posisi wajah...') {
+                                this.livenessPrompt = ch.actionText;
+                            }
+
+                            // ── 3. DETEKSI GERAKAN DENGAN METER REAL-TIME ──
+
+                            // A. TANTANGAN SENYUM (😊)
+                            if (challengeType === 'smile') {
+                                const deltaRatio = baselineSmileRatio > 0.1 ? ((smileRatio - baselineSmileRatio) / baselineSmileRatio) : 0;
+                                const deltaCorner = cornerLift - baselineCornerLift;
+                                const deltaInner = Math.max(0, normalizedInnerY - baselineInnerRatio);
+
+                                // Jika wajah sedang santai/netral, adaptasi baseline perlahan
+                                if (deltaRatio < 0.07 && deltaCorner < 1.0) {
+                                    baselineSmileRatio = baselineSmileRatio * 0.96 + smileRatio * 0.04;
+                                    baselineCornerLift = baselineCornerLift * 0.96 + cornerLift * 0.04;
+                                    baselineInnerRatio = baselineInnerRatio * 0.96 + normalizedInnerY * 0.04;
+                                }
+
+                                // Skor senyum: wajib ada pelebaran bibir nyata (>= 6%) atau angkatan sudut bibir
+                                let smileScore = 0;
+                                if (deltaRatio >= 0.06 || deltaCorner >= 1.2 || deltaInner >= 0.12) {
+                                    smileScore = (Math.max(0, deltaRatio - 0.05) * 350.0) + 
+                                                 (Math.max(0, deltaCorner - 0.5) * 18.0) + 
+                                                 (Math.max(0, deltaInner - 0.08) * 40.0);
+                                }
+
+                                let targetProgress = 0;
+                                // Ambang batas: wajah diam/netral = 0%
+                                if (smileScore >= 10.0) {
+                                    targetProgress = Math.min(100, Math.round(((smileScore - 10.0) / 40.0) * 100));
+                                }
+
+                                // Lerp responsif & halus
+                                currentProgressVal = (currentProgressVal * 0.78) + (targetProgress * 0.22);
+                                this.actionProgress = Math.round(currentProgressVal);
+
+                                if (this.actionProgress >= 88) {
+                                    smileHoldCount++;
+                                    // Tahan senyum minimal 10 frame (~330ms)
+                                    if (smileHoldCount >= 10) {
+                                        this.actionProgress = 100;
+                                        isTriggered = true;
+                                        this.livenessState = 'action_success';
+                                        this.updateLivenessPrompt();
+                                        audioFx.playBlink();
+                                        this.triggerShutterFlash();
+                                        setTimeout(() => { this.captureAndSend(); }, 200);
+                                        return;
+                                    }
+                                } else {
+                                    smileHoldCount = 0;
+                                }
+                            }
+
+                            // B. TANTANGAN KEDIP (😉)
+                            else if (challengeType === 'blink') {
+                                const cheekDelta = prevCheekY !== null ? Math.abs(cheekAvgY - prevCheekY) : 0;
+                                prevCheekY = cheekAvgY;
+
+                                const currentG = eyeVerticalGrad;
+                                if (currentG >= (baselineEyeContrast * 0.85) && cheekDelta <= 3.0) {
+                                    baselineEyeContrast = baselineEyeContrast * 0.96 + currentG * 0.04;
+                                }
+
+                                const contrastDrop = baselineEyeContrast - currentG;
+                                const dropPercent = baselineEyeContrast > 100 ? (contrastDrop / baselineEyeContrast) : 0;
+
+                                // Syarat mata terpejam:
+                                // 1. Penurunan gradien vertikal mata >= 30%
+                                // 2. Pipi diam / stabil (cheekDelta <= 3.0) agar bukan karena goyangan kamera
+                                const isEyesClosed = (dropPercent >= 0.30 && cheekDelta <= 3.0);
+                                const now = Date.now();
+
+                                if (blinkPhase === 'idle') {
+                                    if (isEyesClosed) {
+                                        blinkPhase = 'closed';
+                                        blinkClosedStart = now;
+                                        currentProgressVal = 50;
+                                        this.actionProgress = 50;
+                                    } else {
+                                        currentProgressVal = Math.max(0, currentProgressVal - 4);
+                                        this.actionProgress = Math.round(currentProgressVal);
+                                    }
+                                } else if (blinkPhase === 'closed') {
+                                    const closedDuration = now - blinkClosedStart;
+
+                                    // Mata terbuka kembali (dropPercent < 0.15) dalam rentang kedipan manusia normal (140ms - 650ms)
+                                    if (!isEyesClosed && closedDuration >= 140 && closedDuration <= 650) {
+                                        this.actionProgress = 100;
+                                        isTriggered = true;
+                                        this.livenessState = 'action_success';
+                                        this.updateLivenessPrompt();
+                                        audioFx.playBlink();
+                                        this.triggerShutterFlash();
+                                        setTimeout(() => { this.captureAndSend(); }, 200);
+                                        return;
+                                    } else if (closedDuration > 700) {
+                                        // Terpejam terlalu lama -> reset
+                                        blinkPhase = 'idle';
+                                        currentProgressVal = 0;
+                                        this.actionProgress = 0;
+                                    }
+                                }
+                            }
+
+                        } catch (err) {
+                            console.warn('Liveness frame error:', err);
+                        }
+
+                        this.aiLoopTimer = requestAnimationFrame(processFrame);
+                    };
+
+                    this.aiLoopTimer = requestAnimationFrame(processFrame);
                 },
 
                 captureAndSend() {
-                    if (this.countdownTimer) clearInterval(this.countdownTimer);
+                    if (this.aiLoopTimer) {
+                        cancelAnimationFrame(this.aiLoopTimer);
+                        clearTimeout(this.aiLoopTimer);
+                        this.aiLoopTimer = null;
+                    }
                     if (this.scanState === 'processing' || this.scanState === 'success') return;
 
                     const video = document.getElementById('video-scan');
@@ -1527,9 +2146,10 @@
                 },
 
                 stopCamera() {
-                    if (this.countdownTimer) {
-                        clearInterval(this.countdownTimer);
-                        this.countdownTimer = null;
+                    if (this.aiLoopTimer) {
+                        cancelAnimationFrame(this.aiLoopTimer);
+                        clearTimeout(this.aiLoopTimer);
+                        this.aiLoopTimer = null;
                     }
                     if (this.videoStream) {
                         this.videoStream.getTracks().forEach(t => t.stop());

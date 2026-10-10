@@ -64,6 +64,9 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::get('/nilai', [DashboardController::class, 'nilaiIndex'])->name('.nilai');
     Route::get('/kelas/{kelas}/siswa-json', [DashboardController::class, 'siswaPerKelasJson'])->name('.kelas.siswa-json');
     Route::post('/nilai', [DashboardController::class, 'storeNilai'])->name('.nilai.store');
+    Route::post('/nilai/batch', [DashboardController::class, 'batchStoreNilai'])->name('.nilai.batch-store');
+    Route::get('/nilai/export-leger/excel', [DashboardController::class, 'exportLegerExcel'])->name('.nilai.excel.leger');
+    Route::get('/nilai/export-leger/print', [DashboardController::class, 'printLeger'])->name('.nilai.print.leger');
     Route::put('/nilai/{nilaiSiswa}', [DashboardController::class, 'updateNilai'])->name('.nilai.update');
     Route::delete('/nilai/{nilaiSiswa}', [DashboardController::class, 'destroyNilai'])->name('.nilai.destroy');
 

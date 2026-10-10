@@ -341,8 +341,6 @@
                             <div x-show="isCameraReady && capturedImages.length < 5" class="bg-black/75 backdrop-blur-md text-white text-xs px-3.5 py-1.5 rounded-full font-bold border border-white/10 flex items-center gap-2 shadow-lg">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                 <span x-text="'Langkah ' + (capturedImages.length + 1) + ' / 5'"></span>
-                                <span class="text-slate-400">•</span>
-                                <span class="text-yellow-300 font-mono" x-text="'Otomatis ' + stepCountdown + 's'"></span>
                             </div>
                             <div x-show="capturedImages.length >= 5" class="bg-emerald-600 text-white text-xs px-4 py-1.5 rounded-full font-bold backdrop-blur-sm flex items-center gap-1.5 shadow-md">
                                 <i class="fas fa-check-double text-white"></i> 5 Foto Lengkap!
@@ -440,8 +438,6 @@
             isSubmitting: false,
             isCameraReady: false,
             videoStream: null,
-            stepCountdown: 2,
-            stepTimer: null,
 
             instructions: [
                 '1. Posisikan wajah tepat di tengah oval',
@@ -496,7 +492,6 @@
                             await video.play();
                         } catch (e) {}
                         this.isCameraReady = true;
-                        this.armStepCountdown();
                     };
 
                 } catch (err) {
@@ -505,46 +500,20 @@
                 }
             },
 
-            armStepCountdown() {
-                if (this.stepTimer) clearInterval(this.stepTimer);
-                if (this.capturedImages.length >= 5 || this.isSubmitting) return;
-
-                this.stepCountdown = 2;
-                this.stepTimer = setInterval(() => {
-                    if (this.capturedImages.length >= 5 || this.isSubmitting) {
-                        clearInterval(this.stepTimer);
-                        return;
-                    }
-                    this.stepCountdown--;
-                    if (this.stepCountdown <= 0) {
-                        clearInterval(this.stepTimer);
-                        this.takeSnapshot();
-                    }
-                }, 1000);
-            },
-
             manualCapture() {
                 if (this.capturedImages.length >= 5 || this.faceState === 'capturing' || !this.isCameraReady) return;
-                if (this.stepTimer) clearInterval(this.stepTimer);
                 this.takeSnapshot();
             },
 
             takeSnapshot() {
                 this.captureFrame();
-                if (this.capturedImages.length < 5) {
-                    this.armStepCountdown();
-                } else {
-                    if (this.stepTimer) clearInterval(this.stepTimer);
+                if (this.capturedImages.length >= 5) {
                     this.faceState = 'done';
                     setTimeout(() => this.submitFace(), 400);
                 }
             },
 
             stopCamera() {
-                if (this.stepTimer) {
-                    clearInterval(this.stepTimer);
-                    this.stepTimer = null;
-                }
                 if (this.videoStream) {
                     this.videoStream.getTracks().forEach(t => t.stop());
                     this.videoStream = null;
