@@ -1,7 +1,6 @@
 // Service Worker for Presensi Sekolah PWA
-const CACHE_NAME = 'presensi-cache-v9';
+const CACHE_NAME = 'presensi-cache-v15';
 const STATIC_ASSETS = [
-    '/',
     '/manifest.json',
     '/images/logo.png',
     '/images/icons/icon-192x192.png',
@@ -20,7 +19,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
-// Activate Event
+// Activate Event - Segera bersihkan seluruh cache lama
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -36,31 +35,45 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch Event - Network First with Cache Fallback for dynamic app
+// Fetch Event - Dynamic pages are NEVER cached in Service Worker
 self.addEventListener('fetch', (event) => {
-    // Abaikan permintaan non-GET atau API / sesi polling / POST
     if (event.request.method !== 'GET') return;
     const url = new URL(event.request.url);
 
-    // Skip dynamic API calls and socket/polling
-    if (url.pathname.includes('/live') || url.pathname.includes('/sesi-aktif')) {
+    // Dynamic routes: ALWAYS direct network fetch
+    if (
+        url.pathname.startsWith('/siswa') ||
+        url.pathname.startsWith('/kiosk') ||
+        url.pathname.startsWith('/dashboard') ||
+        url.pathname.startsWith('/login') ||
+        url.pathname.includes('/live') ||
+        url.pathname.includes('/sesi-aktif')
+    ) {
         return;
     }
 
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Clone and update cache if ok
+                // Only cache successful static asset responses
                 if (response && response.status === 200 && response.type === 'basic') {
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
+                    const ext = url.pathname.split('.').pop().toLowerCase();
+                    if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'json'].includes(ext)) {
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
                 }
                 return response;
             })
-            .catch(() => {
-                return caches.match(event.request);
+            .catch(async () => {
+                const cached = await caches.match(event.request);
+                if (cached) return cached;
+                return new Response('Sistem Presensi: Jaringan bermasalah atau offline.', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                });
             })
     );
 });

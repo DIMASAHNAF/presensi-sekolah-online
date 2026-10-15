@@ -11,8 +11,116 @@ class FaceService
 
     public function __construct()
     {
-        // Gunakan port 8000 tempat FastAPI berjalan
-        $this->apiUrl = config('face.api_url', 'http://127.0.0.1:8000');
+        // Gunakan port 8005 tempat FastAPI berjalan
+        $this->apiUrl = config('face.api_url', 'http://127.0.0.1:8005');
+    }
+
+    /**
+     * Identifikasi 1:N (Face ID Kiosk Gerbang).
+     * Mencocokkan foto snapshot dengan seluruh siswa terdaftar.
+     */
+    public function identify(string $imageB64, ?array $candidates = null, ?float $threshold = null): array
+    {
+        $payload = [
+            'image_b64' => $imageB64,
+        ];
+        if ($candidates !== null) {
+            $payload['candidates'] = $candidates;
+        }
+        if ($threshold !== null) {
+            $payload['threshold'] = $threshold;
+        }
+
+        $res = $this->call('identify', $payload);
+
+        // Jika FastAPI melaporkan database kosong di RAM, lakukan auto-sync sekali lalu coba ulang
+        if (isset($res['need_sync']) && $res['need_sync'] === true) {
+            $syncRes = $this->syncAllEnrolledStudents();
+            if ($syncRes['success'] && ($syncRes['total'] ?? 0) > 0) {
+                // Retry identify setelah disinkronkan
+                return $this->call('identify', $payload);
+            }
+        }
+
+        return $res;
+    }
+
+    /**
+     * Sinkronkan daftar kandidat ke RAM server FastAPI.
+     */
+    public function syncCandidates(array $candidates): array
+    {
+        return $this->call('sync-candidates', ['candidates' => $candidates]);
+    }
+
+    /**
+     * Ambil status cache kandidat di FastAPI.
+     */
+    public function getCandidatesStats(): array
+    {
+        return $this->call('candidates-stats', []);
+    }
+
+    /**
+     * Ambil seluruh siswa aktif yang memiliki face_descriptor dari DB,
+     * lalu sinkronkan langsung ke memori RAM FastAPI.
+     */
+    public function syncAllEnrolledStudents(): array
+    {
+        try {
+            $students = \App\Models\User::where('role', 'siswa')
+                ->whereNotNull('face_descriptor')
+                ->get(['id', 'face_descriptor']);
+
+            $candidates = [];
+            foreach ($students as $s) {
+                $desc = is_array($s->face_descriptor)
+                    ? $s->face_descriptor
+                    : json_decode($s->face_descriptor, true);
+
+                if (is_array($desc) && count($desc) === 128) {
+                    $candidates[] = [
+                        'id' => (int) $s->id,
+                        'descriptor' => array_values($desc),
+                    ];
+                }
+            }
+
+            // Jika tidak ada siswa terdaftar, kosongkan memori Python agar data reset terhapus tuntas
+            if (empty($candidates)) {
+                $this->syncCandidates([]);
+                return [
+                    'success' => true,
+                    'message' => 'Seluruh database wajah di RAM berhasil dikosongkan.',
+                    'total' => 0,
+                ];
+            }
+
+            return $this->syncCandidates($candidates);
+        } catch (\Throwable $e) {
+            Log::error('[FaceService] syncAllEnrolledStudents failed: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'total' => 0,
+            ];
+        }
+    }
+
+    /**
+     * Hitung jarak Euclidean antara dua vektor 128-float untuk deteksi duplikasi wajah.
+     */
+    public function calculateEuclideanDistance(array $a, array $b): ?float
+    {
+        if (count($a) !== 128 || count($b) !== 128) {
+            return null;
+        }
+        $sum = 0.0;
+        for ($i = 0; $i < 128; $i++) {
+            $diff = (float) $a[$i] - (float) $b[$i];
+            $sum += $diff * $diff;
+        }
+        return sqrt($sum);
     }
 
     /**

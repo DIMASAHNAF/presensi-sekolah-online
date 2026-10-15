@@ -34,10 +34,10 @@ class SchoolSetting extends Model
     {
         return static::firstOrCreate([], [
             'school_name' => 'SMK Negeri 1 Beringin',
-            'latitude' => -6.20876340,
-            'longitude' => 106.84559900,
-            'radius_meters' => 100,
-            'is_geofencing_active' => false,
+            'latitude' => 3.58660000,
+            'longitude' => 98.88130000,
+            'radius_meters' => 200,
+            'is_geofencing_active' => true,
             'is_ip_whitelist_active' => false,
             'allowed_ips' => null,
         ]);

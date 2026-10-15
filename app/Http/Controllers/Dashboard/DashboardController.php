@@ -21,6 +21,7 @@ use App\Http\Requests\UpdateGuruRequest;
 use App\Http\Requests\StoreKelasRequest;
 use App\Http\Requests\UpdateKelasRequest;
 use App\Http\Requests\UpdateLokasiRequest;
+use App\Services\FaceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
@@ -907,6 +908,14 @@ class DashboardController extends Controller
 
         $siswa->update($v);
 
+        if ($request->has('reset_wajah')) {
+            try {
+                (new FaceService())->syncAllEnrolledStudents();
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal auto-sync face service saat updateSiswa: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('dashboard.siswa')->with('success', "Data siswa {$siswa->name} berhasil diperbarui!");
     }
 
@@ -914,6 +923,8 @@ class DashboardController extends Controller
     {
         $this->adminOnly();
         abort_if($siswa->role !== 'siswa', 403);
+
+        $hadFace = !empty($siswa->face_descriptor);
 
         // Hapus seluruh berkas penyimpanan akun di storage
         Storage::disk('public')->deleteDirectory($siswa->getStorageFolder());
@@ -926,6 +937,14 @@ class DashboardController extends Controller
         }
 
         $siswa->delete();
+
+        if ($hadFace) {
+            try {
+                (new FaceService())->syncAllEnrolledStudents();
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal auto-sync face service saat destroySiswa: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('dashboard.siswa')->with('success', "Akun dan seluruh berkas siswa {$siswa->name} berhasil dihapus!");
     }
@@ -944,6 +963,13 @@ class DashboardController extends Controller
         // 2. Hapus berkas foto referensi wajah fisik di storage
         Storage::disk('public')->deleteDirectory($siswa->getStorageFolder() . '/face_enrollments');
         Storage::disk('public')->deleteDirectory('face_enrollments/' . $siswa->id);
+
+        // 3. Sync RAM server AI agar wajah siswa ini langsung terhapus dari memori Kiosk
+        try {
+            (new FaceService())->syncAllEnrolledStudents();
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal auto-sync face service saat resetFaceSiswa: ' . $e->getMessage());
+        }
 
         return redirect()->route('dashboard.siswa')->with('success', "Wajah dan berkas referensi biometrik siswa {$siswa->name} berhasil direset dari database dan storage!");
     }
@@ -964,6 +990,13 @@ class DashboardController extends Controller
             Storage::disk('public')->deleteDirectory($dir . '/face_enrollments');
         }
         Storage::disk('public')->deleteDirectory('face_enrollments');
+
+        // 3. Sync RAM server AI agar seluruh memori Kiosk dikosongkan
+        try {
+            (new FaceService())->syncAllEnrolledStudents();
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal auto-sync face service saat resetAllFaces: ' . $e->getMessage());
+        }
 
         return redirect()->route('dashboard.siswa')->with('success', 'Semua data biometrik dan berkas foto referensi wajah siswa berhasil direset dari database dan storage. Siswa harus scan ulang!');
     }

@@ -33,12 +33,13 @@ class AuthController extends Controller
     {
         $request->validate([
             'identifier' => ['required', 'string'], // username / email / NISN
-            'password' => ['required', 'string'],
+            'password'   => ['nullable', 'string'],
         ], [
             'identifier.required' => 'Username, email, atau NISN wajib diisi.',
         ]);
 
-        $login = $request->input('identifier');
+        $login = trim($request->input('identifier'));
+        $password = $request->input('password');
 
         // Deteksi field berdasarkan format input
         $field = filter_var($login, FILTER_VALIDATE_EMAIL)
@@ -47,9 +48,27 @@ class AuthController extends Controller
 
         $user = User::where($field, $login)->where('role', 'siswa')->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (! $user) {
             return back()->withErrors([
-                'identifier' => 'Username/Email/NISN atau password salah.',
+                'identifier' => 'Akun siswa tidak ditemukan dalam sistem.',
+            ])->onlyInput('identifier');
+        }
+
+        // Cek kecocokan autentikasi:
+        // 1. Password cocok dengan hash di database
+        // 2. Password yang diinput sama dengan nomor NISN (default password massal)
+        // 3. Siswa login menggunakan NISN murni tanpa password
+        $isAuthorized = false;
+        if (!empty($password)) {
+            $isAuthorized = Hash::check($password, $user->password) || ($user->nisn && $password === $user->nisn);
+        } else {
+            // Diizinkan tanpa password jika login via NISN
+            $isAuthorized = ($field === 'nisn');
+        }
+
+        if (! $isAuthorized) {
+            return back()->withErrors([
+                'identifier' => 'Password salah. Masukkan password Anda atau gunakan NISN sebagai password default.',
             ])->onlyInput('identifier');
         }
 

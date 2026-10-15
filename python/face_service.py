@@ -20,8 +20,8 @@ import io
 import traceback
 from typing import Dict, Any, List, Optional, Tuple, NoReturn
 
-# ── threshold: makin kecil makin ketat (0.45 cukup ketat, susah ditipu foto)
-THRESHOLD = 0.45
+# ── threshold: 0.50 standar optimal untuk dlib 128D
+THRESHOLD = 0.50
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
 

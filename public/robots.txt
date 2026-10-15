@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard/
+Disallow: /siswa/
+Allow: /
+Allow: /login/
+Allow: /register/
+
+Sitemap: https://presensi.tiksmkn1beringin.my.id/sitemap.xml

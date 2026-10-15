@@ -350,6 +350,15 @@
             <span>@if(auth()->user()->isAdmin()) Semua Presensi @else Kelola Presensi @endif</span>
         </a>
 
+        <a href="{{ route('kiosk.gerbang') }}" target="_blank"
+           class="nav-link text-blue-600 dark:text-cyan-400 font-bold hover:bg-blue-50 dark:hover:bg-cyan-950/30">
+            <i class="fas fa-tablet-screen-button icon text-blue-600 dark:text-cyan-400"></i>
+            <span class="flex items-center justify-between flex-1">
+                <span>Kiosk Gerbang Face ID</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 font-mono font-bold tracking-wider">LIVE</span>
+            </span>
+        </a>
+
         <a href="{{ route('dashboard.nilai') }}"
            class="nav-link {{ request()->routeIs('dashboard.nilai*') ? 'active' : '' }}">
             <i class="fas fa-graduation-cap icon"></i>

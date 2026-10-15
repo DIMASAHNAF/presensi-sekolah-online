@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Kiosk\KioskController;
 use App\Http\Controllers\Siswa\SiswaController;
 use Illuminate\Support\Facades\Route;
 
@@ -101,6 +102,15 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::post('/storage/organize-legacy', [DashboardController::class, 'organizeLegacyStorage'])->name('.storage.organize');
     Route::delete('/storage/file', [DashboardController::class, 'deleteStudentFile'])->name('.storage.file.delete');
 });
+
+// ============================================================
+//  KIOSK GERBANG (FACE ID TABLET ATTENDANCE)
+// ============================================================
+Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
+Route::get('/kiosk/gerbang', [KioskController::class, 'index'])->name('kiosk.gerbang');
+Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify');
+Route::post('/kiosk/sync', [KioskController::class, 'syncCandidates'])->name('kiosk.sync');
+Route::get('/kiosk/live-stats', [KioskController::class, 'liveStats'])->name('kiosk.stats');
 
 //  AUTH
 Route::middleware('auth')->group(function () {

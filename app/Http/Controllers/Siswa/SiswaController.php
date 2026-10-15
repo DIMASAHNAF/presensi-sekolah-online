@@ -274,46 +274,114 @@ class SiswaController extends Controller
     public function scanWajah(Request $request)
     {
         $request->validate([
-            'sesi_id'    => 'required|integer',
-            'face_image' => 'required|string', // base64 JPEG/PNG
-            'latitude'   => 'nullable|numeric',
-            'longitude'  => 'nullable|numeric',
+            'sesi_id'       => 'required|integer',
+            'face_image'    => 'required|string', // base64 JPEG/PNG
+            'latitude'      => 'nullable|numeric',
+            'longitude'     => 'nullable|numeric',
+            'accuracy'      => 'nullable|numeric',
+            'is_mock'       => 'nullable|boolean',
+            'gps_timestamp' => 'nullable|numeric',
         ]);
 
         $schoolSetting = SchoolSetting::getSettings();
+        $user = auth()->user();
 
-        // 1. Cek Validasi IP WiFi Sekolah jika aktif
+        // 1. Cek Validasi IP WiFi Sekolah jika aktif (Dual-Factor Network Verification)
         if ($schoolSetting->is_ip_whitelist_active) {
             $clientIp = SchoolSetting::getClientIp($request);
             if (!$schoolSetting->isIpAllowed($clientIp)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Presensi ditolak: Anda harus terhubung ke jaringan WiFi resmi SMKN 1 Beringin. IP Anda ({$clientIp}) tidak terdaftar dalam jaringan sekolah.",
-                ]);
+                    'message' => "Presensi ditolak: Anda wajib terhubung ke jaringan WiFi resmi SMKN 1 Beringin. IP jaringan Anda ({$clientIp}) tidak terdaftar.",
+                ], 403);
             }
         }
 
-        // 2. Cek Geofencing jika aktif
+        // 2. Cek Anti-Fake GPS & Geofencing jika aktif
+        $distance = null;
+        $accuracy = null;
         if ($schoolSetting->is_geofencing_active) {
-            if (!$request->filled('latitude') || !$request->filled('longitude')) {
+            // Anti-Mock: Tolak jika browser / sistem mendeteksi aplikasi Fake GPS aktif
+            if ($request->boolean('is_mock')) {
+                \Log::warning("Percobaan Fake GPS oleh siswa ID {$user->id} ({$user->name}) NISN: {$user->nisn}");
                 return response()->json([
                     'success' => false,
-                    'message' => 'Koordinat GPS perangkat Anda diperlukan untuk memverifikasi lokasi presensi.',
+                    'message' => 'Presensi DITOLAK: Terdeteksi aplikasi Fake GPS / Mock Location aktif pada perangkat Anda. Matikan aplikasi pemalsu lokasi untuk melanjutkan.',
+                ], 403);
+            }
+
+            if (!$request->filled('latitude') || !$request->filled('longitude')) {
+                // Jika membuka dari Laptop atau ruang kelas kedap sinyal tetapi terhubung ke WiFi / Jaringan Resmi SMKN 1 Beringin:
+                if ($schoolSetting->isIpAllowed($clientIp)) {
+                    $userLat = (float) $schoolSetting->latitude;
+                    $userLng = (float) $schoolSetting->longitude;
+                    $distance = 0;
+                    $accuracy = 10;
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Koordinat GPS satelit perangkat Anda diperlukan untuk memverifikasi kehadiran di SMKN 1 Beringin (atau sambungkan perangkat ke WiFi resmi sekolah).',
+                    ]);
+                }
+            } else {
+                $userLat = (float) $request->latitude;
+                $userLng = (float) $request->longitude;
+            }
+
+            // Validasi akurasi sinyal satelit / WiFi GPS (mencegah emulator / cell tower spoofing kasar)
+            if ($request->filled('accuracy')) {
+                $accuracy = (float) $request->accuracy;
+                if ($accuracy <= 0 || $accuracy > 250) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => sprintf(
+                            'Presensi ditolak: Akurasi sinyal lokasi perangkat Anda (±%d meter) belum stabil (batas toleransi 250m). Silakan bergeser ke area terbuka atau gunakan WiFi sekolah.',
+                            round($accuracy)
+                        ),
+                    ]);
+                }
+            }
+
+            // Validasi kesegaran timestamp GPS (anti-replay coordinates)
+            if ($request->filled('gps_timestamp')) {
+                $gpsTime = (float) $request->gps_timestamp;
+                $nowMs = round(microtime(true) * 1000);
+                $diffSec = abs($nowMs - $gpsTime) / 1000;
+                if ($diffSec > 300) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Presensi ditolak: Data koordinat GPS Anda kedaluwarsa. Silakan refresh lokasi pada aplikasi.',
+                    ]);
+                }
+            }
+
+            if (!isset($userLat)) {
+                $userLat = (float) $request->latitude;
+                $userLng = (float) $request->longitude;
+            }
+
+            // Koordinat batas kelayakan Indonesia
+            if ($userLat < -11.5 || $userLat > 6.5 || $userLng < 94.5 || $userLng > 141.5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Presensi ditolak: Titik koordinat GPS tidak valid.',
                 ]);
             }
 
-            $distance = $this->calculateDistance(
-                (float) $request->latitude,
-                (float) $request->longitude,
-                (float) $schoolSetting->latitude,
-                (float) $schoolSetting->longitude
-            );
+            if (!isset($distance)) {
+                $distance = $this->calculateDistance(
+                    $userLat,
+                    $userLng,
+                    (float) $schoolSetting->latitude,
+                    (float) $schoolSetting->longitude
+                );
+            }
 
             if ($distance > $schoolSetting->radius_meters) {
                 return response()->json([
                     'success'  => false,
                     'message'  => sprintf(
-                        'Presensi ditolak: Anda berada di luar radius sekolah. Jarak: %d meter (Batas: %d meter).',
+                        'Presensi ditolak: Anda berada di luar area SMKN 1 Beringin. Jarak: %d meter (Batas radius sekolah: %d meter).',
                         round($distance),
                         $schoolSetting->radius_meters
                     ),
@@ -414,10 +482,15 @@ class SiswaController extends Controller
             }
         }
 
+        $gpsAudit = '';
+        if ($distance !== null) {
+            $gpsAudit = sprintf(' • Jarak: %dm (±%dm)', round($distance), round($accuracy ?? 0));
+        }
+
         $presensi->update([
             'status'     => 'hadir',
             'waktu_scan' => now(),
-            'keterangan' => $fotoPath ? 'Scan Wajah (Tersimpan: ' . $fotoPath . ')' : 'Scan Wajah (Sistem)',
+            'keterangan' => ($fotoPath ? 'Scan Wajah (Tersimpan: ' . $fotoPath . ')' : 'Scan Wajah (Sistem)') . $gpsAudit,
         ]);
 
         // 7. Catat log
@@ -427,9 +500,11 @@ class SiswaController extends Controller
             'status_sebelumnya' => $statusSebelumnya,
             'status_baru'       => 'hadir',
             'keterangan'        => sprintf(
-                'Siswa melakukan scan wajah mandiri (confidence: %s, distance: %.4f)',
+                'Siswa melakukan scan wajah mandiri (confidence: %s, distance: %.4f)%s [IP: %s]',
                 $result['confidence'] ?? 'N/A',
-                $result['distance'] ?? 0
+                $result['distance'] ?? 0,
+                $gpsAudit,
+                SchoolSetting::getClientIp($request)
             ),
         ]);
 
@@ -447,6 +522,12 @@ class SiswaController extends Controller
     public function showEnrollWajah()
     {
         $user = auth()->user();
+
+        // Keamanan Anti-Joki: Jika siswa sudah merekam wajah, kunci akses
+        if ($user->isFaceEnrolled()) {
+            return redirect()->route('siswa.dashboard')->with('error', 'Biometrik wajah Anda sudah terdaftar dan dikunci permanen demi keamanan. Hubungi Admin atau Guru Piket jika memerlukan reset wajah.');
+        }
+
         return view('siswa.enroll-wajah', compact('user'));
     }
 
@@ -461,6 +542,14 @@ class SiswaController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Keamanan Anti-Joki: Tolak jika siswa sudah pernah enroll biometrik
+        if ($user->isFaceEnrolled()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biometrik wajah Anda sudah terdaftar dan terkunci. Perekaman ulang mandiri dinonaktifkan demi mencegah joki absensi.',
+            ], 403);
+        }
 
         try {
             $imagesArray = json_decode($request->face_images, true);
@@ -482,6 +571,32 @@ class SiswaController extends Controller
             ]);
         }
 
+        // ── ANTI-JOKI / CEK DUPLIKASI BIOMETRIK ──
+        // Mencegah siswa mendaftarkan wajah yang sama ke 2 akun berbeda (misal joki teman)
+        $newDescriptor = $result['descriptor'];
+        $existingStudents = User::whereNotNull('face_descriptor')
+            ->where('id', '!=', $user->id)
+            ->with('kelas')
+            ->get(['id', 'name', 'kelas_id', 'face_descriptor']);
+
+        foreach ($existingStudents as $existing) {
+            $existingDesc = is_array($existing->face_descriptor)
+                ? $existing->face_descriptor
+                : json_decode($existing->face_descriptor, true);
+
+            if (is_array($existingDesc) && count($existingDesc) === 128) {
+                $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
+                if ($dupDist !== null && $dupDist < 0.40) {
+                    $otherKelas = $existing->kelas?->nama_kelas ?? 'Siswa';
+                    \Log::warning("Percobaan duplikasi wajah: Siswa {$user->name} (ID: {$user->id}) mencoba mendaftarkan wajah yang identik dengan {$existing->name} (ID: {$existing->id}) jarak: {$dupDist}");
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Pendaftaran Ditolak: Wajah ini sudah terdaftar dalam sistem atas nama siswa lain ({$existing->name} - {$otherKelas}). Satu biometrik wajah hanya boleh digunakan untuk satu akun!",
+                    ], 422);
+                }
+            }
+        }
+
         // Arsipkan dataset foto pendaftaran wajah siswa ke storage 100GB
         try {
             foreach ($imagesArray as $idx => $imgB64) {
@@ -500,13 +615,20 @@ class SiswaController extends Controller
         }
 
         $user->update([
-            'face_descriptor'  => $result['descriptor'],
+            'face_descriptor'  => $newDescriptor,
             'face_enrolled_at' => now(),
         ]);
 
+        // Auto-sync wajah baru ini ke RAM server AI agar langsung dikenali Kiosk Gerbang
+        try {
+            $faceService->syncAllEnrolledStudents();
+        } catch (\Throwable $e) {
+            \Log::warning('Auto-sync biometrik setelah enroll: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Wajah berhasil didaftarkan! Anda sekarang bisa absen dengan scan wajah.',
+            'message' => 'Wajah berhasil didaftarkan dengan model AI resolusi tinggi! Anda sekarang bisa absen di Kiosk Gerbang.',
         ]);
     }
 

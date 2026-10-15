@@ -81,16 +81,41 @@
                             @endif
                         </div>
 
-                        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
-                            <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100">Perekaman Ulang Wajah (Re-Enroll)</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">Jika wajah Anda sering gagal terdeteksi atau berubah penampilan.</p>
+                        @if($user->isFaceEnrolled())
+                            <div class="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/70 dark:border-emerald-800/70 flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0 mt-0.5 shadow-2xs">
+                                    <i class="fas fa-shield-check"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <p class="text-xs font-bold text-emerald-950 dark:text-emerald-200">Biometrik Wajah Terkunci & Permanen</p>
+                                        <span class="text-[9px] bg-emerald-200/80 dark:bg-emerald-800/80 text-emerald-900 dark:text-emerald-100 px-2 py-0.5 rounded-md font-mono font-extrabold inline-flex items-center gap-1">
+                                            <i class="fas fa-lock text-[8px]"></i> Anti-Joki Aktif
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-emerald-800/90 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                                        Data biometrik wajah Anda telah terenkripsi dan disinkronkan ke server Kiosk Gerbang. Perekaman ulang mandiri dinonaktifkan untuk mencegah kecurangan/joki absensi. Jika wajah berubah atau mengalami kendala pemindaian, silakan laporkan ke <strong>Admin Kurikulum / Guru Piket</strong> untuk permohonan reset biometrik resmi.
+                                    </p>
+                                </div>
                             </div>
-                            <a href="{{ route('siswa.enroll') }}"
-                               class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-2xs">
-                                Rekam Ulang &rarr;
-                            </a>
-                        </div>
+                        @else
+                            <div class="p-4 bg-amber-50/60 dark:bg-amber-950/40 rounded-2xl border border-amber-200/70 dark:border-amber-800/70 flex items-center justify-between flex-wrap gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm shrink-0">
+                                        <i class="fas fa-face-viewfinder"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-amber-900 dark:text-amber-200">Daftarkan Biometrik Wajah Anda</p>
+                                        <p class="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">Daftarkan sekali secara otomatis untuk absensi di Kiosk Gerbang dan aplikasi HP.</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('siswa.enroll') }}"
+                                   class="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2">
+                                    <i class="fas fa-camera"></i>
+                                    <span>Daftar Sekarang &rarr;</span>
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
 

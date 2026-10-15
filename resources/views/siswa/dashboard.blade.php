@@ -1331,16 +1331,21 @@
                 currentSesiId: null,
                 pollInterval: null,
 
-                // ── Geofencing state ──
+                // ── Geofencing & Anti-Fake GPS state ──
                 schoolLat: {{ $schoolSetting->latitude }},
                 schoolLng: {{ $schoolSetting->longitude }},
                 schoolRadius: {{ $schoolSetting->radius_meters }},
                 geofencingActive: {{ $schoolSetting->is_geofencing_active ? 'true' : 'false' }},
                 userLat: null,
                 userLng: null,
+                userAccuracy: null,
+                isMockLocation: false,
+                gpsTimestamp: null,
                 geoDistance: null,
-                geoStatus: 'checking',
+                geoStatus: 'checking', // 'checking' | 'valid' | 'outside' | 'spoofed' | 'inaccurate' | 'error' | 'disabled'
+                geoErrorMessage: '',
                 isRequestingGeo: false,
+                isSchoolNetworkVerified: false,
 
                 // ── IP Whitelist state ──
                 ipWhitelistActive: {{ $schoolSetting->is_ip_whitelist_active ? 'true' : 'false' }},
@@ -1409,7 +1414,9 @@
 
                     if ('serviceWorker' in navigator) {
                         window.addEventListener('load', () => {
-                            navigator.serviceWorker.register('/sw.js').catch(console.warn);
+                            navigator.serviceWorker.register('/sw.js?v=15').then((reg) => {
+                                reg.update();
+                            }).catch(console.warn);
                         });
                     }
 
@@ -1437,48 +1444,133 @@
                     });
                 },
 
+                useSchoolNetwork() {
+                    this.geoStatus = 'valid';
+                    this.geoDistance = 0;
+                    this.userAccuracy = 10;
+                    this.userLat = this.schoolLat;
+                    this.userLng = this.schoolLng;
+                    this.isMockLocation = false;
+                    this.isSchoolNetworkVerified = true;
+                },
+
                 checkLocation(force = false) {
                     if (!this.geofencingActive && !force) {
                         this.geoStatus = 'disabled';
                         return;
                     }
 
+                    // Jika perangkat terhubung ke WiFi / Jaringan Resmi SMKN 1 Beringin:
+                    // Otomatis verifikasi lokasi valid seketika tanpa takut kendala sinyal GPS laptop / indoor!
+                    if (this.isIpAllowed) {
+                        this.useSchoolNetwork();
+                    }
+
                     if (!navigator.geolocation) {
-                        this.geoStatus = 'error';
+                        if (!this.isIpAllowed) {
+                            this.geoStatus = 'error';
+                            this.geoErrorMessage = 'Perangkat tidak mendukung Geolocation GPS.';
+                        }
                         return;
                     }
 
                     this.isRequestingGeo = true;
-                    if (force) this.geoStatus = 'checking';
+                    if (!this.isIpAllowed) {
+                        this.geoStatus = 'checking';
+                    }
 
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            this.isRequestingGeo = false;
-                            this.userLat = pos.coords.latitude;
-                            this.userLng = pos.coords.longitude;
+                    const processCoords = (pos) => {
+                        this.isRequestingGeo = false;
+                        const coords = pos.coords;
 
-                            const R = 6371000;
-                            const dLat = (this.schoolLat - this.userLat) * Math.PI / 180;
-                            const dLon = (this.schoolLng - this.userLng) * Math.PI / 180;
-                            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                                Math.cos(this.userLat * Math.PI / 180) * Math.cos(this.schoolLat * Math.PI / 180) *
-                                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                            this.geoDistance = Math.round(R * c);
+                        // 1. Deteksi Fake GPS / Mock Location API Android
+                        const isMock = coords.isMock === true || pos.mocked === true;
+                        if (isMock) {
+                            this.isMockLocation = true;
+                            this.geoStatus = 'spoofed';
+                            this.geoErrorMessage = 'Peringatan Keamanan: Terdeteksi aplikasi Fake GPS / Mock Location aktif. Harap matikan pemalsu lokasi.';
+                            return;
+                        }
 
-                            if (!this.geofencingActive || this.geoDistance <= this.schoolRadius) {
-                                this.geoStatus = 'valid';
-                            } else {
-                                this.geoStatus = 'outside';
+                        // 2. Deteksi akurasi sinyal satelit / WiFi GPS (toleransi hingga 500m sesuai radius sekolah)
+                        const accuracy = coords.accuracy || 0;
+                        this.userAccuracy = Math.round(accuracy);
+                        this.gpsTimestamp = pos.timestamp || Date.now();
+
+                        if (accuracy <= 0 || accuracy > 500) {
+                            if (this.isIpAllowed) {
+                                this.useSchoolNetwork();
+                                return;
                             }
-                        },
+                            this.geoStatus = 'inaccurate';
+                            this.geoErrorMessage = `Sinyal lokasi kurang akurat (±${this.userAccuracy}m). Sambungkan ke WiFi sekolah atau geser ke area terbuka.`;
+                            return;
+                        }
+
+                        this.userLat = coords.latitude;
+                        this.userLng = coords.longitude;
+                        this.isMockLocation = false;
+
+                        const R = 6371000;
+                        const dLat = (this.schoolLat - this.userLat) * Math.PI / 180;
+                        const dLon = (this.schoolLng - this.userLng) * Math.PI / 180;
+                        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                            Math.cos(this.userLat * Math.PI / 180) * Math.cos(this.schoolLat * Math.PI / 180) *
+                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        this.geoDistance = Math.round(R * c);
+
+                        if (!this.geofencingActive || this.geoDistance <= this.schoolRadius || this.isIpAllowed) {
+                            this.geoStatus = 'valid';
+                        } else {
+                            this.geoStatus = 'outside';
+                        }
+                    };
+
+                    // Progressive 2-tier query:
+                    // 1. Coba Network/WiFi positioning (instan < 1 detik)
+                    navigator.geolocation.getCurrentPosition(
+                        processCoords,
                         (err) => {
-                            this.isRequestingGeo = false;
-                            this.geoStatus = 'error';
-                            console.warn('Geolocation error:', err);
+                            console.warn('Network GPS lambat, mencoba GPS satelit...', err);
+                            navigator.geolocation.getCurrentPosition(
+                                processCoords,
+                                (satErr) => {
+                                    this.isRequestingGeo = false;
+                                    if (this.isIpAllowed) {
+                                        this.useSchoolNetwork();
+                                        return;
+                                    }
+                                    this.geoStatus = 'error';
+                                    if (satErr.code === 1) {
+                                        this.geoErrorMessage = 'Izin lokasi GPS DITOLAK browser. Buka setelan browser di ikon gembok kiri URL, pilih "Izinkan Lokasi".';
+                                    } else if (satErr.code === 2) {
+                                        this.geoErrorMessage = 'Sinyal lokasi tidak tersedia. Jika memakai Laptop, sambungkan ke WiFi sekolah atau aktifkan Lokasi Windows.';
+                                    } else {
+                                        this.geoErrorMessage = 'Waktu permintaan GPS habis. Jika memakai Laptop, sambungkan ke WiFi sekolah atau aktifkan Lokasi Windows.';
+                                    }
+                                    console.warn('Geolocation fallback error:', satErr);
+                                },
+                                { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+                            );
                         },
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+                        { enableHighAccuracy: false, timeout: 4000, maximumAge: 300000 }
                     );
+
+                    // Background passive watcher agar begitu GPS satelit lock, akurasi langsung naik otomatis
+                    if (!this.geoWatcherId && navigator.geolocation.watchPosition) {
+                        try {
+                            this.geoWatcherId = navigator.geolocation.watchPosition(
+                                (pos) => {
+                                    if (pos && pos.coords && pos.coords.latitude) {
+                                        processCoords(pos);
+                                    }
+                                },
+                                () => {},
+                                { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+                            );
+                        } catch (e) {}
+                    }
                 },
 
                 formatDistance(m) {
@@ -1533,14 +1625,28 @@
                         return;
                     }
 
-                    if (this.geofencingActive && this.geoStatus === 'outside') {
-                        audioFx.playError();
-                        alert(`Presensi ditolak: Anda berada di luar radius sekolah (${this.formatDistance(this.geoDistance)}). Batas maksimal: ${this.schoolRadius} meter.`);
-                        return;
-                    }
+                    if (this.geofencingActive) {
+                        if (this.geoStatus === 'spoofed' || this.isMockLocation) {
+                            audioFx.playError();
+                            alert('Presensi DITOLAK: Terdeteksi aplikasi Fake GPS / Mock Location aktif pada perangkat Anda. Harap nonaktifkan pemalsu lokasi dan Developer Options.');
+                            return;
+                        }
 
-                    if (this.geofencingActive && !this.userLat) {
-                        this.checkLocation(true);
+                        if (this.geoStatus === 'inaccurate') {
+                            audioFx.playError();
+                            alert(`Akurasi GPS perangkat Anda (±${this.userAccuracy}m) belum memenuhi standar keamanan (maks 100m).\nSilakan pindah ke area terbuka dan pastikan Mode Akurasi Tinggi aktif.`);
+                            return;
+                        }
+
+                        if (this.geoStatus === 'outside') {
+                            audioFx.playError();
+                            alert(`Presensi DITOLAK: Anda berada di luar area SMKN 1 Beringin (${this.formatDistance(this.geoDistance)}). Batas maksimal radius sekolah: ${this.schoolRadius} meter.`);
+                            return;
+                        }
+
+                        if (!this.userLat) {
+                            this.checkLocation(true);
+                        }
                     }
 
                     this.isScanning = true;
@@ -2101,6 +2207,9 @@
                             face_image: imageB64,
                             latitude: this.userLat,
                             longitude: this.userLng,
+                            accuracy: this.userAccuracy,
+                            is_mock: this.isMockLocation,
+                            gps_timestamp: this.gpsTimestamp,
                         })
                     })
                         .then(r => r.json())

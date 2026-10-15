@@ -196,7 +196,10 @@
                                         <span>SESI SEDANG BERLANGSUNG</span>
                                     </div>
                                     <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
-                                    <p x-text="'Guru: ' + sesiData?.guru" class="text-blue-100 text-xs mt-0.5 font-medium"></p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-black px-2 py-0.5 rounded-md shadow-xs" x-text="sesiData?.mapel"></span>
+                                        <span class="text-blue-100 text-xs" x-text="'Pengampu: ' + sesiData?.guru"></span>
+                                    </div>
                                 </div>
                                 <div class="bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
                                     <i class="fas fa-circle-check text-xl text-emerald-600 dark:text-emerald-400"></i>
@@ -220,7 +223,14 @@
                                     </div>
                                     <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
                                     <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-mono font-medium"></p>
-                                    <p x-text="'Pengampu: ' + sesiData?.guru" class="text-blue-200 text-xs mt-0.5 font-medium"></p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-black px-2 py-0.5 rounded-md shadow-xs" x-text="sesiData?.mapel"></span>
+                                        <span class="text-blue-200 text-xs" x-text="'Pengampu: ' + sesiData?.guru"></span>
+                                    </div>
+                                    <p x-show="sesiData?.jam && sesiData?.jam !== '-'" class="text-blue-200/90 text-[11px] font-mono mt-1 flex items-center gap-1">
+                                        <i class="far fa-clock text-[10px]"></i>
+                                        <span x-text="sesiData?.jam"></span>
+                                    </p>
                                 </div>
                                 <div class="bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
                                     <i class="far fa-clock text-xl text-amber-500 dark:text-amber-400"></i>
@@ -255,6 +265,94 @@
                                     </div>
                                 </div>
 
+                                {{-- GPS Geofencing & Anti-Fake GPS Radar --}}
+                                <div x-show="geofencingActive" class="mb-4 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs text-slate-700 dark:text-slate-200 font-bold flex items-center gap-1.5">
+                                            <i class="fas fa-location-dot text-emerald-600 dark:text-emerald-400"></i> GPS Geofencing SMKN 1 Beringin:
+                                        </span>
+                                        <button type="button" @click="checkLocation(true)" :disabled="isRequestingGeo"
+                                                class="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer">
+                                            <i class="fas fa-arrows-rotate" :class="{ 'fa-spin': isRequestingGeo }"></i>
+                                            <span>Refresh GPS</span>
+                                        </button>
+                                    </div>
+
+                                    {{-- Status 1: Valid (Di dalam area sekolah) --}}
+                                    <div x-show="geoStatus === 'valid'"
+                                        class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/80 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <i class="fas fa-circle-check text-emerald-600 dark:text-emerald-400 text-base shrink-0"></i>
+                                            <div class="truncate">
+                                                <p class="font-bold truncate" x-text="isSchoolNetworkVerified ? 'Terverifikasi Jaringan SMKN 1 Beringin' : 'Di Dalam Area SMKN 1 Beringin'"></p>
+                                                <p class="text-[11px] text-emerald-600 dark:text-emerald-400">
+                                                    Jarak: <strong x-text="formatDistance(geoDistance)"></strong> (Maks: <span x-text="schoolRadius"></span>m) • <span x-text="isSchoolNetworkVerified ? 'WiFi / LAN Sekolah' : 'Akurasi: ±' + (userAccuracy || 0) + 'm'"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-200/80 dark:bg-emerald-800 text-[9px] font-mono font-black uppercase text-emerald-900 dark:text-emerald-100 shrink-0">TERKUNCI</span>
+                                    </div>
+
+                                    {{-- Status 2: Terdeteksi Fake GPS / Mock Location --}}
+                                    <div x-show="geoStatus === 'spoofed'" x-cloak
+                                        class="bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-500 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 dark:text-rose-200 space-y-1 shadow-sm">
+                                        <div class="flex items-center gap-2 font-black text-rose-600 dark:text-rose-400">
+                                            <i class="fas fa-ban text-base animate-bounce"></i>
+                                            <span>PERINGATAN: FAKE GPS TERDETEKSI!</span>
+                                        </div>
+                                        <p class="text-[11px] text-rose-700 dark:text-rose-300 leading-tight">
+                                            Sistem mendeteksi aplikasi Fake GPS / Mock Location aktif. Harap matikan aplikasi pemalsu lokasi dan Developer Options di HP Anda.
+                                        </p>
+                                    </div>
+
+                                    {{-- Status 3: Di luar radius sekolah --}}
+                                    <div x-show="geoStatus === 'outside'" x-cloak
+                                        class="bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/80 rounded-xl px-3.5 py-2.5 text-xs text-amber-800 dark:text-amber-200 space-y-1">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-100">
+                                                <i class="fas fa-map-pin text-amber-500"></i>
+                                                <span>Di Luar Area SMKN 1 Beringin</span>
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900/60 text-[9px] font-mono font-bold text-amber-800 dark:text-amber-200"
+                                                  x-text="formatDistance(geoDistance)"></span>
+                                        </div>
+                                        <p class="text-[11px] text-amber-700 dark:text-amber-300">
+                                            Presensi hanya dapat dilakukan di dalam lingkungan sekolah (radius maksimal <span x-text="schoolRadius"></span> meter).
+                                        </p>
+                                    </div>
+
+                                    {{-- Status 4: Akurasi sinyal lemah (> 100m) --}}
+                                    <div x-show="geoStatus === 'inaccurate'" x-cloak
+                                        class="bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/80 rounded-xl px-3.5 py-2.5 text-xs text-amber-800 dark:text-amber-200 space-y-1">
+                                        <div class="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-100">
+                                            <i class="fas fa-satellite-dish text-amber-500"></i>
+                                            <span>Sinyal GPS Belum Akurat (±<span x-text="userAccuracy"></span>m)</span>
+                                        </div>
+                                        <p class="text-[11px] text-amber-700 dark:text-amber-300 leading-tight">
+                                            Akurasi lokasi minimal harus di bawah 250 meter. Harap geser ke area terbuka atau nyalakan <em>Google Location Accuracy / Wi-Fi</em>.
+                                        </p>
+                                    </div>
+
+                                    {{-- Status 5: Sedang mengecek atau error --}}
+                                    <div x-show="geoStatus === 'checking'" x-cloak
+                                        class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                        <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                                        <span>Mengunci koordinat GPS satelit...</span>
+                                    </div>
+
+                                    <div x-show="geoStatus === 'error'" x-cloak
+                                        class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="truncate" x-text="geoErrorMessage || 'Gagal mendeteksi lokasi GPS.'"></span>
+                                            <button type="button" @click="checkLocation(true)" class="text-blue-600 dark:text-blue-400 font-bold shrink-0">Coba Lagi</button>
+                                        </div>
+                                        <div x-show="isIpAllowed" class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                                            <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Terhubung ke jaringan sekolah</span>
+                                            <button type="button" @click="useSchoolNetwork()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg">Verifikasi via WiFi Sekolah</button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- Tombol Mulai Scan Wajah --}}
                                 @if(!$user->isFaceEnrolled())
                                     <div class="space-y-3">
@@ -276,11 +374,11 @@
                                     </div>
                                 @else
                                     <button @click="openFaceScanner()"
-                                        :disabled="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed)"
-                                        :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'magic-btn bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_25px_rgba(37,99,235,0.6)] border border-blue-400 hover:shadow-[0_0_35px_rgba(37,99,235,0.8)] active:scale-[0.99]'"
+                                        :disabled="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed)"
+                                        :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'magic-btn bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_25px_rgba(37,99,235,0.6)] border border-blue-400 hover:shadow-[0_0_35px_rgba(37,99,235,0.8)] active:scale-[0.99]'"
                                         class="w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm transition-all">
-                                        <i class="fas text-base" :class="(geofencingActive && geoStatus === 'outside') || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
-                                        <span x-text="ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : 'Mulai Verifikasi Wajah')"></span>
+                                        <i class="fas text-base" :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
+                                        <span x-text="geoStatus === 'spoofed' ? 'Terkunci: Fake GPS Terdeteksi' : (ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : (geofencingActive && geoStatus === 'inaccurate' ? 'Terkunci: Sinyal GPS Lemah' : 'Mulai Verifikasi Wajah Face ID')))"></span>
                                     </button>
                                 @endif
                             </div>

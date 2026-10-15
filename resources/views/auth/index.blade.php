@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk — Sistem Presensi SMKN 1 Beringin</title>
+    <meta name="description" content="Sistem Presensi Biometrik Siswa, Guru, dan Staf SMKN 1 Beringin. Portal presensi digital berbasis verifikasi wajah dan GPS.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="SMKN 1 Beringin">
+    <link rel="canonical" href="https://presensi.tiksmkn1beringin.my.id/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://presensi.tiksmkn1beringin.my.id/">
+    <meta property="og:title" content="Masuk — Sistem Presensi SMKN 1 Beringin">
+    <meta property="og:description" content="Portal presensi digital biometrik wajah dan geolokasi untuk siswa dan guru SMKN 1 Beringin.">
+    <meta property="og:image" content="{{ asset('images/logo.webp') }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://presensi.tiksmkn1beringin.my.id/">
+    <meta name="twitter:title" content="Masuk — Sistem Presensi SMKN 1 Beringin">
+    <meta name="twitter:description" content="Portal presensi digital biometrik wajah dan geolokasi SMKN 1 Beringin.">
+    <meta name="twitter:image" content="{{ asset('images/logo.webp') }}">
+
     <link rel="icon" type="image/png" href="{{ asset('images/logo.webp') }}">
 
     <!-- PWA Settings -->
@@ -170,21 +189,27 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">Password</label>
+                        <div class="flex items-center justify-between px-1">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">Password</label>
+                            <span class="text-[11px] text-blue-500 font-semibold">(Opsional jika pakai NISN)</span>
+                        </div>
                         <div class="relative flex items-center">
                             <span class="absolute left-4 text-gray-400">
                                 <i class="fas fa-lock text-sm"></i>
                             </span>
                             <input :type="showPasswordSiswa ? 'text' : 'password'"
-                                   name="password" required
-                                   placeholder="••••••••"
+                                   name="password"
+                                   placeholder="Password Anda atau kosongkan jika pakai NISN"
                                    class="neu-input w-full rounded-xl pl-11 pr-11 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
                             <button type="button"
-                                    @click="showPasswordSiswa = !showPasswordSiswa"
-                                    class="absolute right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                     @click="showPasswordSiswa = !showPasswordSiswa"
+                                     class="absolute right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
                                 <i class="fas text-sm" :class="showPasswordSiswa ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
+                        <p class="text-[11px] text-gray-400 px-1 mt-1 leading-relaxed">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> Cukup ketik <strong>NISN</strong> di atas. Kolom password dapat dikosongkan.
+                        </p>
                     </div>
 
                     <div class="flex items-center justify-between pt-2">
@@ -269,8 +294,18 @@
         </div>
     </div>
 
+    {{-- Quick Link to Kiosk Gerbang --}}
+    <div class="mt-2 text-center relative z-10">
+        <a href="{{ route('kiosk.gerbang') }}" target="_blank"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full neu-button text-xs font-bold text-gray-600 hover:text-blue-600 transition">
+            <i class="fas fa-tablet-screen-button text-blue-500"></i>
+            <span>Buka Layar Kiosk Tablet Gerbang</span>
+            <span class="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">Face ID</span>
+        </a>
+    </div>
+
     {{-- Footer --}}
-    <footer class="mt-6 text-center text-xs text-gray-400 font-medium tracking-wide">
+    <footer class="mt-4 text-center text-xs text-gray-400 font-medium tracking-wide">
         Sistem Presensi Biometrik &copy; 2026 SMKN 1 BERINGIN
     </footer>
 
