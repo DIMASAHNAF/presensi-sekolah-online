@@ -47,17 +47,29 @@ class DashboardController extends Controller
                     ->count(),
             ];
 
-            // Chart: 7 hari terakhir
+            // Chart: 7 hari terakhir (1 Agregasi Query SQL Efisien)
+            $startDate = Carbon::today()->subDays(6)->toDateString();
+            $endDate = Carbon::today()->toDateString();
+
+            $chartRaw = \Illuminate\Support\Facades\DB::table('presensi')
+                ->join('sesi_presensi', 'presensi.sesi_presensi_id', '=', 'sesi_presensi.id')
+                ->whereBetween('sesi_presensi.tanggal', [$startDate, $endDate])
+                ->whereIn('presensi.status', ['hadir', 'alpa'])
+                ->selectRaw('sesi_presensi.tanggal, presensi.status, count(*) as total')
+                ->groupBy('sesi_presensi.tanggal', 'presensi.status')
+                ->get()
+                ->groupBy('tanggal');
+
             $chartLabels = [];
             $chartHadir = [];
             $chartAlpa = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i);
+                $dStr = $date->toDateString();
                 $chartLabels[] = $date->format('d/m');
-                $chartHadir[] = Presensi::where('status', 'hadir')
-                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', $date))->count();
-                $chartAlpa[] = Presensi::where('status', 'alpa')
-                    ->whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', $date))->count();
+                $byDate = $chartRaw->get($dStr);
+                $chartHadir[] = $byDate ? ($byDate->firstWhere('status', 'hadir')->total ?? 0) : 0;
+                $chartAlpa[] = $byDate ? ($byDate->firstWhere('status', 'alpa')->total ?? 0) : 0;
             }
 
             $recentSesi = SesiPresensi::with(['kelas', 'guru', 'mataPelajaran'])
@@ -114,14 +126,22 @@ class DashboardController extends Controller
                 'sesi_aktif' => SesiPresensi::where('tanggal', today())->where('is_active', true)->count(),
             ]);
         } else {
-            // Guru realtime polling tersinkronisasi dengan seluruh sesi hari ini
-            $sesiHariIni = SesiPresensi::where('tanggal', today())->get();
-            $presensiHariIni = Presensi::whereHas('sesiPresensi', fn ($q) => $q->where('tanggal', today()))->get();
+            // Guru realtime polling efisien via SQL aggregation tanpa membebani RAM
+            $sesiCount = SesiPresensi::where('tanggal', today())->count();
+            $sesiAktifCount = SesiPresensi::where('tanggal', today())->where('is_active', true)->count();
+            $presensiCounts = \Illuminate\Support\Facades\DB::table('presensi')
+                ->join('sesi_presensi', 'presensi.sesi_presensi_id', '=', 'sesi_presensi.id')
+                ->where('sesi_presensi.tanggal', today())
+                ->whereIn('presensi.status', ['hadir', 'alpa'])
+                ->selectRaw('presensi.status, count(*) as count')
+                ->groupBy('presensi.status')
+                ->pluck('count', 'status');
+
             return response()->json([
-                'sesi_hari_ini'  => $sesiHariIni->count(),
-                'sesi_aktif'     => $sesiHariIni->where('is_active', true)->count(),
-                'hadir_hari_ini' => $presensiHariIni->where('status', 'hadir')->count(),
-                'alpa_hari_ini'  => $presensiHariIni->where('status', 'alpa')->count(),
+                'sesi_hari_ini'  => $sesiCount,
+                'sesi_aktif'     => $sesiAktifCount,
+                'hadir_hari_ini' => $presensiCounts->get('hadir', 0),
+                'alpa_hari_ini'  => $presensiCounts->get('alpa', 0),
             ]);
         }
     }
@@ -259,11 +279,15 @@ class DashboardController extends Controller
                 }
             }
 
-            Presensi::create([
-                'sesi_presensi_id' => $sesi->id,
-                'siswa_id' => $siswa->id,
-                'status' => $status,
-            ]);
+            Presensi::firstOrCreate(
+                [
+                    'sesi_presensi_id' => $sesi->id,
+                    'siswa_id'         => $siswa->id,
+                ],
+                [
+                    'status' => $status,
+                ]
+            );
         }
 
         return redirect()->route('dashboard.presensi.detail', $sesi)
@@ -334,12 +358,16 @@ class DashboardController extends Controller
                 }
             }
 
-            $newPresensi = Presensi::create([
-                'sesi_presensi_id' => $sesiPresensi->id,
-                'siswa_id'         => $siswa->id,
-                'status'           => $status,
-                'keterangan'       => $keterangan,
-            ]);
+            $newPresensi = Presensi::firstOrCreate(
+                [
+                    'sesi_presensi_id' => $sesiPresensi->id,
+                    'siswa_id'         => $siswa->id,
+                ],
+                [
+                    'status'     => $status,
+                    'keterangan' => $keterangan,
+                ]
+            );
 
             LogPresensi::create([
                 'presensi_id'       => $newPresensi->id,
@@ -1158,12 +1186,22 @@ class DashboardController extends Controller
     {
         $request->validated();
 
+        $polygonCoords = null;
+        if ($request->filled('polygon_coordinates')) {
+            $decoded = json_decode($request->polygon_coordinates, true);
+            if (is_array($decoded) && count($decoded) >= 3) {
+                $polygonCoords = $decoded;
+            }
+        }
+
         $setting = SchoolSetting::getSettings();
         $setting->update([
             'school_name' => $request->school_name,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'radius_meters' => $request->radius_meters,
+            'polygon_coordinates' => $polygonCoords,
+            'geofence_mode' => $request->input('geofence_mode', 'radius'),
             'is_geofencing_active' => $request->has('is_geofencing_active'),
             'is_ip_whitelist_active' => $request->has('is_ip_whitelist_active'),
             'allowed_ips' => $request->allowed_ips,

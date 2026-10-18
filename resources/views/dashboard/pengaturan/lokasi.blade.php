@@ -98,9 +98,30 @@
                     </div>
                 </div>
 
-                {{-- Radius Meters --}}
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
+                {{-- Mode Geofencing: Radius vs Polygon --}}
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Metode Batas Wilayah (Geofence Mode)</label>
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                        <button type="button" @click="setGeofenceMode('radius')"
+                                :class="geofenceMode === 'radius' ? 'bg-white text-teal-700 shadow-xs font-bold' : 'text-slate-600 font-medium hover:text-slate-900'"
+                                class="py-2 text-xs rounded-lg transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-circle-notch"></i>
+                            <span>Radius Lingkaran</span>
+                        </button>
+                        <button type="button" @click="setGeofenceMode('polygon')"
+                                :class="geofenceMode === 'polygon' ? 'bg-white text-teal-700 shadow-xs font-bold' : 'text-slate-600 font-medium hover:text-slate-900'"
+                                class="py-2 text-xs rounded-lg transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-draw-polygon"></i>
+                            <span>Polygon Pagar (Presisi)</span>
+                        </button>
+                    </div>
+                    <input type="hidden" name="geofence_mode" :value="geofenceMode">
+                    <input type="hidden" name="polygon_coordinates" :value="JSON.stringify(polygonPoints)">
+                </div>
+
+                {{-- Mode 1: Radius Meters (Tampil jika mode = radius) --}}
+                <div x-show="geofenceMode === 'radius'" class="space-y-2">
+                    <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Radius Toleransi</label>
                         <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-lg">
                             <span x-text="radius"></span> Meter
@@ -117,6 +138,52 @@
                     <div class="mt-2">
                         <input type="number" min="10" max="5000" name="radius_meters" x-model.number="radius" @input="updateMapCircle()"
                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition">
+                    </div>
+                </div>
+
+                {{-- Mode 2: Polygon Manager (Tampil jika mode = polygon) --}}
+                <div x-show="geofenceMode === 'polygon'" class="space-y-3 bg-teal-50/50 border border-teal-200/80 rounded-2xl p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">
+                                <i class="fas fa-draw-polygon"></i>
+                            </span>
+                            <span class="text-xs font-bold text-slate-800">Area Polygon Sekolah</span>
+                        </div>
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md"
+                              :class="polygonPoints.length >= 3 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                            <span x-text="polygonPoints.length"></span> Titik Batas
+                        </span>
+                    </div>
+                    
+                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                        Klik langsung pada peta sebelah kanan untuk menambahkan titik sudut pagar sekolah (minimal 3 titik untuk membentuk polygon tertutup).
+                    </p>
+
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <button type="button" @click="undoLastPoint()" :disabled="polygonPoints.length === 0"
+                                class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition flex items-center gap-1">
+                            <i class="fas fa-rotate-left text-slate-400"></i> Undo Titik
+                        </button>
+                        <button type="button" @click="clearPolygon()" :disabled="polygonPoints.length === 0"
+                                class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 transition flex items-center gap-1">
+                            <i class="fas fa-trash-can"></i> Hapus Poligon
+                        </button>
+                        <button type="button" @click="loadDefaultSchoolPolygon()"
+                                class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition flex items-center gap-1 shadow-2xs">
+                            <i class="fas fa-wand-magic-sparkles"></i> Contoh Poligon SMKN 1
+                        </button>
+                    </div>
+
+                    {{-- Vertex list display --}}
+                    <div x-show="polygonPoints.length > 0" class="max-h-24 overflow-y-auto space-y-1 pr-1">
+                        <template x-for="(pt, idx) in polygonPoints" :key="idx">
+                            <div class="flex items-center justify-between text-[10px] font-mono bg-white px-2 py-1 rounded-md border border-slate-200">
+                                <span class="text-slate-500 font-bold" x-text="'P' + (idx + 1) + ':'"></span>
+                                <span class="text-slate-700" x-text="Number(pt.lat).toFixed(6) + ', ' + Number(pt.lng).toFixed(6)"></span>
+                                <button type="button" @click="removePointAt(idx)" class="text-red-500 hover:text-red-700 font-bold px-1">✕</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -237,10 +304,28 @@
                     <p class="text-xs text-slate-400">Lingkaran hijau adalah zona aman siswa diperbolehkan scan presensi</p>
                 </div>
                 
-                <a :href="'https://www.google.com/maps?q=' + lat + ',' + lng" target="_blank"
-                   class="inline-flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl font-medium transition">
-                    <i class="fab fa-google"></i> Buka Google Maps
-                </a>
+                <div class="flex items-center gap-2">
+                    {{-- Switcher Tipe Peta: Jalanan vs Satelit --}}
+                    <div class="inline-flex rounded-xl p-0.5 bg-slate-100 border border-slate-200 text-xs font-semibold">
+                        <button type="button" @click="setMapTile('osm')"
+                                :class="currentTile === 'osm' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                            <i class="fas fa-map"></i>
+                            <span>Peta Jalan</span>
+                        </button>
+                        <button type="button" @click="setMapTile('satellite')"
+                                :class="currentTile === 'satellite' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                            <i class="fas fa-satellite"></i>
+                            <span>Foto Satelit</span>
+                        </button>
+                    </div>
+
+                    <a :href="'https://www.google.com/maps?q=' + lat + ',' + lng" target="_blank"
+                       class="inline-flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl font-medium transition">
+                        <i class="fab fa-google"></i> Google Maps
+                    </a>
+                </div>
             </div>
 
             {{-- Container Map --}}
@@ -269,9 +354,46 @@
             isIpActive: {{ $setting->is_ip_whitelist_active ? 'true' : 'false' }},
             allowedIps: `{!! addslashes($setting->allowed_ips ?? '') !!}`,
             clientIp: '{{ $clientIp }}',
+            geofenceMode: '{{ $setting->geofence_mode ?? "radius" }}',
+            polygonPoints: @json($setting->polygon_coordinates ?? []),
             map: null,
             marker: null,
             circle: null,
+            polygonLayer: null,
+            polygonMarkers: [],
+            currentTile: 'osm',
+            osmLayer: null,
+            satelliteLayer: null,
+
+            setMapTile(type) {
+                this.currentTile = type;
+                if (!this.map) return;
+                if (type === 'satellite') {
+                    if (this.osmLayer) this.map.removeLayer(this.osmLayer);
+                    if (!this.satelliteLayer) {
+                        this.satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                            maxZoom: 20,
+                            attribution: '© Google Maps Satellite'
+                        });
+                    }
+                    this.satelliteLayer.addTo(this.map);
+                } else {
+                    if (this.satelliteLayer) this.map.removeLayer(this.satelliteLayer);
+                    if (this.osmLayer) this.osmLayer.addTo(this.map);
+                }
+            },
+
+            setGeofenceMode(mode) {
+                this.geofenceMode = mode;
+                if (mode === 'polygon') {
+                    if (this.circle) this.map.removeLayer(this.circle);
+                    this.renderPolygon();
+                } else {
+                    if (this.polygonLayer) this.map.removeLayer(this.polygonLayer);
+                    this.clearPolygonMarkers();
+                    if (this.circle) this.circle.addTo(this.map);
+                }
+            },
 
             addCurrentIp() {
                 if (!this.clientIp) return;
@@ -291,15 +413,15 @@
             },
 
             initMap() {
-                // Inisialisasi peta Leaflet dengan tiles OpenStreetMap
-                this.map = L.map('map-preview').setView([this.lat, this.lng], 16);
+                // Inisialisasi peta Leaflet
+                this.map = L.map('map-preview').setView([this.lat, this.lng], 17);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                this.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(this.map);
 
-                // Buat custom marker icon
+                // Buat custom marker icon untuk pusat sekolah
                 const customIcon = L.divIcon({
                     html: `<div style="background-color:#0d9488;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(13,148,136,0.5);border:2px solid white;">
                             <i class="fas fa-school" style="font-size:14px;"></i>
@@ -309,7 +431,7 @@
                     iconAnchor: [16, 16]
                 });
 
-                // Buat marker draggable
+                // Buat marker draggable untuk titik koordinat pusat
                 this.marker = L.marker([this.lat, this.lng], {
                     draggable: true,
                     icon: customIcon
@@ -321,7 +443,16 @@
                     fillColor: '#14b8a6',
                     fillOpacity: 0.2,
                     radius: this.radius
-                }).addTo(this.map);
+                });
+
+                if (this.geofenceMode === 'radius') {
+                    this.circle.addTo(this.map);
+                }
+
+                // Render Polygon jika ada data sebelumnya
+                if (this.geofenceMode === 'polygon' && this.polygonPoints && this.polygonPoints.length > 0) {
+                    this.renderPolygon();
+                }
 
                 // Event listener saat marker digeser
                 this.marker.on('dragend', (event) => {
@@ -333,10 +464,115 @@
 
                 // Event listener saat peta diklik
                 this.map.on('click', (e) => {
-                    this.lat = e.latlng.lat;
-                    this.lng = e.latlng.lng;
-                    this.marker.setLatLng(e.latlng);
-                    this.circle.setLatLng(e.latlng);
+                    if (this.geofenceMode === 'polygon') {
+                        // Tambahkan titik sudut polygon
+                        this.addPolygonPoint(e.latlng.lat, e.latlng.lng);
+                    } else {
+                        // Mode radius: ubah titik pusat
+                        this.lat = e.latlng.lat;
+                        this.lng = e.latlng.lng;
+                        this.marker.setLatLng(e.latlng);
+                        this.circle.setLatLng(e.latlng);
+                    }
+                });
+            },
+
+            addPolygonPoint(lat, lng) {
+                this.polygonPoints.push({
+                    lat: parseFloat(lat.toFixed(7)),
+                    lng: parseFloat(lng.toFixed(7))
+                });
+                this.renderPolygon();
+            },
+
+            undoLastPoint() {
+                if (this.polygonPoints.length > 0) {
+                    this.polygonPoints.pop();
+                    this.renderPolygon();
+                }
+            },
+
+            clearPolygon() {
+                if (confirm('Yakin ingin mengosongkan seluruh titik polygon?')) {
+                    this.polygonPoints = [];
+                    this.renderPolygon();
+                }
+            },
+
+            removePointAt(index) {
+                this.polygonPoints.splice(index, 1);
+                this.renderPolygon();
+            },
+
+            loadDefaultSchoolPolygon() {
+                // Polygon referensi SMKN 1 Beringin (4 sudut area kampus)
+                const cLat = this.lat;
+                const cLng = this.lng;
+                const deltaLat = 0.0009;
+                const deltaLng = 0.0011;
+
+                this.polygonPoints = [
+                    { lat: parseFloat((cLat + deltaLat).toFixed(7)), lng: parseFloat((cLng - deltaLng).toFixed(7)) },
+                    { lat: parseFloat((cLat + deltaLat).toFixed(7)), lng: parseFloat((cLng + deltaLng).toFixed(7)) },
+                    { lat: parseFloat((cLat - deltaLat).toFixed(7)), lng: parseFloat((cLng + deltaLng).toFixed(7)) },
+                    { lat: parseFloat((cLat - deltaLat).toFixed(7)), lng: parseFloat((cLng - deltaLng).toFixed(7)) }
+                ];
+                this.renderPolygon();
+            },
+
+            clearPolygonMarkers() {
+                this.polygonMarkers.forEach(m => this.map.removeLayer(m));
+                this.polygonMarkers = [];
+            },
+
+            renderPolygon() {
+                if (!this.map) return;
+
+                if (this.polygonLayer) {
+                    this.map.removeLayer(this.polygonLayer);
+                    this.polygonLayer = null;
+                }
+                this.clearPolygonMarkers();
+
+                if (!this.polygonPoints || this.polygonPoints.length === 0) return;
+
+                const latlngs = this.polygonPoints.map(p => [p.lat, p.lng]);
+
+                // Gambar poligon tertutup
+                this.polygonLayer = L.polygon(latlngs, {
+                    color: '#0d9488',
+                    weight: 3,
+                    fillColor: '#14b8a6',
+                    fillOpacity: 0.25,
+                    dashArray: '4, 6'
+                }).addTo(this.map);
+
+                // Tambahkan marker kecil pada setiap vertex sudut
+                this.polygonPoints.forEach((p, idx) => {
+                    const vertexIcon = L.divIcon({
+                        html: `<div style="background-color:#0f766e;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
+                                ${idx + 1}
+                               </div>`,
+                        className: '',
+                        iconSize: [18, 18],
+                        iconAnchor: [9, 9]
+                    });
+
+                    const m = L.marker([p.lat, p.lng], {
+                        icon: vertexIcon,
+                        draggable: true
+                    }).addTo(this.map);
+
+                    m.on('dragend', (evt) => {
+                        const newPos = evt.target.getLatLng();
+                        this.polygonPoints[idx] = {
+                            lat: parseFloat(newPos.lat.toFixed(7)),
+                            lng: parseFloat(newPos.lng.toFixed(7))
+                        };
+                        this.renderPolygon();
+                    });
+
+                    this.polygonMarkers.push(m);
                 });
             },
 
