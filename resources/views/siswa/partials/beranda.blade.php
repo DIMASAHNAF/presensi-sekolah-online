@@ -142,39 +142,43 @@
                             </div>
                         </div>
 
-                        {{-- Bottom Action/Notice Bar on Profile Card --}}
-                        @if(!$user->isFaceEnrolled())
-                            <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-white border-t border-amber-400/30">
-                                <div class="flex items-center gap-2.5 text-xs font-bold min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
-                                        <i class="fas fa-triangle-exclamation text-sm text-white"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="leading-tight font-extrabold text-white truncate sm:overflow-visible">Wajah Belum Terdaftar / Direset</p>
-                                        <p class="text-[10px] text-amber-100 font-medium hidden sm:block">Wajib rekam biometrik wajah untuk verifikasi presensi</p>
-                                    </div>
+                        {{-- Bottom Action/Notice Bar on Profile Card (Alpine Reactive) --}}
+                        <div x-show="!hasChangedPassword || !isFaceEnrolled" x-cloak
+                             class="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-white border-t border-blue-500/30">
+                            <div class="flex items-center gap-2.5 text-xs font-bold min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+                                    <i class="fas fa-shield-alt text-sm text-white"></i>
                                 </div>
-                                <a href="{{ route('siswa.enroll') }}" class="shrink-0 bg-white hover:bg-amber-50 text-amber-800 hover:text-amber-900 text-xs font-black px-3.5 py-1.5 rounded-xl transition-all shadow-sm hover:shadow active:scale-95 flex items-center gap-1.5">
-                                    <i class="fas fa-camera text-xs text-amber-600"></i>
-                                    <span>Rekam Wajah</span>
-                                </a>
-                            </div>
-                        @elseif(!$user->bio)
-                            <div class="bg-blue-50/70 dark:bg-blue-950/40 border-t border-blue-100 dark:border-blue-900/50 px-4 sm:px-5 py-2.5 flex items-center justify-between">
-                                <div class="flex items-center gap-2 text-xs text-blue-800 dark:text-blue-200">
-                                    <i class="fas fa-sparkles text-blue-500"></i>
-                                    <span>Lengkapi bio profil & link sosmed kamu!</span>
+                                <div class="min-w-0">
+                                    <p class="leading-tight font-extrabold text-white truncate sm:overflow-visible"
+                                       x-text="!hasChangedPassword ? 'Aktivasi Akun & Keamanan Siswa' : 'Biometrik Wajah Belum Terdaftar'"></p>
+                                    <p class="text-[10px] text-blue-100 font-medium hidden sm:block"
+                                       x-text="!hasChangedPassword ? 'Buat password baru dan rekam biometrik presensi' : 'Wajib rekam biometrik wajah untuk verifikasi presensi'"></p>
                                 </div>
-                                <button type="button" @click="openEditProfileModal()" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold">
-                                    Atur &rarr;
-                                </button>
                             </div>
-                        @else
-                            <div class="bg-blue-700 dark:bg-blue-950/80 px-4 sm:px-5 py-2 flex items-center gap-2 text-white text-xs font-semibold border-t border-blue-600/40">
-                                <i class="fas fa-shield-check text-blue-200 text-xs"></i>
-                                <span class="text-[11px] text-blue-100">Sistem biometrik Face ID aktif & terverifikasi</span>
-                            </div>
-                        @endif
+                            <button type="button" @click="showOnboardingModal = true; if(hasChangedPassword) onboardingStep = 2" class="shrink-0 bg-white hover:bg-blue-50 text-blue-900 text-xs font-black px-3.5 py-1.5 rounded-xl transition-all shadow-sm hover:shadow active:scale-95 flex items-center gap-1.5">
+                                <i class="fas fa-arrow-right text-xs text-blue-600"></i>
+                                <span x-text="!hasChangedPassword ? 'Lengkapi Sekarang' : 'Rekam Wajah'"></span>
+                            </button>
+                        </div>
+                        <div x-show="hasChangedPassword && isFaceEnrolled" x-cloak>
+                            @if(!$user->bio)
+                                <div class="bg-blue-50/70 dark:bg-blue-950/40 border-t border-blue-100 dark:border-blue-900/50 px-4 sm:px-5 py-2.5 flex items-center justify-between">
+                                    <div class="flex items-center gap-2 text-xs text-blue-800 dark:text-blue-200">
+                                        <i class="fas fa-sparkles text-blue-500"></i>
+                                        <span>Lengkapi bio profil & link sosmed kamu!</span>
+                                    </div>
+                                    <button type="button" @click="openEditProfileModal()" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold">
+                                        Atur &rarr;
+                                    </button>
+                                </div>
+                            @else
+                                <div class="bg-blue-700 dark:bg-blue-950/80 px-4 sm:px-5 py-2 flex items-center gap-2 text-white text-xs font-semibold border-t border-blue-600/40">
+                                    <i class="fas fa-shield-check text-blue-200 text-xs"></i>
+                                    <span class="text-[11px] text-blue-100">Sistem biometrik Face ID aktif & terverifikasi</span>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- SESI PRESENSI AKTIF CARD (PRIORITAS SCAN UTAMA) --}}
@@ -286,7 +290,7 @@
                                             <div class="truncate">
                                                 <p class="font-bold truncate" x-text="isSchoolNetworkVerified ? 'Terverifikasi Jaringan SMKN 1 Beringin' : 'Di Dalam Area SMKN 1 Beringin'"></p>
                                                 <p class="text-[11px] text-emerald-600 dark:text-emerald-400">
-                                                    Jarak: <strong x-text="formatDistance(geoDistance)"></strong> (Maks: <span x-text="schoolRadius"></span>m) • <span x-text="isSchoolNetworkVerified ? 'WiFi / LAN Sekolah' : 'Akurasi: ±' + (userAccuracy || 0) + 'm'"></span>
+                                                    <span x-text="geofenceMode === 'polygon' ? 'Batas Polygon Presisi' : 'Jarak: ' + formatDistance(geoDistance) + ' (Maks: ' + schoolRadius + 'm)'"></span> • <span x-text="isSchoolNetworkVerified ? 'WiFi / LAN Sekolah' : 'Akurasi: ±' + (userAccuracy || 0) + 'm'"></span>
                                                 </p>
                                             </div>
                                         </div>
@@ -317,7 +321,7 @@
                                                   x-text="formatDistance(geoDistance)"></span>
                                         </div>
                                         <p class="text-[11px] text-amber-700 dark:text-amber-300">
-                                            Presensi hanya dapat dilakukan di dalam lingkungan sekolah (radius maksimal <span x-text="schoolRadius"></span> meter).
+                                            <span x-text="geofenceMode === 'polygon' ? 'Presensi hanya dapat dilakukan di dalam batas pagar sekolah SMKN 1 Beringin.' : 'Presensi hanya dapat dilakukan di dalam lingkungan sekolah (radius maksimal ' + schoolRadius + ' meter).'"></span>
                                         </p>
                                     </div>
 
@@ -353,26 +357,47 @@
                                     </div>
                                 </div>
 
-                                {{-- Tombol Mulai Scan Wajah --}}
-                                @if(!$user->isFaceEnrolled())
-                                    <div class="space-y-3">
-                                        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                                            <i class="fas fa-triangle-exclamation text-amber-500 text-base mt-0.5 shrink-0"></i>
-                                            <div>
-                                                <p class="font-extrabold text-amber-900 dark:text-amber-100">Wajib Rekam Wajah Terlebih Dahulu</p>
-                                                <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
-                                                    Data biometrik wajah Anda belum terdaftar atau baru saja direset oleh pihak sekolah. Anda wajib merekam foto wajah biometrik terlebih dahulu sebelum dapat presensi.
-                                                </p>
-                                            </div>
+                                {{-- Tombol Mulai Scan Wajah (Alpine Reactive) --}}
+                                {{-- KONDISI 1: Belum Ganti Password --}}
+                                <div x-show="!hasChangedPassword" x-cloak class="space-y-3">
+                                    <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-3.5 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
+                                        <i class="fas fa-lock text-blue-500 text-base mt-0.5 shrink-0"></i>
+                                        <div>
+                                            <p class="font-extrabold text-blue-900 dark:text-blue-100">Sesi Terkunci: Wajib Buat Password</p>
+                                            <p class="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5 leading-relaxed">
+                                                Akun Anda wajib diamankan dengan password baru terlebih dahulu sebelum dapat mengakses sesi atau melakukan presensi.
+                                            </p>
                                         </div>
-
-                                        <a href="{{ route('siswa.enroll') }}"
-                                            class="magic-btn w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] border border-amber-400 transition-all active:scale-[0.99]">
-                                            <i class="fas fa-camera text-base"></i>
-                                            <span>Rekam Wajah Sekarang &rarr;</span>
-                                        </a>
                                     </div>
-                                @else
+
+                                    <button type="button" @click="showOnboardingModal = true; onboardingStep = 1"
+                                        class="magic-btn w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400 transition-all active:scale-[0.99]">
+                                        <i class="fas fa-key text-base"></i>
+                                        <span>Buat Password Sekarang &rarr;</span>
+                                    </button>
+                                </div>
+
+                                {{-- KONDISI 2: Sudah Password, Tapi Belum Wajah --}}
+                                <div x-show="hasChangedPassword && !isFaceEnrolled" x-cloak class="space-y-3">
+                                    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                                        <i class="fas fa-triangle-exclamation text-amber-500 text-base mt-0.5 shrink-0"></i>
+                                        <div>
+                                            <p class="font-extrabold text-amber-900 dark:text-amber-100">Wajib Rekam Wajah Terlebih Dahulu</p>
+                                            <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
+                                                Data biometrik wajah Anda belum terdaftar atau baru saja direset oleh pihak sekolah. Anda wajib merekam foto wajah biometrik terlebih dahulu sebelum dapat presensi.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ route('siswa.enroll') }}"
+                                        class="magic-btn w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] border border-amber-400 transition-all active:scale-[0.99]">
+                                        <i class="fas fa-camera text-base"></i>
+                                        <span>Rekam Wajah Sekarang &rarr;</span>
+                                    </a>
+                                </div>
+
+                                {{-- KONDISI 3: Siap Presensi Face ID --}}
+                                <div x-show="hasChangedPassword && isFaceEnrolled" x-cloak>
                                     <button @click="openFaceScanner()"
                                         :disabled="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed)"
                                         :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'magic-btn bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_25px_rgba(37,99,235,0.6)] border border-blue-400 hover:shadow-[0_0_35px_rgba(37,99,235,0.8)] active:scale-[0.99]'"
@@ -380,7 +405,7 @@
                                         <i class="fas text-base" :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
                                         <span x-text="geoStatus === 'spoofed' ? 'Terkunci: Fake GPS Terdeteksi' : (ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : (geofencingActive && geoStatus === 'inaccurate' ? 'Terkunci: Sinyal GPS Lemah' : 'Mulai Verifikasi Wajah Face ID')))"></span>
                                     </button>
-                                @endif
+                                </div>
                             </div>
                         </div>
 

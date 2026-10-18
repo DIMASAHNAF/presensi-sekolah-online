@@ -686,9 +686,11 @@
 
                 <div x-show="scanState === 'ready'">
                     <button type="button" @click="captureAndSend()"
-                        class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
-                        <i class="fas fa-camera text-sm"></i>
-                        <span>Ambil Foto Manual</span>
+                        :disabled="scanState === 'processing' || scanState === 'success'"
+                        class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
+                        <i class="fas fa-camera text-sm" x-show="scanState !== 'processing'"></i>
+                        <i class="fas fa-circle-notch fa-spin text-sm" x-show="scanState === 'processing'"></i>
+                        <span x-text="scanState === 'processing' ? 'Memproses Presensi...' : 'Ambil Foto Manual'">Ambil Foto Manual</span>
                     </button>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center mt-2 font-medium">
                         Otomatis terpotret saat gerakan terdeteksi, atau tekan tombol manual di atas.
@@ -697,7 +699,8 @@
 
                 <div x-show="scanState === 'failed'">
                     <button type="button" @click="retryScan()"
-                        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
+                        :disabled="scanState === 'processing'"
+                        class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
                         <i class="fas fa-rotate-right text-sm"></i> Coba Pindai Ulang
                     </button>
                 </div>
@@ -1182,6 +1185,173 @@
         </div>
     </div>
 
+    {{-- ──────────────────────────────────────────── --}}
+    {{-- MODAL ONBOARDING SISWA (BUAT PASSWORD & WAJAH) --}}
+    {{-- ──────────────────────────────────────────── --}}
+    <div x-show="showOnboardingModal" x-cloak
+        class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div @click.away="if(hasChangedPassword && isFaceEnrolled) showOnboardingModal = false"
+            class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative my-auto animate-in fade-in zoom-in-95">
+            
+            {{-- Header --}}
+            <div class="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-extrabold text-lg text-slate-900 dark:text-white">
+                            Aktivasi Akun Siswa
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            SMKN 1 Beringin &bull; Presensi Digital
+                        </p>
+                    </div>
+                </div>
+                <button type="button" @click="showOnboardingModal = false"
+                    class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center text-xs transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {{-- Stepper Indicator --}}
+            <div class="px-6 py-3 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                {{-- Step 1 --}}
+                <div class="flex items-center gap-2 flex-1">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        :class="hasChangedPassword ? 'bg-emerald-500 text-white' : (onboardingStep === 1 ? 'bg-blue-600 text-white ring-2 ring-blue-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
+                        <template x-if="hasChangedPassword">
+                            <i class="fas fa-check text-[10px]"></i>
+                        </template>
+                        <template x-if="!hasChangedPassword">
+                            <span>1</span>
+                        </template>
+                    </div>
+                    <span class="text-xs font-semibold"
+                        :class="onboardingStep === 1 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+                        Buat Password
+                    </span>
+                </div>
+
+                <div class="w-8 h-[2px] bg-slate-200 dark:bg-slate-700"></div>
+
+                {{-- Step 2 --}}
+                <div class="flex items-center gap-2 flex-1">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        :class="isFaceEnrolled ? 'bg-emerald-500 text-white' : (onboardingStep === 2 ? 'bg-blue-600 text-white ring-2 ring-blue-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500')">
+                        <template x-if="isFaceEnrolled">
+                            <i class="fas fa-check text-[10px]"></i>
+                        </template>
+                        <template x-if="!isFaceEnrolled">
+                            <span>2</span>
+                        </template>
+                    </div>
+                    <span class="text-xs font-semibold"
+                        :class="onboardingStep === 2 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+                        Rekam Wajah
+                    </span>
+                </div>
+            </div>
+
+            {{-- STEP 1: Buat Password Baru --}}
+            <div x-show="onboardingStep === 1" class="p-6 space-y-4">
+                <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 rounded-2xl p-4 text-xs text-blue-900 dark:text-blue-200 leading-relaxed">
+                    <p class="font-bold mb-1 flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
+                        <i class="fas fa-lock"></i> Amankan Akun Anda
+                    </p>
+                    Akun Anda saat ini masih memakai login standar NISN. Tentukan password baru Anda agar akun tidak bisa dibuka oleh orang lain.
+                </div>
+
+                <div x-show="passwordError" x-cloak class="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 rounded-xl text-xs flex items-center gap-2">
+                    <i class="fas fa-circle-exclamation shrink-0"></i>
+                    <span x-text="passwordError"></span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Password Baru (min. 6 karakter)</label>
+                        <div class="relative flex items-center">
+                            <input :type="showNewPassword ? 'text' : 'password'"
+                                x-model="newPassword"
+                                @input="passwordError = ''"
+                                placeholder="Ketik password baru"
+                                class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                            <button type="button" @click="showNewPassword = !showNewPassword" class="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs" title="Lihat password">
+                                <i class="fas" :class="showNewPassword ? 'fa-eye-slash text-blue-600' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Ulangi Password Baru</label>
+                        <div class="relative flex items-center">
+                            <input :type="showConfirmPassword ? 'text' : 'password'"
+                                x-model="newPasswordConfirmation"
+                                @input="passwordError = ''"
+                                placeholder="Ketik ulang password yang sama"
+                                class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                            <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs" title="Lihat password">
+                                <i class="fas" :class="showConfirmPassword ? 'fa-eye-slash text-blue-600' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="button"
+                        @click="submitNewPassword()"
+                        :disabled="isSubmittingPassword"
+                        class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-500/20 disabled:opacity-50">
+                        <template x-if="isSubmittingPassword">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </template>
+                        <template x-if="!isSubmittingPassword">
+                            <span>Simpan Password & Lanjutkan</span>
+                        </template>
+                        <i x-show="!isSubmittingPassword" class="fas fa-arrow-right text-[11px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            {{-- STEP 2: Rekam Wajah Biometrik --}}
+            <div x-show="onboardingStep === 2" class="p-6 space-y-4">
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-4 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                    <p class="font-bold mb-1 flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+                        <i class="fas fa-camera"></i> Perekaman Wajah Biometrik
+                    </p>
+                    Password Anda telah aktif! Sekarang daftarkan wajah Anda agar sistem kamera tablet presensi di sekolah langsung mengenali Anda.
+                </div>
+
+                <div class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <i class="fas fa-check-circle text-emerald-500 mt-0.5"></i>
+                        <span>Pastikan wajah terlihat jelas dan tidak tertutup masker.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <i class="fas fa-check-circle text-emerald-500 mt-0.5"></i>
+                        <span>Berada di ruangan dengan pencahayaan yang cukup.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <i class="fas fa-check-circle text-emerald-500 mt-0.5"></i>
+                        <span>Proses perekaman hanya memerlukan waktu sekitar 30 detik.</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <a href="{{ route('siswa.enroll') }}"
+                        class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-emerald-500/20 text-center">
+                        <i class="fas fa-camera"></i>
+                        <span>Buka Kamera & Rekam Wajah</span>
+                    </a>
+                    <button type="button" @click="showOnboardingModal = false"
+                        class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs transition text-center">
+                        Nanti Saja (Masuk ke Dashboard)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
@@ -1304,6 +1474,17 @@
                 profileBannerUrl: {!! json_encode($user->banner_url) !!},
                 isFaceEnrolled: {{ $user->isFaceEnrolled() ? 'true' : 'false' }},
 
+                // ── First-Time Student Onboarding State ──
+                showOnboardingModal: {{ $user->needsOnboarding() ? 'true' : 'false' }},
+                onboardingStep: {{ !$user->hasChangedPassword() ? 1 : 2 }},
+                hasChangedPassword: {{ $user->hasChangedPassword() ? 'true' : 'false' }},
+                newPassword: '',
+                newPasswordConfirmation: '',
+                showNewPassword: false,
+                showConfirmPassword: false,
+                isSubmittingPassword: false,
+                passwordError: '',
+
                 // Edit Form State
                 editUsername: '{{ addslashes($user->username ?? "siswa") }}',
                 editBio: {!! json_encode($user->bio ?? '') !!},
@@ -1336,6 +1517,8 @@
                 schoolLng: {{ $schoolSetting->longitude }},
                 schoolRadius: {{ $schoolSetting->radius_meters }},
                 geofencingActive: {{ $schoolSetting->is_geofencing_active ? 'true' : 'false' }},
+                geofenceMode: '{{ $schoolSetting->geofence_mode ?? "radius" }}',
+                schoolPolygon: @json($schoolSetting->polygon_coordinates ?? []),
                 userLat: null,
                 userLng: null,
                 userAccuracy: null,
@@ -1444,6 +1627,73 @@
                     });
                 },
 
+                async submitNewPassword() {
+                    this.passwordError = '';
+                    const p1 = (this.newPassword || '').trim();
+                    const p2 = (this.newPasswordConfirmation || '').trim();
+
+                    if (!p1) {
+                        this.passwordError = 'Password baru wajib diisi.';
+                        return;
+                    }
+                    if (p1.length < 6) {
+                        this.passwordError = 'Password minimal harus 6 karakter.';
+                        return;
+                    }
+                    if (!p2) {
+                        this.passwordError = 'Harap isi kolom kedua (Ulangi Password Baru).';
+                        return;
+                    }
+                    if (p1 !== p2) {
+                        this.passwordError = 'Password pertama dan kedua tidak sama. Klik ikon mata di sebelah kanan untuk memeriksa tulisan Anda.';
+                        return;
+                    }
+
+                    this.isSubmittingPassword = true;
+                    try {
+                        const res = await fetch('{{ route("siswa.password.update") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                password: p1,
+                                password_confirmation: p2
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.hasChangedPassword = true;
+                            if (!this.isFaceEnrolled) {
+                                this.onboardingStep = 2;
+                            } else {
+                                this.showOnboardingModal = false;
+                                if (typeof Swal !== 'undefined') {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Akun Terlindungi!',
+                                        text: 'Password baru Anda berhasil disimpan.',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            }
+                        } else {
+                            if (data.errors) {
+                                this.passwordError = Object.values(data.errors).flat()[0];
+                            } else {
+                                this.passwordError = data.message || 'Gagal menyimpan password.';
+                            }
+                        }
+                    } catch (e) {
+                        this.passwordError = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+                    } finally {
+                        this.isSubmittingPassword = false;
+                    }
+                },
+
                 useSchoolNetwork() {
                     this.geoStatus = 'valid';
                     this.geoDistance = 0;
@@ -1520,7 +1770,15 @@
                         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                         this.geoDistance = Math.round(R * c);
 
-                        if (!this.geofencingActive || this.geoDistance <= this.schoolRadius || this.isIpAllowed) {
+                        // Evaluasi Batas Lokasi (Polygon vs Radius)
+                        let isInsideGeofence = false;
+                        if (this.geofenceMode === 'polygon' && this.schoolPolygon && this.schoolPolygon.length >= 3) {
+                            isInsideGeofence = this.isPointInPolygon(this.userLat, this.userLng, this.schoolPolygon);
+                        } else {
+                            isInsideGeofence = this.geoDistance <= this.schoolRadius;
+                        }
+
+                        if (!this.geofencingActive || isInsideGeofence || this.isIpAllowed) {
                             this.geoStatus = 'valid';
                         } else {
                             this.geoStatus = 'outside';
@@ -1579,6 +1837,21 @@
                     return m + ' meter';
                 },
 
+                isPointInPolygon(lat, lng, polygon) {
+                    if (!polygon || polygon.length < 3) return false;
+                    let inside = false;
+                    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                        const xi = polygon[i].lat ?? polygon[i][0] ?? 0;
+                        const yi = polygon[i].lng ?? polygon[i][1] ?? 0;
+                        const xj = polygon[j].lat ?? polygon[j][0] ?? 0;
+                        const yj = polygon[j].lng ?? polygon[j][1] ?? 0;
+                        const intersect = ((yi > lng) !== (yj > lng)) &&
+                            (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+                        if (intersect) inside = !inside;
+                    }
+                    return inside;
+                },
+
                 pollSesiAktif() {
                     fetch('{{ route('siswa.sesiaktif') }}')
                         .then(r => r.json())
@@ -1596,9 +1869,11 @@
 
                             if (data.geofencing) {
                                 this.geofencingActive = data.geofencing.active;
+                                this.geofenceMode = data.geofencing.mode || 'radius';
                                 this.schoolLat = data.geofencing.latitude;
                                 this.schoolLng = data.geofencing.longitude;
                                 this.schoolRadius = data.geofencing.radius_meters;
+                                this.schoolPolygon = data.geofencing.polygon || [];
                             }
 
                             if (data.network) {
@@ -1612,6 +1887,23 @@
 
                 // ── Buka Modal Pemindai Wajah ──
                 async openFaceScanner() {
+                    if (!this.hasChangedPassword) {
+                        audioFx.playError();
+                        this.showOnboardingModal = true;
+                        this.onboardingStep = 1;
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Wajib Buat Password!',
+                                text: 'Anda wajib mengamankan akun dengan membuat password baru terlebih dahulu sebelum dapat presensi.',
+                                confirmButtonText: 'Buat Password Sekarang'
+                            });
+                        } else {
+                            alert('Anda wajib membuat password baru terlebih dahulu sebelum dapat presensi.');
+                        }
+                        return;
+                    }
+
                     if (!this.isFaceEnrolled) {
                         audioFx.playError();
                         alert('Biometrik wajah Anda belum terdaftar atau telah direset. Silakan rekam wajah terlebih dahulu.');
@@ -1659,15 +1951,20 @@
                             throw new Error("Akses kamera diblokir browser. Pastikan Anda menggunakan HTTPS.");
                         }
                         this.videoStream = await navigator.mediaDevices.getUserMedia({
-                            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+                            video: {
+                                width: { ideal: 1280, max: 1920 },
+                                height: { ideal: 720, max: 1080 },
+                                facingMode: 'user',
+                                frameRate: { ideal: 30, min: 15 }
+                            },
                             audio: false
                         });
                         const video = document.getElementById('video-scan');
                         video.srcObject = this.videoStream;
 
                         video.onloadedmetadata = async () => {
-                            video.width = video.videoWidth || 640;
-                            video.height = video.videoHeight || 480;
+                            video.width = video.videoWidth || 1280;
+                            video.height = video.videoHeight || 720;
                             try {
                                 await video.play();
                             } catch (e) {}
@@ -2183,15 +2480,20 @@
                     const canvas = document.getElementById('canvas-scan');
                     if (!video || !canvas) return;
 
-                    canvas.width = 640;
-                    canvas.height = 480;
+                    const vidW = video.videoWidth || 1280;
+                    const vidH = video.videoHeight || 720;
+                    const targetW = Math.min(vidW, 1280);
+                    const targetH = Math.round(targetW * (vidH / vidW));
+
+                    canvas.width = targetW;
+                    canvas.height = targetH;
                     const ctx = canvas.getContext('2d');
                     ctx.save();
                     ctx.scale(-1, 1);
                     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
                     ctx.restore();
 
-                    const imageB64 = canvas.toDataURL('image/jpeg', 0.85);
+                    const imageB64 = canvas.toDataURL('image/jpeg', 0.92);
 
                     this.scanState = 'processing';
                     this.scanMessage = 'Memverifikasi wajah di server AI...';

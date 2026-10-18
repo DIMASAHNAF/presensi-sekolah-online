@@ -10,6 +10,7 @@ use App\Models\SesiPresensi;
 use App\Models\User;
 use App\Services\FaceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class SiswaController extends Controller
@@ -69,13 +70,14 @@ class SiswaController extends Controller
             $temanSekelas = User::where('kelas_id', $user->kelas_id)
                 ->where('role', 'siswa')
                 ->where('id', '!=', $user->id)
+                ->select(['id', 'name', 'username', 'avatar', 'banner', 'bio', 'website', 'kelas_id'])
                 ->orderBy('name')
                 ->get();
 
             // Resolve N+1: Get all presensi for these friends today in a single query
             $absenHariIniList = Presensi::whereIn('siswa_id', $temanSekelas->pluck('id'))
                 ->whereHas('sesiPresensi', function ($q) {
-                    $q->whereDate('tanggal', today());
+                    $q->where('tanggal', today());
                 })
                 ->orderBy('created_at', 'asc') // So keyBy keeps the latest one
                 ->get()
@@ -85,6 +87,7 @@ class SiswaController extends Controller
                 $absenHariIni = $absenHariIniList->get($teman->id);
                 $teman->status_hari_ini = $absenHariIni ? $absenHariIni->status : 'belum';
                 $teman->jam_absen = ($absenHariIni && $absenHariIni->created_at) ? $absenHariIni->created_at->format('H:i') : null;
+                $teman->makeHidden(['password', 'remember_token', 'face_descriptor', 'nisn', 'nik', 'email']);
                 return $teman;
             });
         }
@@ -201,6 +204,34 @@ class SiswaController extends Controller
         return back()->with('success', 'Profil Anda berhasil diperbarui!');
     }
 
+    /**
+     * Update Password Siswa (Onboarding pertama kali / perubahan mandiri)
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'password.required'  => 'Password baru wajib diisi.',
+            'password.min'       => 'Password minimal harus 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $user = auth()->user();
+        $user->password = Hash::make($request->password);
+        $user->password_changed_at = now();
+        $user->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password berhasil disimpan! Akun Anda kini terlindungi.',
+            ]);
+        }
+
+        return back()->with('success', 'Password berhasil disimpan! Akun Anda kini terlindungi.');
+    }
+
     // ──────────────────────────────────────────────────────────────
     //  GET /siswa/sesi-aktif
     //  Polling endpoint: return sesi aktif untuk kelas siswa ini
@@ -239,6 +270,16 @@ class SiswaController extends Controller
         $clientIp = SchoolSetting::getClientIp(request());
         $isIpAllowed = $schoolSetting->isIpAllowed($clientIp);
 
+        $hasSetPassword = $user->hasChangedPassword();
+        $isFaceEnrolled = $user->isFaceEnrolled();
+        $canAttend = $hasSetPassword && $isFaceEnrolled;
+        $lockReason = null;
+        if (!$hasSetPassword) {
+            $lockReason = 'Wajib membuat password baru terlebih dahulu.';
+        } elseif (!$isFaceEnrolled) {
+            $lockReason = 'Wajib merekam biometrik wajah terlebih dahulu.';
+        }
+
         return response()->json([
             'success' => true,
             'sesi'    => [
@@ -250,14 +291,19 @@ class SiswaController extends Controller
                 'mapel'      => $sesi->mataPelajaran?->nama_mapel,
                 'created_at' => $sesi->created_at->toISOString(),
             ],
-            'sudah_hadir'   => $sudahHadir,
-            'face_enrolled' => $user->isFaceEnrolled(),
+            'sudah_hadir'      => $sudahHadir,
+            'face_enrolled'    => $isFaceEnrolled,
+            'has_set_password' => $hasSetPassword,
+            'can_attend'       => $canAttend,
+            'lock_reason'      => $lockReason,
             'geofencing'    => [
                 'active'        => $schoolSetting->is_geofencing_active,
+                'mode'          => $schoolSetting->geofence_mode ?? 'radius',
                 'school_name'   => $schoolSetting->school_name,
                 'latitude'      => $schoolSetting->latitude,
                 'longitude'     => $schoolSetting->longitude,
                 'radius_meters' => $schoolSetting->radius_meters,
+                'polygon'       => $schoolSetting->polygon_coordinates,
             ],
             'network'       => [
                 'active'     => $schoolSetting->is_ip_whitelist_active,
@@ -284,11 +330,12 @@ class SiswaController extends Controller
         ]);
 
         $schoolSetting = SchoolSetting::getSettings();
+        // IDOR Protection: Identitas siswa diambil murni dari sesi/token auth yang sedang login
         $user = auth()->user();
+        $clientIp = SchoolSetting::getClientIp($request);
 
         // 1. Cek Validasi IP WiFi Sekolah jika aktif (Dual-Factor Network Verification)
         if ($schoolSetting->is_ip_whitelist_active) {
-            $clientIp = SchoolSetting::getClientIp($request);
             if (!$schoolSetting->isIpAllowed($clientIp)) {
                 return response()->json([
                     'success' => false,
@@ -312,7 +359,7 @@ class SiswaController extends Controller
 
             if (!$request->filled('latitude') || !$request->filled('longitude')) {
                 // Jika membuka dari Laptop atau ruang kelas kedap sinyal tetapi terhubung ke WiFi / Jaringan Resmi SMKN 1 Beringin:
-                if ($schoolSetting->isIpAllowed($clientIp)) {
+                if ($schoolSetting->is_ip_whitelist_active && $schoolSetting->isIpAllowed($clientIp)) {
                     $userLat = (float) $schoolSetting->latitude;
                     $userLng = (float) $schoolSetting->longitude;
                     $distance = 0;
@@ -321,24 +368,26 @@ class SiswaController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'Koordinat GPS satelit perangkat Anda diperlukan untuk memverifikasi kehadiran di SMKN 1 Beringin (atau sambungkan perangkat ke WiFi resmi sekolah).',
-                    ]);
+                    ], 422);
                 }
             } else {
                 $userLat = (float) $request->latitude;
                 $userLng = (float) $request->longitude;
             }
 
-            // Validasi akurasi sinyal satelit / WiFi GPS (mencegah emulator / cell tower spoofing kasar)
+            // Validasi akurasi sinyal satelit / WiFi GPS (toleransi diperketat menjadi 80m untuk GPS satelit)
             if ($request->filled('accuracy')) {
                 $accuracy = (float) $request->accuracy;
-                if ($accuracy <= 0 || $accuracy > 250) {
+                $maxTolerance = ($schoolSetting->is_ip_whitelist_active && $schoolSetting->isIpAllowed($clientIp)) ? 150 : 80;
+                if ($accuracy <= 0 || $accuracy > $maxTolerance) {
                     return response()->json([
                         'success' => false,
                         'message' => sprintf(
-                            'Presensi ditolak: Akurasi sinyal lokasi perangkat Anda (±%d meter) belum stabil (batas toleransi 250m). Silakan bergeser ke area terbuka atau gunakan WiFi sekolah.',
-                            round($accuracy)
+                            'Presensi ditolak: Akurasi sinyal lokasi GPS Anda (±%d meter) belum stabil (batas toleransi satelit %dm). Silakan bergeser ke area terbuka atau gunakan WiFi sekolah.',
+                            round($accuracy),
+                            $maxTolerance
                         ),
-                    ]);
+                    ], 422);
                 }
             }
 
@@ -351,7 +400,7 @@ class SiswaController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'Presensi ditolak: Data koordinat GPS Anda kedaluwarsa. Silakan refresh lokasi pada aplikasi.',
-                    ]);
+                    ], 422);
                 }
             }
 
@@ -365,39 +414,41 @@ class SiswaController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Presensi ditolak: Titik koordinat GPS tidak valid.',
-                ]);
+                ], 422);
             }
 
-            if (!isset($distance)) {
-                $distance = $this->calculateDistance(
-                    $userLat,
-                    $userLng,
-                    (float) $schoolSetting->latitude,
-                    (float) $schoolSetting->longitude
-                );
-            }
+            // Validasi Geofence (Polygon Ray-Casting atau Radius Lingkaran)
+            $geoCheck = $schoolSetting->validateGeofence($userLat, $userLng);
+            $distance = $geoCheck['distance'] ?? null;
 
-            if ($distance > $schoolSetting->radius_meters) {
+            if (!$geoCheck['allowed']) {
                 return response()->json([
                     'success'  => false,
-                    'message'  => sprintf(
-                        'Presensi ditolak: Anda berada di luar area SMKN 1 Beringin. Jarak: %d meter (Batas radius sekolah: %d meter).',
-                        round($distance),
-                        $schoolSetting->radius_meters
-                    ),
-                    'distance' => round($distance),
-                ]);
+                    'message'  => $geoCheck['message'],
+                    'distance' => $distance,
+                    'mode'     => $geoCheck['mode'],
+                ], 422);
             }
         }
 
         $user = auth()->user();
 
+        // 0. Cek apakah siswa sudah mengamankan akun dengan membuat password baru
+        if (!$user->hasChangedPassword()) {
+            return response()->json([
+                'success' => false,
+                'needs_password' => true,
+                'message' => 'Presensi ditolak: Anda wajib mengamankan akun dengan membuat password baru terlebih dahulu.',
+            ], 403);
+        }
+
         // 1. Cek siswa sudah enroll wajah
         if (!$user->isFaceEnrolled()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda belum mendaftarkan wajah. Silakan hubungi admin atau daftar ulang.',
-            ]);
+                'needs_face' => true,
+                'message' => 'Anda belum mendaftarkan wajah. Silakan rekam foto biometrik wajah terlebih dahulu.',
+            ], 422);
         }
 
         // 2. Cari sesi
@@ -420,18 +471,16 @@ class SiswaController extends Controller
             ]);
         }
 
-        // 4. Cek/buat presensi record
-        $presensi = Presensi::where('sesi_presensi_id', $sesi->id)
-            ->where('siswa_id', $user->id)
-            ->first();
-
-        if (!$presensi) {
-            $presensi = Presensi::create([
+        // 4. Cek/buat presensi record via firstOrCreate (Anti Race-Condition)
+        $presensi = Presensi::firstOrCreate(
+            [
                 'sesi_presensi_id' => $sesi->id,
                 'siswa_id'         => $user->id,
-                'status'           => 'alpa',
-            ]);
-        }
+            ],
+            [
+                'status' => 'alpa',
+            ]
+        );
 
         if ($presensi->status === 'hadir') {
             return response()->json([
@@ -523,6 +572,11 @@ class SiswaController extends Controller
     {
         $user = auth()->user();
 
+        // Wajib amankan akun dengan password baru terlebih dahulu
+        if (!$user->hasChangedPassword()) {
+            return redirect()->route('siswa.dashboard')->with('warning', 'Harap buat password akun Anda terlebih dahulu sebelum merekam wajah.');
+        }
+
         // Keamanan Anti-Joki: Jika siswa sudah merekam wajah, kunci akses
         if ($user->isFaceEnrolled()) {
             return redirect()->route('siswa.dashboard')->with('error', 'Biometrik wajah Anda sudah terdaftar dan dikunci permanen demi keamanan. Hubungi Admin atau Guru Piket jika memerlukan reset wajah.');
@@ -542,6 +596,14 @@ class SiswaController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Wajib amankan akun dengan password baru terlebih dahulu
+        if (!$user->hasChangedPassword()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pendaftaran wajah ditolak: Anda wajib membuat password akun baru terlebih dahulu.',
+            ], 403);
+        }
 
         // Keamanan Anti-Joki: Tolak jika siswa sudah pernah enroll biometrik
         if ($user->isFaceEnrolled()) {
@@ -584,9 +646,11 @@ class SiswaController extends Controller
                 ? $existing->face_descriptor
                 : json_decode($existing->face_descriptor, true);
 
-            if (is_array($existingDesc) && count($existingDesc) === 128) {
+            if (is_array($existingDesc) && in_array(count($existingDesc), [128, 512])) {
                 $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
-                if ($dupDist !== null && $dupDist < 0.40) {
+                // Toleransi deteksi duplikasi: 0.48 untuk 128-D (menangkap wajah dengan kacamata/sudut miring) & 0.60 untuk 512-D
+                $dupThreshold = count($existingDesc) === 512 ? 0.60 : 0.48;
+                if ($dupDist !== null && $dupDist < $dupThreshold) {
                     $otherKelas = $existing->kelas?->nama_kelas ?? 'Siswa';
                     \Log::warning("Percobaan duplikasi wajah: Siswa {$user->name} (ID: {$user->id}) mencoba mendaftarkan wajah yang identik dengan {$existing->name} (ID: {$existing->id}) jarak: {$dupDist}");
                     return response()->json([

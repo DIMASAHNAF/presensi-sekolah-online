@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'username', 'email', 'avatar', 'banner', 'bio', 'website',
-        'nisn', 'nik', 'password', 'role', 'kelas_id',
+        'nisn', 'nik', 'password', 'password_changed_at', 'role', 'kelas_id',
         'face_descriptor', 'face_enrolled_at',
     ];
 
@@ -57,17 +57,38 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password', 'remember_token',
+        'nik', // Proteksi PII guru & staf
         'face_descriptor', // Jangan ekspos descriptor di API response
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at'  => 'datetime',
-            'password'           => 'hashed',
-            'face_descriptor'    => 'array',   // JSON ↔ PHP array otomatis
-            'face_enrolled_at'   => 'datetime',
+            'email_verified_at'   => 'datetime',
+            'password'            => 'hashed',
+            'password_changed_at' => 'datetime',
+            'face_descriptor'     => 'array',   // JSON ↔ PHP array otomatis
+            'face_enrolled_at'    => 'datetime',
         ];
+    }
+
+    /**
+     * Apakah siswa sudah pernah mengubah/membuat password sendiri?
+     */
+    public function hasChangedPassword(): bool
+    {
+        return !is_null($this->password_changed_at);
+    }
+
+    /**
+     * Apakah siswa membutuhkan panduan onboarding awal (buat password / rekam wajah)?
+     */
+    public function needsOnboarding(): bool
+    {
+        if (!$this->isSiswa()) {
+            return false;
+        }
+        return !$this->hasChangedPassword() || !$this->isFaceEnrolled();
     }
 
     /**
@@ -75,7 +96,7 @@ class User extends Authenticatable
      */
     public function isFaceEnrolled(): bool
     {
-        return !is_null($this->face_descriptor) && count((array) $this->face_descriptor) === 128;
+        return !is_null($this->face_descriptor) && in_array(count((array) $this->face_descriptor), [128, 512]);
     }
 
     /**

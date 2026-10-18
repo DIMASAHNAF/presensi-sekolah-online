@@ -9,31 +9,32 @@ use App\Http\Controllers\Siswa\SiswaController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================================
-//  GUEST ROUTES
+//  GUEST ROUTES (Rate Limited)
 // ============================================================
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'chooseRole'])->name('choose-role');
 
     // Siswa auth
     Route::get('/login/siswa', [AuthController::class, 'showLoginSiswa'])->name('login.siswa');
-    Route::post('/login/siswa', [AuthController::class, 'loginSiswa']);
+    Route::post('/login/siswa', [AuthController::class, 'loginSiswa'])->middleware('throttle:login');
     Route::get('/register/siswa', [AuthController::class, 'showRegisterSiswa'])->name('register.siswa');
-    Route::post('/register/siswa', [AuthController::class, 'registerSiswa']);
+    Route::post('/register/siswa', [AuthController::class, 'registerSiswa'])->middleware('throttle:register');
 
     // Guru + Admin auth (1 form, NIK + password)
     Route::get('/login/guru', [AuthController::class, 'showLoginGuru'])->name('login.guru');
-    Route::post('/login/guru', [AuthController::class, 'loginGuru']);
+    Route::post('/login/guru', [AuthController::class, 'loginGuru'])->middleware('throttle:login');
 });
 
-//  SISWA DASHBOARD
+//  SISWA DASHBOARD (Rate Limited for Heavy Endpoints)
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/siswa/dashboard', [SiswaController::class, 'dashboard'])->name('siswa.dashboard');
-    Route::get('/siswa/sesi-aktif', [SiswaController::class, 'getSesiAktif'])->name('siswa.sesiaktif');
-    Route::post('/siswa/scan-wajah', [SiswaController::class, 'scanWajah'])->name('siswa.scanwajah');
+    Route::get('/siswa/sesi-aktif', [SiswaController::class, 'getSesiAktif'])->name('siswa.sesiaktif')->middleware('throttle:60,1');
+    Route::post('/siswa/scan-wajah', [SiswaController::class, 'scanWajah'])->name('siswa.scanwajah')->middleware('throttle:scan');
     // Re-enroll wajah untuk siswa yang sudah ada (belum punya face_descriptor)
     Route::get('/siswa/enroll-wajah', [SiswaController::class, 'showEnrollWajah'])->name('siswa.enroll');
-    Route::post('/siswa/enroll-wajah', [SiswaController::class, 'enrollWajah'])->name('siswa.enroll.store');
-    Route::post('/siswa/profile', [SiswaController::class, 'updateProfile'])->name('siswa.profile.update');
+    Route::post('/siswa/enroll-wajah', [SiswaController::class, 'enrollWajah'])->name('siswa.enroll.store')->middleware('throttle:enroll');
+    Route::post('/siswa/profile', [SiswaController::class, 'updateProfile'])->name('siswa.profile.update')->middleware('throttle:15,1');
+    Route::post('/siswa/update-password', [SiswaController::class, 'updatePassword'])->name('siswa.password.update')->middleware('throttle:10,1');
 });
 
 //  GURU & ADMIN DASHBOARD
@@ -108,7 +109,7 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
 // ============================================================
 Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
 Route::get('/kiosk/gerbang', [KioskController::class, 'index'])->name('kiosk.gerbang');
-Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify');
+Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify')->middleware('throttle:30,1');
 Route::post('/kiosk/sync', [KioskController::class, 'syncCandidates'])->name('kiosk.sync');
 Route::get('/kiosk/live-stats', [KioskController::class, 'liveStats'])->name('kiosk.stats');
 

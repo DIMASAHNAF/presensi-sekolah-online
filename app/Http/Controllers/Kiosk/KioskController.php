@@ -71,6 +71,20 @@ class KioskController extends Controller
             'nisn'       => 'nullable|string', // Optional fallback NISN
         ]);
 
+        $schoolSetting = SchoolSetting::getSettings();
+        $clientIp = SchoolSetting::getClientIp($request);
+
+        // Validasi Keamanan: Jika IP Whitelist aktif, pastikan perangkat kiosk berada dalam jaringan resmi sekolah
+        if ($schoolSetting->is_ip_whitelist_active) {
+            if (!$schoolSetting->isIpAllowed($clientIp)) {
+                Log::warning("[Kiosk] Percobaan akses presensi kiosk dari IP di luar jaringan sekolah: {$clientIp}");
+                return response()->json([
+                    'success' => false,
+                    'message' => "Akses Kiosk Gerbang ditolak: Perangkat wajib terhubung ke jaringan resmi SMKN 1 Beringin. IP perangkat Anda ({$clientIp}) tidak terdaftar.",
+                ], 403);
+            }
+        }
+
         $faceService = new FaceService();
         $user = null;
         $identifyResult = null;
@@ -139,6 +153,14 @@ class KioskController extends Controller
                 'success' => false,
                 'message' => "Siswa {$user->name} belum terdaftar di kelas manapun.",
             ], 422);
+        }
+
+        // Cek apakah siswa sudah mengamankan akun dengan password baru
+        if (!$user->hasChangedPassword()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Presensi ditolak: Siswa {$user->name} belum membuat password akun. Silakan login ke portal web siswa dan buat password baru terlebih dahulu.",
+            ], 403);
         }
 
         // Dapatkan atau buat otomatis Sesi Presensi Pagi (tipe: kelas) untuk hari ini sesuai jadwal pelajaran
@@ -274,6 +296,13 @@ class KioskController extends Controller
      */
     public function syncCandidates()
     {
+        $schoolSetting = SchoolSetting::getSettings();
+        $clientIp = SchoolSetting::getClientIp(request());
+
+        if ($schoolSetting->is_ip_whitelist_active && !$schoolSetting->isIpAllowed($clientIp)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized IP.'], 403);
+        }
+
         $faceService = new FaceService();
         $result = $faceService->syncAllEnrolledStudents();
 

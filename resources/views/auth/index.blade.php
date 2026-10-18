@@ -177,13 +177,13 @@
                     @csrf
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">Username / Email / NISN</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">NISN / Username Siswa</label>
                         <div class="relative flex items-center">
                             <span class="absolute left-4 text-gray-400">
-                                <i class="fas fa-user text-sm"></i>
+                                <i class="fas fa-id-card text-sm"></i>
                             </span>
                             <input type="text" name="identifier" value="{{ old('identifier') }}" required autofocus
-                                   placeholder="Ketik identitas Anda"
+                                   placeholder="Ketik 10 digit NISN Anda"
                                    class="neu-input w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
                         </div>
                     </div>
@@ -191,7 +191,7 @@
                     <div class="space-y-2">
                         <div class="flex items-center justify-between px-1">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">Password</label>
-                            <span class="text-[11px] text-blue-500 font-semibold">(Opsional jika pakai NISN)</span>
+                            <span class="text-[11px] text-blue-600 font-semibold">(Kosongkan jika login awal)</span>
                         </div>
                         <div class="relative flex items-center">
                             <span class="absolute left-4 text-gray-400">
@@ -199,7 +199,7 @@
                             </span>
                             <input :type="showPasswordSiswa ? 'text' : 'password'"
                                    name="password"
-                                   placeholder="Password Anda atau kosongkan jika pakai NISN"
+                                   placeholder="Masukkan password Anda"
                                    class="neu-input w-full rounded-xl pl-11 pr-11 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
                             <button type="button"
                                      @click="showPasswordSiswa = !showPasswordSiswa"
@@ -207,8 +207,8 @@
                                 <i class="fas text-sm" :class="showPasswordSiswa ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 px-1 mt-1 leading-relaxed">
-                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> Cukup ketik <strong>NISN</strong> di atas. Kolom password dapat dikosongkan.
+                        <p class="text-[11px] text-gray-500 px-1 mt-1 leading-relaxed">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> Login pertama kali? Cukup ketik <strong>NISN</strong>, kolom password dapat dikosongkan.
                         </p>
                     </div>
 

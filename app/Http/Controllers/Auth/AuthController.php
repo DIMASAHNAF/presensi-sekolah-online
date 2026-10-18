@@ -55,20 +55,32 @@ class AuthController extends Controller
         }
 
         // Cek kecocokan autentikasi:
-        // 1. Password cocok dengan hash di database
-        // 2. Password yang diinput sama dengan nomor NISN (default password massal)
-        // 3. Siswa login menggunakan NISN murni tanpa password
+        $hasCustomPassword = $user->hasChangedPassword();
         $isAuthorized = false;
+
         if (!empty($password)) {
-            $isAuthorized = Hash::check($password, $user->password) || ($user->nisn && $password === $user->nisn);
+            if ($hasCustomPassword) {
+                // Jika sudah pernah set password, wajib cocok dengan password yang dibuat
+                $isAuthorized = Hash::check($password, $user->password);
+            } else {
+                // Jika belum, boleh cocok dengan hash DB atau NISN
+                $isAuthorized = Hash::check($password, $user->password) || ($user->nisn && $password === $user->nisn);
+            }
         } else {
-            // Diizinkan tanpa password jika login via NISN
+            // Jika password kosong, hanya diperbolehkan jika login via NISN DAN belum pernah set password pribadi
+            if ($hasCustomPassword) {
+                return back()->withErrors([
+                    'identifier' => 'Akun Anda sudah diamankan dengan password. Silakan ketik password Anda.',
+                ])->onlyInput('identifier');
+            }
             $isAuthorized = ($field === 'nisn');
         }
 
         if (! $isAuthorized) {
             return back()->withErrors([
-                'identifier' => 'Password salah. Masukkan password Anda atau gunakan NISN sebagai password default.',
+                'identifier' => $hasCustomPassword
+                    ? 'Password yang Anda masukkan salah. Silakan coba lagi.'
+                    : 'Password salah. Untuk login awal gunakan NISN atau kosongkan kolom password.',
             ])->onlyInput('identifier');
         }
 
@@ -157,6 +169,30 @@ class AuthController extends Controller
                 ]);
             }
 
+            // ── ANTI-JOKI / CEK DUPLIKASI BIOMETRIK ──
+            $newDescriptor = $result['descriptor'];
+            $existingStudents = User::whereNotNull('face_descriptor')
+                ->with('kelas')
+                ->get(['id', 'name', 'kelas_id', 'face_descriptor']);
+
+            foreach ($existingStudents as $existing) {
+                $existingDesc = is_array($existing->face_descriptor)
+                    ? $existing->face_descriptor
+                    : json_decode($existing->face_descriptor, true);
+
+                if (is_array($existingDesc) && in_array(count($existingDesc), [128, 512])) {
+                    $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
+                    $dupThreshold = count($existingDesc) === 512 ? 0.60 : 0.48;
+                    if ($dupDist !== null && $dupDist < $dupThreshold) {
+                        $otherKelas = $existing->kelas?->nama_kelas ?? 'Siswa';
+                        Log::warning("Percobaan duplikasi wajah pada register: Calon siswa {$data['name']} mencoba mendaftarkan wajah yang identik dengan {$existing->name} (jarak: {$dupDist})");
+                        return back()->withErrors([
+                            'face' => "Pendaftaran Ditolak: Wajah ini sudah terdaftar dalam sistem atas nama siswa lain ({$existing->name} - {$otherKelas}). Satu biometrik wajah hanya boleh digunakan untuk satu akun!",
+                        ]);
+                    }
+                }
+            }
+
             // Buat akun user
             $user = User::create([
                 'name'             => $data['name'],
@@ -193,18 +229,23 @@ class AuthController extends Controller
                 ->get();
 
             foreach ($sesiHariIni as $sesi) {
-                $exists = Presensi::where('sesi_presensi_id', $sesi->id)
-                    ->where('siswa_id', $user->id)
-                    ->exists();
-
-                if (!$exists) {
-                    Presensi::create([
+                Presensi::firstOrCreate(
+                    [
                         'sesi_presensi_id' => $sesi->id,
                         'siswa_id'         => $user->id,
+                    ],
+                    [
                         'status'           => 'alpa',
                         'keterangan'       => 'Siswa baru terdaftar',
-                    ]);
-                }
+                    ]
+                );
+            }
+
+            // Sinkronkan seluruh kandidat wajah ke memori RAM server AI
+            try {
+                (new FaceService())->syncAllEnrolledStudents();
+            } catch (\Throwable $e) {
+                Log::warning('Gagal auto-sync kandidat wajah ke FastAPI: ' . $e->getMessage());
             }
 
             $request->session()->forget('register_data');
