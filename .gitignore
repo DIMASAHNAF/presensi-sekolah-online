@@ -31,3 +31,7 @@ node_modules/
 .env
 *.zip
 *.rar
+python/models/*.onnx
+python/models/*.dat
+__pycache__/
+*.pyc

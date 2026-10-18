@@ -78,7 +78,7 @@ class FaceService
                     ? $s->face_descriptor
                     : json_decode($s->face_descriptor, true);
 
-                if (is_array($desc) && count($desc) === 128) {
+                if (is_array($desc) && in_array(count($desc), [128, 512])) {
                     $candidates[] = [
                         'id' => (int) $s->id,
                         'descriptor' => array_values($desc),
@@ -108,15 +108,16 @@ class FaceService
     }
 
     /**
-     * Hitung jarak Euclidean antara dua vektor 128-float untuk deteksi duplikasi wajah.
+     * Hitung jarak Euclidean antara dua vektor (128-D atau 512-D) untuk deteksi duplikasi wajah.
      */
     public function calculateEuclideanDistance(array $a, array $b): ?float
     {
-        if (count($a) !== 128 || count($b) !== 128) {
+        $len = count($a);
+        if ($len !== count($b) || !in_array($len, [128, 512])) {
             return null;
         }
         $sum = 0.0;
-        for ($i = 0; $i < 128; $i++) {
+        for ($i = 0; $i < $len; $i++) {
             $diff = (float) $a[$i] - (float) $b[$i];
             $sum += $diff * $diff;
         }
