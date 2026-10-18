@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Kelas;
 use App\Models\JadwalPelajaran;
 use App\Models\SesiPresensi;
+use App\Models\Presensi;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -97,9 +98,10 @@ class GenerateDailySessions extends Command
                     'jam_pelajaran' => $jamLabel,
                     'is_active'     => true,
                 ]);
+                $sesi = $existingSesi;
                 $created++;
-            } else {
-                SesiPresensi::create([
+            } elseif (!$existingSesi) {
+                $sesi = SesiPresensi::create([
                     'kelas_id'      => $kelas->id,
                     'tanggal'       => today(),
                     'tipe'          => 'kelas',
@@ -110,6 +112,24 @@ class GenerateDailySessions extends Command
                     'is_active'     => true,
                 ]);
                 $created++;
+            } else {
+                $sesi = $existingSesi;
+            }
+
+            // Otomatis daftarkan seluruh siswa di kelas ini ke dalam sesi presensi (default: alpa)
+            if ($sesi) {
+                $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->get(['id']);
+                foreach ($siswaList as $siswa) {
+                    Presensi::firstOrCreate(
+                        [
+                            'sesi_presensi_id' => $sesi->id,
+                            'siswa_id'         => $siswa->id,
+                        ],
+                        [
+                            'status' => 'alpa',
+                        ]
+                    );
+                }
             }
         }
 

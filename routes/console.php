@@ -8,8 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Otomatisasi generate Sesi Presensi jam 06:00 WIB setiap hari sekolah sesuai Roster Jadwal Pelajaran
+// Otomatisasi generate Sesi Presensi jam 05:00 WIB subuh setiap hari sekolah sesuai Roster Jadwal Pelajaran
 Schedule::command('presensi:generate-daily-sessions')
-    ->dailyAt('06:00')
+    ->dailyAt('05:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
