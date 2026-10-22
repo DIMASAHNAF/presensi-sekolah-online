@@ -137,8 +137,11 @@
                     <span class="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono font-bold tracking-widest">
                         KIOSK GERBANG
                     </span>
+                    <span class="hidden md:inline-flex text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold items-center gap-1">
+                        <i class="fas fa-brain text-[10px]"></i> AI v3.0 ENTERPRISE
+                    </span>
                 </h1>
-                <p class="text-xs text-slate-400 font-medium">Sistem Presensi Biometrik Wajah Otomatis (Face ID)</p>
+                <p class="text-xs text-slate-400 font-medium">Dual-Engine Face Recognition (ArcFace 512-D & Anti-Spoofing)</p>
             </div>
         </div>
 
@@ -251,15 +254,18 @@
                     <span class="text-slate-400 text-xs font-mono">NISN: <strong class="text-slate-200" x-text="resultData.student?.nisn">0000000000</strong></span>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-around text-xs">
+                <div class="mt-4 pt-3 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-xs">
                     <div>
-                        <p class="text-slate-400">Waktu Masuk</p>
-                        <p class="text-cyan-400 font-bold text-sm font-mono" x-text="resultData.waktu_scan">--:-- WIB</p>
+                        <p class="text-slate-400 text-[11px]">Waktu Masuk</p>
+                        <p class="text-cyan-400 font-bold text-xs sm:text-sm font-mono mt-0.5" x-text="resultData.waktu_scan">--:-- WIB</p>
                     </div>
-                    <div class="h-6 w-px bg-white/10"></div>
+                    <div class="border-x border-white/10 px-1">
+                        <p class="text-slate-400 text-[11px]">Tingkat Akurasi</p>
+                        <p class="text-emerald-400 font-bold text-xs sm:text-sm mt-0.5" x-text="resultData.confidence ? resultData.confidence.toUpperCase() : 'OPTIMAL'">HIGH</p>
+                    </div>
                     <div>
-                        <p class="text-slate-400">Tingkat Akurasi</p>
-                        <p class="text-emerald-400 font-bold text-sm" x-text="resultData.confidence ? resultData.confidence.toUpperCase() : 'OPTIMAL'">HIGH</p>
+                        <p class="text-slate-400 text-[11px]">AI Engine</p>
+                        <p class="text-sky-300 font-bold text-xs sm:text-sm mt-0.5 truncate" x-text="resultData.engine ? (resultData.engine.includes('512') ? 'ArcFace 512-D' : 'dlib 128-D') : 'ArcFace 512-D'">ArcFace 512-D</p>
                     </div>
                 </div>
             </div>

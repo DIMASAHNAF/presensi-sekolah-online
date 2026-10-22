@@ -26,7 +26,8 @@ absensi_sekolah.sql
 .agents/
 .gemini/
 python/venv/
-vendor/
+/vendor/
+!public/vendor/leaflet/
 node_modules/
 .env
 *.zip
@@ -35,3 +36,4 @@ python/models/*.onnx
 python/models/*.dat
 __pycache__/
 *.pyc
+*.npz

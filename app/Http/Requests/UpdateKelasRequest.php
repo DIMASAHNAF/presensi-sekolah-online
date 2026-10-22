@@ -20,4 +20,14 @@ class UpdateKelasRequest extends FormRequest
             'jurusan' => 'nullable|string|max:50',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'nama_kelas.required' => 'Nama kelas wajib diisi.',
+            'nama_kelas.unique' => 'Nama kelas ini sudah terdaftar.',
+            'tingkat.required' => 'Tingkat kelas wajib dipilih.',
+            'tingkat.in' => 'Tingkat kelas harus X, XI, atau XII.',
+        ];
+    }
 }

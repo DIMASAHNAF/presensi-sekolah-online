@@ -822,6 +822,17 @@ class DashboardController extends Controller
             ]);
         }
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status kehadiran diperbarui!',
+                'status' => $statusBaru,
+                'label' => $presensi->labelStatus(),
+                'keterangan' => $presensi->keterangan ?: '-',
+                'updated_at' => now()->timezone('Asia/Jakarta')->format('H:i') . ' WIB',
+            ]);
+        }
+
         return back()->with('success', 'Status kehadiran diperbarui!');
     }
 
@@ -896,6 +907,13 @@ class DashboardController extends Controller
             'password' => Hash::make($v['password']),
         ]));
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Siswa berhasil ditambahkan!',
+            ]);
+        }
+
         return redirect()->route('dashboard.siswa')->with('success', 'Siswa berhasil ditambahkan!');
     }
 
@@ -942,6 +960,13 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('Gagal auto-sync face service saat updateSiswa: ' . $e->getMessage());
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Data siswa {$siswa->name} berhasil diperbarui!",
+            ]);
         }
 
         return redirect()->route('dashboard.siswa')->with('success', "Data siswa {$siswa->name} berhasil diperbarui!");
@@ -1058,6 +1083,13 @@ class DashboardController extends Controller
             'password' => Hash::make($v['password']),
         ]));
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Guru berhasil ditambahkan!',
+            ]);
+        }
+
         return redirect()->route('dashboard.guru')->with('success', 'Guru berhasil ditambahkan!');
     }
 
@@ -1067,7 +1099,20 @@ class DashboardController extends Controller
 
         $v = $request->validated();
 
+        if ($request->filled('password')) {
+            $v['password'] = Hash::make($request->password);
+        } else {
+            unset($v['password']);
+        }
+
         $guru->update($v);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data guru diperbarui!',
+            ]);
+        }
 
         return redirect()->route('dashboard.guru')->with('success', 'Data guru diperbarui!');
     }
@@ -1098,6 +1143,13 @@ class DashboardController extends Controller
 
         Kelas::create($v);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelas berhasil ditambahkan!',
+            ]);
+        }
+
         return redirect()->route('dashboard.kelas')->with('success', 'Kelas berhasil ditambahkan!');
     }
 
@@ -1106,6 +1158,13 @@ class DashboardController extends Controller
         $v = $request->validated();
 
         $kelas->update($v);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelas diperbarui!',
+            ]);
+        }
 
         return redirect()->route('dashboard.kelas')->with('success', 'Kelas diperbarui!');
     }

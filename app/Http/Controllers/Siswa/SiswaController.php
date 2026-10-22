@@ -635,7 +635,10 @@ class SiswaController extends Controller
 
         // ── ANTI-JOKI / CEK DUPLIKASI BIOMETRIK ──
         // Mencegah siswa mendaftarkan wajah yang sama ke 2 akun berbeda (misal joki teman)
-        $newDescriptor = $result['descriptor'];
+        $newDescriptor = $result['descriptor_512'] ?? $result['descriptor'];
+        $desc128 = $result['descriptor_128'] ?? null;
+        $desc512 = $result['descriptor_512'] ?? null;
+
         $existingStudents = User::whereNotNull('face_descriptor')
             ->where('id', '!=', $user->id)
             ->with('kelas')
@@ -646,10 +649,22 @@ class SiswaController extends Controller
                 ? $existing->face_descriptor
                 : json_decode($existing->face_descriptor, true);
 
-            if (is_array($existingDesc) && in_array(count($existingDesc), [128, 512])) {
-                $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
-                // Toleransi deteksi duplikasi: 0.48 untuk 128-D (menangkap wajah dengan kacamata/sudut miring) & 0.60 untuk 512-D
-                $dupThreshold = count($existingDesc) === 512 ? 0.60 : 0.48;
+            if (is_array($existingDesc)) {
+                $extLen = count($existingDesc);
+                $dupDist = null;
+                $dupThreshold = 0.48;
+
+                if ($extLen === 512 && $desc512) {
+                    $dupDist = $faceService->calculateEuclideanDistance($desc512, $existingDesc);
+                    $dupThreshold = 0.60;
+                } elseif ($extLen === 128 && $desc128) {
+                    $dupDist = $faceService->calculateEuclideanDistance($desc128, $existingDesc);
+                    $dupThreshold = 0.48;
+                } elseif ($dupDist === null && $extLen === count($newDescriptor)) {
+                    $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
+                    $dupThreshold = $extLen === 512 ? 0.60 : 0.48;
+                }
+
                 if ($dupDist !== null && $dupDist < $dupThreshold) {
                     $otherKelas = $existing->kelas?->nama_kelas ?? 'Siswa';
                     \Log::warning("Percobaan duplikasi wajah: Siswa {$user->name} (ID: {$user->id}) mencoba mendaftarkan wajah yang identik dengan {$existing->name} (ID: {$existing->id}) jarak: {$dupDist}");

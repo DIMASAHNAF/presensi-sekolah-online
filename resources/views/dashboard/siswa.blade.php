@@ -6,12 +6,7 @@
 
 @section('content')
 
-@if(isset($errors) && $errors->any())
-    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
-        <i class="fas fa-exclamation-circle text-red-500"></i>
-        <span>Ada error input: {{ $errors->first() }}</span>
-    </div>
-@endif
+
 
 @if(session('success'))
     <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
@@ -187,7 +182,8 @@
                         'created_at' => $siswa->created_at ? $siswa->created_at->timezone('Asia/Jakarta')->format('d M Y, H:i') . ' WIB' : '-',
                     ];
                 @endphp
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs transition-all duration-200 hover:border-blue-300">
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs transition-all duration-200 hover:border-blue-400 cursor-pointer"
+                    @click="openEditModal(@js($siswaJson))">
                     {{-- Header: Avatar, Nama, Face Status --}}
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="flex items-center gap-3 min-w-0">
@@ -259,7 +255,7 @@
                     </div>
 
                     {{-- Actions Footer --}}
-                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100" @click.stop>
                         {{-- 1. INSPECT TEKNIS --}}
                         <button type="button" @click="openInspectModal(@js($siswaJson))" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 transition text-xs font-semibold" 
@@ -360,7 +356,7 @@
                             'created_at' => $siswa->created_at ? $siswa->created_at->timezone('Asia/Jakarta')->format('d M Y, H:i') . ' WIB' : '-',
                         ];
                     @endphp
-                    <tr class="hover:bg-slate-50/70 transition-colors">
+                    <tr class="hover:bg-blue-50/50 transition-colors cursor-pointer" @click="openEditModal(@js($siswaJson))">
                         {{-- Avatar & Student Info --}}
                         <td class="px-4 py-3.5">
                             <div class="flex items-center gap-3">
@@ -441,7 +437,7 @@
                         </td>
 
                         {{-- Technical Actions --}}
-                        <td class="px-4 py-3.5 text-center">
+                        <td class="px-4 py-3.5 text-center" @click.stop>
                             <div class="flex items-center justify-center gap-1.5">
                                 {{-- 1. INSPECT TEKNIS --}}
                                 <button type="button" @click="openInspectModal(@js($siswaJson))" 
@@ -667,47 +663,89 @@
     {{-- 5. MODAL TAMBAH SISWA                          --}}
     {{-- ────────────────────────────────────────────── --}}
     <div x-show="openAdd" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4 overflow-y-auto">
-        <div @click.away="openAdd = false" class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 my-auto animate-in fade-in zoom-in-95">
+        <div @click.away="if (!isSubmitting) openAdd = false" 
+             :class="addShake ? 'animate-shake ring-2 ring-rose-500/50' : ''"
+             class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 my-auto transition-transform">
+            
             <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
                 <h3 class="font-heading font-extrabold text-base text-slate-900">Tambah Akun Siswa Baru</h3>
-                <button type="button" @click="openAdd = false" class="text-slate-400 hover:text-slate-700 transition">
+                <button type="button" @click="openAdd = false" :disabled="isSubmitting" class="text-slate-400 hover:text-slate-700 transition">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form action="{{ route('dashboard.siswa.store') }}" method="POST" class="space-y-4">
+            {{-- NOTIFIKASI ERROR DI DALAM KOTAK MODAL --}}
+            <div x-show="addErrorMessage" x-cloak 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="mb-4 p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-start gap-2.5">
+                <i class="fas fa-triangle-exclamation text-rose-500 mt-0.5 text-sm shrink-0"></i>
+                <div class="flex-1">
+                    <p class="font-bold mb-0.5" x-text="addErrorMessage"></p>
+                    <ul class="list-disc list-inside space-y-0.5 text-rose-700 mt-1" x-show="addErrorList.length > 0">
+                        <template x-for="(err, idx) in addErrorList" :key="idx">
+                            <li x-text="err"></li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+
+            <form @submit.prevent="submitAdd($event)" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Nama Lengkap Siswa</label>
-                    <input type="text" name="name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required placeholder="Contoh: Muhammad Fajar Pratama">
+                    <input type="text" name="name" x-model="addForm.name"
+                           :class="addErrors.name ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                           class="w-full border rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" 
+                           required placeholder="Contoh: Muhammad Fajar Pratama">
+                    <p x-show="addErrors.name" x-text="addErrors.name ? addErrors.name[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">NISN (10 Digit)</label>
-                        <input type="text" name="nisn" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required placeholder="0012345678">
+                        <input type="text" name="nisn" x-model="addForm.nisn" maxlength="10"
+                               :class="addErrors.nisn ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" 
+                               required placeholder="0012345678">
+                        <p x-show="addErrors.nisn" x-text="addErrors.nisn ? addErrors.nisn[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Kelas</label>
-                        <select name="kelas_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required>
+                        <select name="kelas_id" x-model="addForm.kelas_id"
+                                :class="addErrors.kelas_id ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                                class="w-full border rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" required>
                             <option value="">Pilih Kelas</option>
                             @foreach($kelas as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
                             @endforeach
                         </select>
+                        <p x-show="addErrors.kelas_id" x-text="addErrors.kelas_id ? addErrors.kelas_id[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username Akun</label>
-                    <input type="text" name="username" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required placeholder="fajar.pratama">
+                    <input type="text" name="username" x-model="addForm.username"
+                           :class="addErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                           class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" 
+                           required placeholder="fajar.pratama">
+                    <p x-show="addErrors.username" x-text="addErrors.username ? addErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password Awal</label>
-                    <input type="password" name="password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required placeholder="Minimal 6 karakter">
+                    <input type="password" name="password" x-model="addForm.password"
+                           :class="addErrors.password ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                           class="w-full border rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" 
+                           required placeholder="Minimal 6 karakter">
+                    <p x-show="addErrors.password" x-text="addErrors.password ? addErrors.password[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
                 
                 <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
-                    <button type="button" @click="openAdd = false" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
-                    <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs">Simpan Siswa</button>
+                    <button type="button" @click="openAdd = false" :disabled="isSubmitting" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs flex items-center gap-1.5">
+                        <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-xs"></i>
+                        <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan Siswa'"></span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -717,44 +755,75 @@
     {{-- 6. MODAL EDIT SISWA & RESET PASSWORD           --}}
     {{-- ────────────────────────────────────────────── --}}
     <div x-show="openEdit" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4 overflow-y-auto">
-        <div @click.away="openEdit = false" class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 my-auto animate-in fade-in zoom-in-95">
+        <div @click.away="if (!isSubmitting) openEdit = false" 
+             :class="editShake ? 'animate-shake ring-2 ring-rose-500/50' : ''"
+             class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 my-auto transition-transform">
+            
             <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
                 <div>
                     <h3 class="font-heading font-extrabold text-base text-slate-900">Edit Akun & Reset Password</h3>
                     <p class="text-xs text-slate-400 mt-0.5" x-text="'Mengubah akun: ' + (editData.name || '')"></p>
                 </div>
-                <button type="button" @click="openEdit = false" class="text-slate-400 hover:text-slate-700 transition">
+                <button type="button" @click="openEdit = false" :disabled="isSubmitting" class="text-slate-400 hover:text-slate-700 transition">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form :action="'{{ route('dashboard.siswa') }}/' + editData.id" method="POST" class="space-y-4">
-                @csrf @method('PUT')
-                
+            {{-- NOTIFIKASI ERROR DI DALAM KOTAK MODAL --}}
+            <div x-show="editErrorMessage" x-cloak 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="mb-4 p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-start gap-2.5">
+                <i class="fas fa-triangle-exclamation text-rose-500 mt-0.5 text-sm shrink-0"></i>
+                <div class="flex-1">
+                    <p class="font-bold mb-0.5" x-text="editErrorMessage"></p>
+                    <ul class="list-disc list-inside space-y-0.5 text-rose-700 mt-1" x-show="editErrorList.length > 0">
+                        <template x-for="(err, idx) in editErrorList" :key="idx">
+                            <li x-text="err"></li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+
+            <form @submit.prevent="submitEdit($event)" class="space-y-4">
+                @csrf
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Nama Lengkap Siswa</label>
-                    <input type="text" name="name" x-model="editData.name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required>
+                    <input type="text" name="name" x-model="editData.name" 
+                           :class="editErrors.name ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                           class="w-full border rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" required>
+                    <p x-show="editErrors.name" x-text="editErrors.name ? editErrors.name[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">NISN</label>
-                        <input type="text" name="nisn" x-model="editData.nisn" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required>
+                        <input type="text" name="nisn" x-model="editData.nisn" maxlength="10" 
+                               :class="editErrors.nisn ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                               class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" required>
+                        <p x-show="editErrors.nisn" x-text="editErrors.nisn ? editErrors.nisn[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Kelas</label>
-                        <select name="kelas_id" x-model="editData.kelas_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required>
+                        <select name="kelas_id" x-model="editData.kelas_id" 
+                                :class="editErrors.kelas_id ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                                class="w-full border rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" required>
                             <option value="">Pilih Kelas</option>
                             @foreach($kelas as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
                             @endforeach
                         </select>
+                        <p x-show="editErrors.kelas_id" x-text="editErrors.kelas_id ? editErrors.kelas_id[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
-                    <input type="text" name="username" x-model="editData.username" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition" required>
+                    <input type="text" name="username" x-model="editData.username" 
+                           :class="editErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-200 focus:ring-blue-600 bg-slate-50'"
+                           class="w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:bg-white transition" required>
+                    <p x-show="editErrors.username" x-text="editErrors.username ? editErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
 
                 {{-- Password Reset Input --}}
@@ -763,7 +832,10 @@
                         <i class="fas fa-key mr-1"></i> Reset Password Siswa
                     </label>
                     <p class="text-[11px] text-blue-700/80 mb-2">Kosongkan jika tidak ingin mengubah password siswa.</p>
-                    <input type="password" name="password" placeholder="Ketik password baru siswa..." class="w-full bg-white border border-blue-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 transition">
+                    <input type="password" name="password" x-model="editData.new_password" placeholder="Ketik password baru siswa..." 
+                           :class="editErrors.password ? 'border-rose-500 focus:ring-rose-500' : 'border-blue-200 focus:ring-blue-600'"
+                           class="w-full bg-white border rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 transition">
+                    <p x-show="editErrors.password" x-text="editErrors.password ? editErrors.password[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
 
                 {{-- Moderasi Foto & Reset Biometrik --}}
@@ -787,8 +859,11 @@
                 </div>
 
                 <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
-                    <button type="button" @click="openEdit = false" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
-                    <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs">Simpan Perubahan</button>
+                    <button type="button" @click="openEdit = false" :disabled="isSubmitting" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs flex items-center gap-1.5">
+                        <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-xs"></i>
+                        <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -802,21 +877,152 @@
             openAdd: false,
             openEdit: false,
             showInspect: false,
+            isSubmitting: false,
+            
+            // State Form Tambah
+            addForm: {
+                name: '',
+                nisn: '',
+                kelas_id: '',
+                username: '',
+                password: ''
+            },
+            addErrors: {},
+            addErrorMessage: '',
+            addErrorList: [],
+            addShake: false,
+
+            // State Form Edit
             editData: {},
+            editErrors: {},
+            editErrorMessage: '',
+            editErrorList: [],
+            editShake: false,
+
             inspectData: null,
 
             openAddModal() {
+                this.addErrors = {};
+                this.addErrorMessage = '';
+                this.addErrorList = [];
+                this.addShake = false;
                 this.openAdd = true;
             },
 
             openEditModal(siswa) {
-                this.editData = { ...siswa };
+                this.editData = { ...siswa, new_password: '' };
+                this.editErrors = {};
+                this.editErrorMessage = '';
+                this.editErrorList = [];
+                this.editShake = false;
                 this.openEdit = true;
             },
 
             openInspectModal(siswa) {
                 this.inspectData = siswa;
                 this.showInspect = true;
+            },
+
+            // Submit AJAX Tambah Siswa
+            async submitAdd(event) {
+                this.isSubmitting = true;
+                this.addErrors = {};
+                this.addErrorMessage = '';
+                this.addErrorList = [];
+
+                const form = event.target;
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+                try {
+                    const res = await fetch("{{ route('dashboard.siswa.store') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (res.ok && data.success) {
+                        this.openAdd = false;
+                        if (window.toast) {
+                            window.toast.success('Berhasil', data.message || 'Siswa berhasil ditambahkan!');
+                        }
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        // Error Validasi: Form tetap terbuka dan bergetar
+                        this.addErrorMessage = data.message || 'Terdapat kesalahan pada isian form.';
+                        this.addErrors = data.errors || {};
+                        this.addErrorList = Object.values(this.addErrors).flat();
+                        
+                        // Efek getar form
+                        this.addShake = true;
+                        setTimeout(() => this.addShake = false, 500);
+                    }
+                } catch (err) {
+                    console.error('Submit Add error:', err);
+                    this.addErrorMessage = 'Terjadi gangguan jaringan atau server. Silakan coba lagi.';
+                    this.addShake = true;
+                    setTimeout(() => this.addShake = false, 500);
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            // Submit AJAX Edit Siswa
+            async submitEdit(event) {
+                this.isSubmitting = true;
+                this.editErrors = {};
+                this.editErrorMessage = '';
+                this.editErrorList = [];
+
+                const form = event.target;
+                const formData = new FormData(form);
+                formData.append('_method', 'PUT');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+                try {
+                    const updateUrl = "{{ route('dashboard.siswa') }}/" + this.editData.id;
+                    const res = await fetch(updateUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (res.ok && data.success) {
+                        this.openEdit = false;
+                        if (window.toast) {
+                            window.toast.success('Berhasil', data.message || 'Data siswa berhasil diperbarui!');
+                        }
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        // Error Validasi: Form tetap terbuka dan bergetar
+                        this.editErrorMessage = data.message || 'Terdapat kesalahan pada data siswa.';
+                        this.editErrors = data.errors || {};
+                        this.editErrorList = Object.values(this.editErrors).flat();
+                        
+                        // Efek getar form
+                        this.editShake = true;
+                        setTimeout(() => this.editShake = false, 500);
+                    }
+                } catch (err) {
+                    console.error('Submit Edit error:', err);
+                    this.editErrorMessage = 'Terjadi gangguan jaringan atau server. Silakan coba lagi.';
+                    this.editShake = true;
+                    setTimeout(() => this.editShake = false, 500);
+                } finally {
+                    this.isSubmitting = false;
+                }
             }
         };
     }

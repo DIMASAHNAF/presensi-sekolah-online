@@ -128,18 +128,18 @@ class FaceService
      * Ekstrak face descriptor dari satu gambar base64.
      * Return: ['success' => bool, 'descriptor' => array|null, 'error' => string|null]
      */
-    public function extract(string $imageB64): array
+    public function extract(string $imageB64, string $engine = '512'): array
     {
-        return $this->call('extract', ['image_b64' => $imageB64]);
+        return $this->call('extract', ['image_b64' => $imageB64, 'engine' => $engine]);
     }
 
     /**
      * Enroll wajah dari array base64 gambar (multi-angle).
      * Return: ['success' => bool, 'descriptor' => array|null, 'processed' => int, 'error' => string|null]
      */
-    public function enroll(array $imagesB64): array
+    public function enroll(array $imagesB64, string $engine = '512'): array
     {
-        return $this->call('enroll', ['images_b64' => $imagesB64]);
+        return $this->call('enroll', ['images_b64' => $imagesB64, 'engine' => $engine]);
     }
 
     /**

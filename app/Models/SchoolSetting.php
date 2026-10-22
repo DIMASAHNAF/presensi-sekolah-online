@@ -144,7 +144,7 @@ class SchoolSetting extends Model
      */
     public function validateGeofence(float $userLat, float $userLng): array
     {
-        // 1. Jika mode polygon aktif dan koordinat poligon tersedia (minimal 3 titik)
+        // 1. Mode Polygon / Kotak Pagar (Ray-Casting algorithm + Perpendicular Edge Distance)
         if ($this->geofence_mode === 'polygon' && !empty($this->polygon_coordinates)) {
             $polygon = is_array($this->polygon_coordinates)
                 ? $this->polygon_coordinates
@@ -152,15 +152,19 @@ class SchoolSetting extends Model
 
             if (is_array($polygon) && count($polygon) >= 3) {
                 $isInside = $this->isPointInPolygon($userLat, $userLng, $polygon);
-                $centerDist = $this->calculateHaversineDistance($userLat, $userLng, (float) $this->latitude, (float) $this->longitude);
+                $edgeDist = $this->distanceToPolygonEdge($userLat, $userLng, $polygon);
+
+                // Toleransi jitter satelit GPS: 5 meter di batas pagar
+                $allowed = $isInside || ($edgeDist <= 5.0);
 
                 return [
-                    'allowed'  => $isInside,
-                    'mode'     => 'polygon',
-                    'distance' => round($centerDist),
-                    'message'  => $isInside
-                        ? 'Lokasi berada di dalam batas pagar sekolah.'
-                        : 'Presensi ditolak: Anda berada di luar batas pagar SMKN 1 Beringin.',
+                    'allowed'   => $allowed,
+                    'mode'      => 'polygon',
+                    'is_inside' => $isInside,
+                    'distance'  => $isInside ? 0 : round($edgeDist),
+                    'message'   => $allowed
+                        ? 'Lokasi berada di dalam batas pagar sekolah SMKN 1 Beringin.'
+                        : sprintf('Presensi ditolak: Anda berada di luar area pagar SMKN 1 Beringin (±%d meter dari batas pagar terdekat).', round($edgeDist)),
                 ];
             }
         }
@@ -174,9 +178,58 @@ class SchoolSetting extends Model
             'mode'     => 'radius',
             'distance' => round($dist),
             'message'  => $isInside
-                ? 'Lokasi berada di dalam radius sekolah.'
+                ? 'Lokasi berada di dalam radius sekolah SMKN 1 Beringin.'
                 : sprintf('Presensi ditolak: Anda berada di luar area SMKN 1 Beringin. Jarak: %d meter (Batas radius: %d meter).', round($dist), $this->radius_meters),
         ];
+    }
+
+    /**
+     * Menghitung jarak terpendek (dalam meter) dari titik koordinat user ke garis tepi poligon terdekat.
+     */
+    public function distanceToPolygonEdge(float $lat, float $lng, array $polygon): float
+    {
+        $minDist = PHP_FLOAT_MAX;
+        $count = count($polygon);
+        if ($count < 2) return 0.0;
+
+        $latMidRad = deg2rad($lat);
+        $metersPerDegLat = 110574.0;
+        $metersPerDegLng = 111320.0 * cos($latMidRad);
+
+        for ($i = 0; $i < $count; $i++) {
+            $p1 = $polygon[$i];
+            $p2 = $polygon[($i + 1) % $count];
+
+            $lat1 = (float) ($p1['lat'] ?? $p1[0]);
+            $lng1 = (float) ($p1['lng'] ?? $p1[1]);
+            $lat2 = (float) ($p2['lat'] ?? $p2[0]);
+            $lng2 = (float) ($p2['lng'] ?? $p2[1]);
+
+            // Koordinat lokal relatif terhadap titik koordinat user (dalam meter)
+            $x1 = ($lng1 - $lng) * $metersPerDegLng;
+            $y1 = ($lat1 - $lat) * $metersPerDegLat;
+            $x2 = ($lng2 - $lng) * $metersPerDegLng;
+            $y2 = ($lat2 - $lat) * $metersPerDegLat;
+
+            $dx = $x2 - $x1;
+            $dy = $y2 - $y1;
+            $lenSq = $dx * $dx + $dy * $dy;
+
+            if ($lenSq <= 0.0001) {
+                $dist = sqrt($x1 * $x1 + $y1 * $y1);
+            } else {
+                $t = max(0.0, min(1.0, -($x1 * $dx + $y1 * $dy) / $lenSq));
+                $projX = $x1 + $t * $dx;
+                $projY = $y1 + $t * $dy;
+                $dist = sqrt($projX * $projX + $projY * $projY);
+            }
+
+            if ($dist < $minDist) {
+                $minDist = $dist;
+            }
+        }
+
+        return $minDist;
     }
 
     /**

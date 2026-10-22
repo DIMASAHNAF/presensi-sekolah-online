@@ -121,7 +121,7 @@ class KioskController extends Controller
             $identifyResult = $compareRes;
         } else {
             // MODE 2: Auto Face ID (1:N Matching terhadap seluruh database siswa)
-            $identifyResult = $faceService->identify($request->face_image, null, 0.42);
+            $identifyResult = $faceService->identify($request->face_image);
 
             if (!$identifyResult['success']) {
                 return response()->json([
@@ -230,6 +230,7 @@ class KioskController extends Controller
                 'message'          => "Halo {$user->name}, kamu sudah tercatat HADIR hari ini pada pukul {$waktuFormatted} WIB.",
                 'confidence'       => $identifyResult['confidence'] ?? 'high',
                 'distance'         => $identifyResult['distance'] ?? null,
+                'engine'           => $identifyResult['engine'] ?? 'ArcFace 512-D Aligned',
             ]);
         }
 
@@ -267,7 +268,8 @@ class KioskController extends Controller
             'status_sebelumnya' => $statusSebelumnya,
             'status_baru'       => 'hadir',
             'keterangan'        => sprintf(
-                'Presensi Face ID Kiosk Gerbang (confidence: %s, distance: %.4f)',
+                'Presensi Face ID Kiosk Gerbang (%s, confidence: %s, distance: %.4f)',
+                $identifyResult['engine'] ?? 'ArcFace 512-D',
                 $identifyResult['confidence'] ?? 'high',
                 $identifyResult['distance'] ?? 0
             ),
@@ -288,6 +290,7 @@ class KioskController extends Controller
             'message'          => "Selamat pagi, {$user->name}! Presensi berhasil dicatat.",
             'confidence'       => $identifyResult['confidence'] ?? 'high',
             'distance'         => $identifyResult['distance'] ?? null,
+            'engine'           => $identifyResult['engine'] ?? 'ArcFace 512-D Aligned',
         ]);
     }
 

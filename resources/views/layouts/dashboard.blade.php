@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') — Presensi SMKN 1 Beringin</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Sistem Presensi Sekolah SMKN 1 Beringin — Panel Manajemen">
     <link rel="icon" type="image/png" href="{{ asset('images/logo.webp') }}">
     <link rel="manifest" href="/manifest.json">
@@ -297,6 +298,16 @@
             50% { opacity: 0.8; transform: scale(0.9); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
         }
         .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+        /* Modal Shake Error Animation */
+        @keyframes shake-modal {
+            0%, 100% { transform: translateX(0); }
+            15%, 45%, 75% { transform: translateX(-8px); }
+            30%, 60%, 90% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake-modal 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
     </style>
 
     @stack('styles')
