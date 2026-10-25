@@ -9,11 +9,11 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
         
         .split-bg {
-            background-image: linear-gradient(135deg, rgba(6, 78, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%), url('{{ asset('images/bg-sekolah.webp') }}');
+            background-image: linear-gradient(135deg, rgba(6, 78, 59, 0.88) 0%, rgba(15, 23, 42, 0.92) 100%), url('{{ asset('images/bg-sekolah.webp') }}');
             background-size: cover;
             background-position: center;
         }
@@ -36,55 +36,24 @@
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
-        .animate-slide-in { animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-in { animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         [x-cloak] { display: none !important; }
 
-        /* Neumorphism Inputs from uiverse.io */
-        .neu-input {
-            border: none;
-            padding: 1rem 1.25rem;
-            border-radius: 1rem;
-            background: #e8e8e8;
-            box-shadow: inset 6px 6px 12px #c5c5c5, inset -6px -6px 12px #ffffff;
-            transition: 0.3s;
-            color: #333;
-            width: 100%;
+        /* Step Indicators */
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            background: #cbd5e1;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .neu-input:focus {
-            outline: none;
-            box-shadow: inset 8px 8px 16px #c5c5c5, inset -8px -8px 16px #ffffff;
+        .step-dot.active {
+            background: #0d9488;
+            width: 32px;
         }
-
-        .neu-btn {
-            border: none;
-            padding: 1rem;
-            border-radius: 1rem;
-            background: #e8e8e8;
-            box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
-            transition: 0.3s;
-            color: #0f766e;
-            font-weight: 800;
-            width: 100%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .neu-btn:hover:not(:disabled) {
-            box-shadow: 8px 8px 16px #c5c5c5, -8px -8px 16px #ffffff;
-            transform: translateY(-1px);
-        }
-        .neu-btn:active:not(:disabled) {
-            box-shadow: inset 6px 6px 12px #c5c5c5, inset -6px -6px 12px #ffffff;
-            transform: translateY(1px);
-        }
-
-        .neu-card {
-            background: #e8e8e8;
-            box-shadow: 9px 9px 18px #c5c5c5, -9px -9px 18px #ffffff;
-            border-radius: 1.5rem;
+        .step-dot.done {
+            background: #0f766e;
         }
 
         /* Face capture overlay */
@@ -118,15 +87,10 @@
             100% { top: 88%; opacity: 0.25; }
         }
 
-        .step-dot { width:12px; height:12px; border-radius:50%; background:#e8e8e8; box-shadow: inset 2px 2px 5px #c5c5c5, inset -2px -2px 5px #ffffff; transition: all .3s; }
-        .step-dot.active { background:#e8e8e8; box-shadow: 3px 3px 6px #c5c5c5, -3px -3px 6px #ffffff; width:32px; border-radius:8px; }
-        .step-dot.done   { background:#0f766e; box-shadow: none; }
-
         #video-reg { width:100%; height:100%; object-fit:cover; transform: scaleX(-1); }
-
     </style>
 </head>
-<body class="antialiased min-h-screen bg-slate-50 selection:bg-teal-500 selection:text-white"
+<body class="antialiased min-h-screen bg-slate-50 selection:bg-teal-500 selection:text-white text-slate-800"
       x-data="registerApp()" x-init="checkInitialStep()">
 
     <div class="min-h-screen flex flex-col lg:flex-row">
@@ -144,12 +108,12 @@
                 <p class="text-teal-50 text-lg leading-relaxed opacity-90">
                     Daftarkan akunmu dan integrasikan wajahmu dengan sistem presensi berteknologi tinggi kami.
                 </p>
-                <div class="mt-8">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="mt-8 space-y-4">
+                    <div class="flex items-center gap-3">
                         <i class="fas fa-check-circle text-teal-300"></i>
                         <span>Proses pendaftaran cepat</span>
                     </div>
-                    <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center gap-3">
                         <i class="fas fa-check-circle text-teal-300"></i>
                         <span>Keamanan data wajah terenkripsi</span>
                     </div>
@@ -162,12 +126,12 @@
         </div>
 
         {{-- Right Side: Form --}}
-        <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col items-center justify-start p-6 sm:p-10 lg:p-12 bg-[#e8e8e8] relative overflow-y-auto min-h-screen lg:h-screen">
+        <div id="form-scroll-container" class="w-full lg:w-1/2 flex flex-col items-center justify-start p-6 sm:p-10 lg:p-12 bg-white lg:bg-slate-50/70 relative overflow-y-auto min-h-screen lg:h-screen">
             <div class="w-full max-w-md animate-slide-in my-auto py-6 sm:py-8">
                 
                 {{-- Mobile Logo --}}
                 <div class="lg:hidden text-center mb-6">
-                    <div class="w-14 h-14 bg-[#e8e8e8] shadow-[5px_5px_10px_#c5c5c5,-5px_-5px_10px_#ffffff] rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div class="w-14 h-14 bg-teal-50 border border-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xs">
                         <i class="fas fa-user-plus text-2xl text-teal-600"></i>
                     </div>
                 </div>
@@ -175,7 +139,7 @@
                 {{-- STEP INDICATOR --}}
                 <div class="flex items-center justify-center gap-3 mb-8">
                     <div class="step-dot" :class="step >= 1 ? (step > 1 ? 'done' : 'active') : ''"></div>
-                    <div class="h-0.5 w-10 bg-slate-300 rounded"></div>
+                    <div class="h-1 w-10 bg-slate-200 rounded-full"></div>
                     <div class="step-dot" :class="step >= 2 ? 'active' : ''"></div>
                 </div>
 
@@ -203,90 +167,99 @@
                         </div>
                     @endif
 
-                    <form id="form-step1" method="POST" action="{{ route('register.siswa') }}" class="space-y-5">
+                    <form id="form-step1" method="POST" action="{{ route('register.siswa') }}" class="space-y-4">
                         @csrf
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Nama Lengkap</label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Nama Lengkap</label>
                             <input type="text" name="name" value="{{ old('name') }}" required autofocus
-                                   class="neu-input placeholder-slate-400">
+                                   placeholder="cth: Budi Santoso"
+                                   class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Username</label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Username</label>
                             <input type="text" name="username" value="{{ old('username') }}" required
                                    placeholder="cth: budi_santoso"
-                                   class="neu-input placeholder-slate-400">
+                                   class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Email <span class="opacity-60 text-xs">(Opsional)</span></label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Email <span class="opacity-60 text-xs normal-case font-normal">(Opsional)</span></label>
                             <input type="email" name="email" value="{{ old('email') }}"
-                                   class="neu-input placeholder-slate-400">
+                                   placeholder="email@sekolah.sch.id"
+                                   class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">NISN</label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">NISN</label>
                             <input type="text" name="nisn" value="{{ old('nisn') }}" required maxlength="10"
-                                   placeholder="10 digit angka"
-                                   class="neu-input placeholder-slate-400">
+                                   placeholder="10 digit angka NISN"
+                                   class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Kelas</label>
-                            <select name="kelas_id" required
-                                    class="neu-input cursor-pointer appearance-none">
-                                <option value="" disabled {{ old('kelas_id') ? '' : 'selected' }}>-- Pilih Kelas --</option>
-                                @foreach ($kelas as $item)
-                                    <option value="{{ $item->id }}" {{ old('kelas_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->nama_kelas }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Kelas</label>
+                            <div class="relative">
+                                <select name="kelas_id" required
+                                        class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition cursor-pointer appearance-none shadow-xs pr-10">
+                                    <option value="" disabled {{ old('kelas_id') ? '' : 'selected' }}>-- Pilih Kelas --</option>
+                                    @foreach ($kelas as $item)
+                                        <option value="{{ $item->id }}" {{ old('kelas_id') == $item->id ? 'selected' : '' }}>
+                                            {{ $item->nama_kelas }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Password</label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Password</label>
                             <div class="relative">
                                 <input type="password" id="pass1" name="password" required
-                                       class="neu-input pr-12">
-                                <button type="button" onclick="togglePass('pass1', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none">
-                                    <i class="far fa-eye"></i>
+                                       placeholder="Minimal 6 karakter"
+                                       class="w-full px-4 py-3 pr-11 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
+                                <button type="button" onclick="togglePass('pass1', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none">
+                                    <i class="far fa-eye text-sm"></i>
                                 </button>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 ml-1">Konfirmasi Password</label>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Konfirmasi Password</label>
                             <div class="relative">
                                 <input type="password" id="pass2" name="password_confirmation" required
-                                       class="neu-input pr-12">
-                                <button type="button" onclick="togglePass('pass2', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none">
-                                    <i class="far fa-eye"></i>
+                                       placeholder="Ulangi password"
+                                       class="w-full px-4 py-3 pr-11 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
+                                <button type="button" onclick="togglePass('pass2', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none">
+                                    <i class="far fa-eye text-sm"></i>
                                 </button>
                             </div>
                         </div>
 
                         <div class="pt-2">
-                            <button type="submit" class="neu-btn mt-4 group">
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-teal-600/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm group">
                                 <span>Lanjut Scan Wajah</span>
-                                <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                                <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform text-xs"></i>
                             </button>
                         </div>
                     </form>
 
-                    <div class="mt-10 relative">
+                    <div class="mt-8 relative">
                         <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                            <div class="w-full border-t border-slate-300"></div>
+                            <div class="w-full border-t border-slate-200"></div>
                         </div>
-                        <div class="relative flex justify-center text-sm font-medium leading-6">
-                            <span class="bg-[#e8e8e8] px-4 text-slate-500">Sudah punya akun?</span>
+                        <div class="relative flex justify-center text-xs font-semibold leading-6 uppercase tracking-wider">
+                            <span class="bg-white lg:bg-slate-50 px-4 text-slate-400">Sudah punya akun?</span>
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    <div class="mt-5">
                         <a href="{{ route('choose-role') }}"
-                           class="neu-btn text-slate-600 hover:text-teal-700 text-sm">
+                           class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-xs">
                             Masuk di sini
                         </a>
                     </div>
@@ -296,7 +269,7 @@
                 <div x-show="step === 2" x-cloak class="w-full">
                     
                     <div class="text-center lg:text-left mb-5">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-semibold mb-2 shadow-[inset_2px_2px_4px_#c5c5c5,inset_-2px_-2px_4px_#ffffff]">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-semibold mb-2">
                             <i class="fas fa-shield-halved"></i> Verifikasi Biometrik AI
                         </div>
                         <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Perekaman Wajah Real-Time</h2>
@@ -310,21 +283,21 @@
                     @endif
 
                     {{-- Instruksi Dinamis --}}
-                    <div class="neu-card px-4 py-4 text-center mb-5">
-                        <p class="text-teal-600 text-[11px] uppercase tracking-widest font-bold mb-0.5">Panduan Perekaman Wajah</p>
+                    <div class="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-center mb-5 shadow-xs">
+                        <p class="text-teal-600 text-[11px] uppercase tracking-wider font-bold mb-0.5">Panduan Perekaman Wajah</p>
                         <p x-text="currentInstruction" class="text-slate-800 font-extrabold text-base"></p>
                     </div>
 
                     {{-- Progress Bar 5 Foto --}}
                     <div class="flex justify-center gap-2 mb-5">
                         <template x-for="i in 5" :key="i">
-                            <div class="h-2.5 rounded-full transition-all duration-300"
-                                 :class="capturedImages.length >= i ? 'bg-teal-500 w-10 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)]' : 'bg-[#d1d5db] shadow-[inset_2px_2px_4px_#b3b3b3,inset_-2px_-2px_4px_#ffffff] w-7'"></div>
+                            <div class="h-2 rounded-full transition-all duration-300"
+                                 :class="capturedImages.length >= i ? 'bg-teal-600 w-10 shadow-xs' : 'bg-slate-200 w-7'"></div>
                         </template>
                     </div>
 
                     {{-- Camera Preview Real-Time --}}
-                    <div class="relative bg-slate-950 rounded-2xl overflow-hidden mb-5 shadow-[8px_8px_16px_#c5c5c5,-8px_-8px_16px_#ffffff]" style="height: 300px;">
+                    <div class="relative bg-slate-950 rounded-2xl overflow-hidden mb-5 border border-slate-800 shadow-lg" style="height: 300px;">
                         <video id="video-reg" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
                         <canvas id="canvas-reg" class="hidden"></canvas>
 
@@ -349,14 +322,14 @@
                     </div>
 
                     {{-- Thumbnail preview 5 Slot --}}
-                    <div class="flex gap-3 justify-center mb-6">
+                    <div class="flex gap-2.5 justify-center mb-5">
                         <template x-for="i in 5" :key="i">
-                            <div class="w-12 h-12 rounded-xl overflow-hidden transition-all bg-[#e8e8e8] relative flex items-center justify-center"
-                                 :class="capturedImages.length >= i ? 'shadow-[4px_4px_8px_#c5c5c5,-4px_-4px_8px_#ffffff] border-2 border-teal-400' : 'shadow-[inset_4px_4px_8px_#c5c5c5,inset_-4px_-4px_8px_#ffffff]'">
+                            <div class="w-12 h-12 rounded-xl overflow-hidden transition-all bg-white relative flex items-center justify-center border shadow-xs"
+                                 :class="capturedImages.length >= i ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200'">
                                 <template x-if="capturedImages[i-1]">
                                     <div class="relative w-full h-full">
                                         <img :src="capturedImages[i-1]" class="w-full h-full object-cover" style="transform: scaleX(-1);">
-                                        <div class="absolute inset-0 bg-emerald-600/30 flex items-center justify-center text-white text-xs backdrop-blur-[1px]">
+                                        <div class="absolute inset-0 bg-teal-600/30 flex items-center justify-center text-white text-xs backdrop-blur-[1px]">
                                             <i class="fas fa-check"></i>
                                         </div>
                                     </div>
@@ -375,8 +348,8 @@
                     <div x-show="capturedImages.length < 5" class="mb-4">
                         <button type="button" @click="manualCapture()"
                                 :disabled="faceState === 'capturing' || !isCameraReady"
-                                class="neu-btn text-sm py-3 px-4 disabled:opacity-50">
-                            <i class="fas fa-camera"></i>
+                                class="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold py-3 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-xs disabled:opacity-50">
+                            <i class="fas fa-camera text-teal-600"></i>
                             <span>Ambil Foto Sekarang (<span x-text="capturedImages.length + 1"></span>/5)</span>
                         </button>
                     </div>
@@ -388,8 +361,8 @@
 
                         <button type="button" @click="submitFace()"
                                 :disabled="capturedImages.length < 5 || isSubmitting"
-                                :class="capturedImages.length >= 5 && !isSubmitting ? 'neu-btn text-teal-700' : 'neu-input text-slate-400 cursor-not-allowed text-center font-bold justify-center flex py-4'"
-                                class="w-full font-extrabold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm">
+                                :class="capturedImages.length >= 5 && !isSubmitting ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
+                                class="w-full font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm">
                             <template x-if="!isSubmitting">
                                 <span><i class="fas fa-user-check mr-2"></i>Daftar & Simpan Akun Siswa</span>
                             </template>
@@ -399,16 +372,16 @@
                         </button>
                     </form>
 
-                    <button @click="step = 1; stopCamera()" class="w-full mt-6 text-slate-500 text-xs hover:text-slate-800 transition text-center font-semibold flex items-center justify-center gap-1.5 py-2 hover:bg-slate-200/50 rounded-lg">
+                    <button @click="step = 1; stopCamera()" class="w-full mt-5 text-slate-500 text-xs hover:text-slate-800 transition text-center font-semibold flex items-center justify-center gap-1.5 py-2 hover:bg-slate-100 rounded-lg">
                         <i class="fas fa-arrow-left text-[11px]"></i> Kembali ubah data identitas
                     </button>
                 </div>
                 
-                <div class="mt-8 mb-6 flex justify-center w-full">
-                    <img src="{{ asset('images/logo-kolaborasi.webp') }}" alt="Logo Kolaborasi" class="h-10 sm:h-12 w-auto object-contain mix-blend-multiply opacity-80">
+                <div class="mt-8 mb-4 flex justify-center w-full">
+                    <img src="{{ asset('images/logo-kolaborasi.webp') }}" alt="Logo Kolaborasi" class="h-9 sm:h-10 w-auto object-contain opacity-80">
                 </div>
 
-                <p class="text-center text-xs text-slate-400 mt-8">
+                <p class="text-center text-xs text-slate-400">
                     Sistem Presensi Online &copy; 2026 SMKN 1 BERINGIN
                 </p>
 
@@ -422,10 +395,10 @@
         const inp = document.getElementById(id);
         if (inp.type === 'password') {
             inp.type = 'text';
-            btn.innerHTML = '<i class="far fa-eye-slash"></i>';
+            btn.innerHTML = '<i class="far fa-eye-slash text-sm"></i>';
         } else {
             inp.type = 'password';
-            btn.innerHTML = '<i class="far fa-eye"></i>';
+            btn.innerHTML = '<i class="far fa-eye text-sm"></i>';
         }
     }
 

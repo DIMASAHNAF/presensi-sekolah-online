@@ -27,7 +27,7 @@
 
     <!-- PWA Settings -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#e0e5ec">
+    <meta name="theme-color" content="#2563eb">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -47,110 +47,49 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #e0e5ec;
-            color: #4a5568;
         }
         [x-cloak] { display: none !important; }
-
-        /* Neumorphism Utilities */
-        .neu-flat {
-            background-color: #e0e5ec;
-            box-shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
-        }
-        .neu-pressed {
-            background-color: #e0e5ec;
-            box-shadow: inset 6px 6px 10px 0 rgba(163, 177, 198, 0.7), inset -6px -6px 10px 0 rgba(255, 255, 255, 0.8);
-        }
-        .neu-button {
-            background-color: #e0e5ec;
-            box-shadow: 6px 6px 10px rgb(163,177,198,0.6), -6px -6px 10px rgba(255,255,255, 0.5);
-            transition: all 0.2s ease-in-out;
-        }
-        .neu-button:hover {
-            box-shadow: 8px 8px 14px rgb(163,177,198,0.6), -8px -8px 14px rgba(255,255,255, 0.5);
-            transform: translateY(-1px);
-        }
-        .neu-button:active, .neu-button.active {
-            box-shadow: inset 4px 4px 8px 0 rgba(163, 177, 198, 0.7), inset -4px -4px 8px 0 rgba(255, 255, 255, 0.8);
-            transform: translateY(1px);
-        }
-        .neu-input {
-            background-color: #e0e5ec;
-            box-shadow: inset 5px 5px 10px 0 rgba(163, 177, 198, 0.7), inset -5px -5px 10px 0 rgba(255, 255, 255, 0.8);
-            transition: all 0.2s ease-in-out;
-        }
-        .neu-input:focus {
-            box-shadow: inset 7px 7px 12px 0 rgba(163, 177, 198, 0.8), inset -7px -7px 12px 0 rgba(255, 255, 255, 0.9);
-            outline: none;
-        }
-        .neu-checkbox {
-            appearance: none;
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 0.375rem;
-            background-color: #e0e5ec;
-            box-shadow: inset 3px 3px 6px 0 rgba(163, 177, 198, 0.7), inset -3px -3px 6px 0 rgba(255, 255, 255, 0.8);
-            position: relative;
-            cursor: pointer;
-        }
-        .neu-checkbox:checked::after {
-            content: '\f00c';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #3182ce;
-            font-size: 0.7rem;
-        }
-        .neu-checkbox:checked {
-             box-shadow: inset 2px 2px 4px 0 rgba(163, 177, 198, 0.7), inset -2px -2px 4px 0 rgba(255, 255, 255, 0.8);
-        }
     </style>
 </head>
-<body class="min-h-screen w-screen flex flex-col items-center justify-center p-4 selection:bg-blue-300 selection:text-blue-900"
+<body class="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/40 text-slate-800 selection:bg-blue-600 selection:text-white"
       x-data="loginCardApp()">
 
     <x-page-loader />
 
-    {{-- Main Neumorphic Card --}}
+    {{-- Main Login Card --}}
     <div class="w-full max-w-md relative z-10 py-6">
-        <div class="neu-flat rounded-[2rem] p-8 sm:p-10">
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200/80 p-7 sm:p-9">
 
-            <div class="text-center space-y-4 mb-8">
-                <div class="flex items-center justify-center gap-4">
-                    <div class="neu-flat p-3 rounded-full flex items-center justify-center">
-                        <img src="{{ asset('images/logo.webp') }}" alt="Logo SMKN 1 Beringin" class="h-10 w-auto object-contain">
-                    </div>
-                    <div class="neu-flat p-3 rounded-full flex items-center justify-center">
-                        <img src="{{ asset('images/logo-kolaborasi.webp') }}" alt="Logo Kolaborasi" class="h-10 w-auto object-contain">
-                    </div>
+            {{-- Header & Logos --}}
+            <div class="text-center space-y-3 mb-7">
+                <div class="flex items-center justify-center gap-3">
+                    <img src="{{ asset('images/logo.webp') }}" alt="Logo SMKN 1 Beringin" class="h-11 w-auto object-contain">
+                    <img src="{{ asset('images/logo-kolaborasi.webp') }}" alt="Logo Kolaborasi" class="h-9 w-auto object-contain">
                 </div>
 
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-700 tracking-tight mt-4">
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight mt-3">
                         Portal Presensi
                     </h1>
-                    <p class="text-gray-500 text-xs font-semibold uppercase tracking-widest mt-1">
-                        SMKN 1 Beringin
+                    <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mt-1">
+                        SMKN 1 BERINGIN
                     </p>
                 </div>
             </div>
 
             {{-- Role Tab Switcher (Siswa / Guru) --}}
-            <div class="flex gap-4 mb-8">
+            <div class="p-1 bg-slate-100 rounded-xl flex gap-1 mb-6 border border-slate-200/60">
                 <button type="button"
                         @click="tab = 'siswa'"
-                        class="w-1/2 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all"
-                        :class="tab === 'siswa' ? 'neu-pressed text-blue-600' : 'neu-button text-gray-600'">
+                        class="w-1/2 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 text-sm transition-all duration-150"
+                        :class="tab === 'siswa' ? 'bg-white text-blue-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'">
                     <i class="fas fa-user-graduate"></i>
                     <span>Siswa</span>
                 </button>
                 <button type="button"
                         @click="tab = 'guru'"
-                        class="w-1/2 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all"
-                        :class="tab === 'guru' ? 'neu-pressed text-blue-600' : 'neu-button text-gray-600'">
+                        class="w-1/2 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 text-sm transition-all duration-150"
+                        :class="tab === 'guru' ? 'bg-white text-blue-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'">
                     <i class="fas fa-chalkboard-user"></i>
                     <span>Guru / Staf</span>
                 </button>
@@ -158,8 +97,8 @@
 
             {{-- Error Alert --}}
             @if ($errors->any())
-                <div class="neu-pressed rounded-xl p-4 mb-6 flex items-start gap-3 text-red-500 text-sm">
-                    <i class="fas fa-circle-exclamation mt-0.5"></i>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3 text-red-600 text-sm">
+                    <i class="fas fa-circle-exclamation mt-0.5 text-red-500 shrink-0"></i>
                     <div class="space-y-1">
                         @foreach ($errors->all() as $error)
                             <p>{{ $error }}</p>
@@ -170,63 +109,63 @@
 
             {{-- FORM SISWA --}}
             <div x-show="tab === 'siswa'" x-cloak
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-1"
                  x-transition:enter-end="opacity-100 translate-y-0">
-                <form method="POST" action="{{ route('login.siswa') }}" class="space-y-5">
+                <form method="POST" action="{{ route('login.siswa') }}" class="space-y-4">
                     @csrf
 
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">NISN / Username Siswa</label>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">NISN / Username Siswa</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-4 text-gray-400">
+                            <span class="absolute left-3.5 text-slate-400">
                                 <i class="fas fa-id-card text-sm"></i>
                             </span>
                             <input type="text" name="identifier" value="{{ old('identifier') }}" required autofocus
                                    placeholder="Ketik 10 digit NISN Anda"
-                                   class="neu-input w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
+                                   class="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between px-1">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">Password</label>
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Password</label>
                             <span class="text-[11px] text-blue-600 font-semibold">(Kosongkan jika login awal)</span>
                         </div>
                         <div class="relative flex items-center">
-                            <span class="absolute left-4 text-gray-400">
+                            <span class="absolute left-3.5 text-slate-400">
                                 <i class="fas fa-lock text-sm"></i>
                             </span>
                             <input :type="showPasswordSiswa ? 'text' : 'password'"
                                    name="password"
                                    placeholder="Masukkan password Anda"
-                                   class="neu-input w-full rounded-xl pl-11 pr-11 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
+                                   class="w-full rounded-xl pl-10 pr-11 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                             <button type="button"
                                      @click="showPasswordSiswa = !showPasswordSiswa"
-                                     class="absolute right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                     class="absolute right-3.5 text-slate-400 hover:text-slate-600 focus:outline-none p-1">
                                 <i class="fas text-sm" :class="showPasswordSiswa ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-500 px-1 mt-1 leading-relaxed">
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
                             <i class="fas fa-info-circle text-blue-500 mr-1"></i> Login pertama kali? Cukup ketik <strong>NISN</strong>, kolom password dapat dikosongkan.
                         </p>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2">
-                        <label class="flex items-center gap-3 text-sm text-gray-600 cursor-pointer select-none">
-                            <input type="checkbox" name="remember" class="neu-checkbox">
-                            <span class="font-medium">Ingat saya</span>
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center gap-2.5 text-sm text-slate-600 cursor-pointer select-none">
+                            <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition cursor-pointer">
+                            <span class="font-medium text-slate-700">Ingat saya</span>
                         </label>
                     </div>
 
                     <button type="submit"
-                            class="neu-button w-full text-blue-600 font-bold py-4 rounded-xl mt-6 flex items-center justify-center gap-2 uppercase tracking-wide text-sm">
+                            class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 rounded-xl mt-6 flex items-center justify-center gap-2 text-sm shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all">
                         <span>Masuk</span>
-                        <i class="fas fa-sign-in-alt"></i>
+                        <i class="fas fa-arrow-right text-xs"></i>
                     </button>
                 </form>
 
-                <p class="text-center text-sm text-gray-500 mt-6 font-medium">
+                <p class="text-center text-sm text-slate-500 mt-6 font-medium">
                     Belum punya akun?
                     <a href="{{ route('register.siswa') }}" class="text-blue-600 font-bold hover:underline ml-1">
                         Daftar
@@ -236,57 +175,57 @@
 
             {{-- FORM GURU --}}
             <div x-show="tab === 'guru'" x-cloak
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-1"
                  x-transition:enter-end="opacity-100 translate-y-0">
-                <form method="POST" action="{{ route('login.guru') }}" class="space-y-5">
+                <form method="POST" action="{{ route('login.guru') }}" class="space-y-4">
                     @csrf
 
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">NIK atau Username</label>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">NIK atau Username</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-4 text-gray-400">
+                            <span class="absolute left-3.5 text-slate-400">
                                 <i class="fas fa-user-shield text-sm"></i>
                             </span>
                             <input type="text" name="nik" value="{{ old('nik') }}" required
                                    placeholder="16 digit NIK atau username"
-                                   class="neu-input w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
+                                   class="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide px-1">Password</label>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Password</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-4 text-gray-400">
+                            <span class="absolute left-3.5 text-slate-400">
                                 <i class="fas fa-lock text-sm"></i>
                             </span>
                             <input :type="showPasswordGuru ? 'text' : 'password'"
                                    name="password" required
                                    placeholder="••••••••"
-                                   class="neu-input w-full rounded-xl pl-11 pr-11 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 border-none">
+                                   class="w-full rounded-xl pl-10 pr-11 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                             <button type="button"
                                     @click="showPasswordGuru = !showPasswordGuru"
-                                    class="absolute right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                    class="absolute right-3.5 text-slate-400 hover:text-slate-600 focus:outline-none p-1">
                                 <i class="fas text-sm" :class="showPasswordGuru ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2">
-                        <label class="flex items-center gap-3 text-sm text-gray-600 cursor-pointer select-none">
-                            <input type="checkbox" name="remember" class="neu-checkbox">
-                            <span class="font-medium">Ingat saya</span>
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center gap-2.5 text-sm text-slate-600 cursor-pointer select-none">
+                            <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition cursor-pointer">
+                            <span class="font-medium text-slate-700">Ingat saya</span>
                         </label>
                     </div>
 
                     <button type="submit"
-                            class="neu-button w-full text-blue-600 font-bold py-4 rounded-xl mt-6 flex items-center justify-center gap-2 uppercase tracking-wide text-sm">
+                            class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 rounded-xl mt-6 flex items-center justify-center gap-2 text-sm shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all">
                         <span>Masuk Guru / Staf</span>
-                        <i class="fas fa-sign-in-alt"></i>
+                        <i class="fas fa-arrow-right text-xs"></i>
                     </button>
                 </form>
 
-                <div class="mt-6 p-4 rounded-xl neu-pressed text-center text-xs text-gray-500 font-medium">
+                <div class="mt-6 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center text-xs text-slate-500 font-medium">
                     <i class="fas fa-info-circle mr-1 text-blue-500"></i> Akun dewan guru & staf dibuat oleh Admin Sekolah.
                 </div>
             </div>
@@ -294,18 +233,10 @@
         </div>
     </div>
 
-    {{-- Quick Link to Kiosk Gerbang --}}
-    <div class="mt-2 text-center relative z-10">
-        <a href="{{ route('kiosk.gerbang') }}" target="_blank"
-           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full neu-button text-xs font-bold text-gray-600 hover:text-blue-600 transition">
-            <i class="fas fa-tablet-screen-button text-blue-500"></i>
-            <span>Buka Layar Kiosk Tablet Gerbang</span>
-            <span class="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">Face ID</span>
-        </a>
-    </div>
+
 
     {{-- Footer --}}
-    <footer class="mt-4 text-center text-xs text-gray-400 font-medium tracking-wide">
+    <footer class="mt-4 text-center text-xs text-slate-400 font-medium tracking-wide">
         Sistem Presensi Biometrik &copy; 2026 SMKN 1 BERINGIN
     </footer>
 
