@@ -216,6 +216,21 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Nama Orang Tua / Wali <span class="opacity-60 text-xs normal-case font-normal">(Opsional)</span></label>
+                                <input type="text" name="nama_ortu" value="{{ old('nama_ortu') }}"
+                                       placeholder="cth: Bapak/Ibu Budi"
+                                       class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">No. WA Ortu <span class="opacity-60 text-xs normal-case font-normal">(Opsional)</span></label>
+                                <input type="text" name="no_hp_ortu" value="{{ old('no_hp_ortu') }}"
+                                       placeholder="0812xxxxxxxx"
+                                       class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 outline-none transition shadow-xs">
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 ml-0.5">Password</label>
                             <div class="relative">

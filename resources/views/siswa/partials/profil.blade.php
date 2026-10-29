@@ -49,6 +49,28 @@
                                 <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-mono" x-text="'@' + profileUsername"></p>
                                 <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 mt-1"><i class="fas fa-pen text-[9px]"></i> Dapat diubah di Edit Profil</span>
                             </div>
+
+                            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 sm:col-span-2">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kontak WhatsApp Orang Tua (Notifikasi Presensi)</p>
+                                        <p class="text-sm font-black text-slate-900 dark:text-white mt-0.5 font-mono flex items-center gap-1.5">
+                                            <i class="fab fa-whatsapp text-emerald-500 text-base"></i>
+                                            <span x-text="profileNoHpOrtu ? (profileNoHpOrtu + (profileNamaOrtu ? ' (' + profileNamaOrtu + ')' : '')) : 'Belum Ditambahkan'"></span>
+                                        </p>
+                                    </div>
+                                    <template x-if="profileNoHpOrtu">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold font-mono bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                            Notifikasi Aktif
+                                        </span>
+                                    </template>
+                                    <template x-if="!profileNoHpOrtu">
+                                        <button type="button" @click="openEditProfileModal()" class="px-2.5 py-1 rounded-full text-[10px] font-bold font-mono bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition">
+                                            + Tambah Nomor WA
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="p-3.5 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/50 text-xs text-blue-800 dark:text-blue-200 flex items-start gap-2.5">

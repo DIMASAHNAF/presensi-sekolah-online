@@ -167,6 +167,8 @@
                         'username' => $siswa->username,
                         'nisn' => $siswa->nisn,
                         'email' => $siswa->email,
+                        'no_hp_ortu' => $siswa->no_hp_ortu,
+                        'nama_ortu' => $siswa->nama_ortu,
                         'kelas_id' => $siswa->kelas_id,
                         'nama_kelas' => optional($siswa->kelas)->nama_kelas ?? 'Tanpa Kelas',
                         'avatar_url' => $siswa->avatar_url,
@@ -249,6 +251,9 @@
                                 </span>
                                 <span class="w-5 h-5 rounded flex items-center justify-center text-[9px] {{ !empty($siswa->website) ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-300' }}" title="Website">
                                     <i class="fas fa-link"></i>
+                                </span>
+                                <span class="w-5 h-5 rounded flex items-center justify-center text-[9px] {{ !empty($siswa->no_hp_ortu) ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-slate-100 text-slate-300' }}" title="{{ !empty($siswa->no_hp_ortu) ? 'WA Ortu: ' . $siswa->no_hp_ortu : 'WA Ortu Belum Diisi' }}">
+                                    <i class="fab fa-whatsapp"></i>
                                 </span>
                             </div>
                         </div>
@@ -341,6 +346,8 @@
                             'username' => $siswa->username,
                             'nisn' => $siswa->nisn,
                             'email' => $siswa->email,
+                            'no_hp_ortu' => $siswa->no_hp_ortu,
+                            'nama_ortu' => $siswa->nama_ortu,
                             'kelas_id' => $siswa->kelas_id,
                             'nama_kelas' => optional($siswa->kelas)->nama_kelas ?? 'Tanpa Kelas',
                             'avatar_url' => $siswa->avatar_url,
@@ -432,6 +439,10 @@
                                 {{-- Website Badge --}}
                                 <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] {{ !empty($siswa->website) ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-300' }}" title="{{ !empty($siswa->website) ? 'Website: ' . $siswa->website : 'Belum Ada Website' }}">
                                     <i class="fas fa-link"></i>
+                                </span>
+                                {{-- WhatsApp Ortu Badge --}}
+                                <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] {{ !empty($siswa->no_hp_ortu) ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-slate-100 text-slate-300' }}" title="{{ !empty($siswa->no_hp_ortu) ? 'WA Ortu: ' . $siswa->no_hp_ortu : 'WA Ortu Belum Diisi' }}">
+                                    <i class="fab fa-whatsapp"></i>
                                 </span>
                             </div>
                         </td>
@@ -582,6 +593,25 @@
                                     <span class="text-[10px] uppercase font-bold text-slate-400 block">Waktu Daftar</span>
                                     <span class="font-mono font-bold text-slate-800 text-[11px]" x-text="inspectData.created_at"></span>
                                 </div>
+                                <div class="col-span-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block">WhatsApp Orang Tua (Notifikasi Kehadiran)</span>
+                                        <template x-if="inspectData.no_hp_ortu">
+                                            <span class="font-mono font-bold text-emerald-600 text-xs flex items-center gap-1.5 mt-0.5">
+                                                <i class="fab fa-whatsapp"></i>
+                                                <span x-text="inspectData.no_hp_ortu + (inspectData.nama_ortu ? ' (' + inspectData.nama_ortu + ')' : '')"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!inspectData.no_hp_ortu">
+                                            <span class="text-slate-400 text-xs italic mt-0.5 block">Belum diisi (Notifikasi WA mati)</span>
+                                        </template>
+                                    </div>
+                                    <template x-if="inspectData.no_hp_ortu">
+                                        <span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                                            Notifikasi Aktif
+                                        </span>
+                                    </template>
+                                </div>
                                 <div class="col-span-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 block">Bio Siswa</span>
                                     <p class="text-slate-700 italic mt-0.5" x-text="inspectData.bio || 'Belum mencantumkan bio.'"></p>
@@ -723,6 +753,20 @@
                         <p x-show="addErrors.kelas_id" x-text="addErrors.kelas_id ? addErrors.kelas_id[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Nama Orang Tua / Wali</label>
+                        <input type="text" name="nama_ortu" x-model="addForm.nama_ortu"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white bg-slate-50 transition" 
+                               placeholder="Bpk/Ibu Wali">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">No. WA Ortu (Notifikasi)</label>
+                        <input type="text" name="no_hp_ortu" x-model="addForm.no_hp_ortu"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white bg-slate-50 transition" 
+                               placeholder="0812xxxxxxxx">
+                    </div>
+                </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username Akun</label>
                     <input type="text" name="username" x-model="addForm.username"
@@ -818,6 +862,21 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Nama Orang Tua / Wali</label>
+                        <input type="text" name="nama_ortu" x-model="editData.nama_ortu"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white bg-slate-50 transition" 
+                               placeholder="Bpk/Ibu Wali">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">No. WA Ortu (Notifikasi)</label>
+                        <input type="text" name="no_hp_ortu" x-model="editData.no_hp_ortu"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white bg-slate-50 transition" 
+                               placeholder="0812xxxxxxxx">
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
                     <input type="text" name="username" x-model="editData.username" 
@@ -885,7 +944,9 @@
                 nisn: '',
                 kelas_id: '',
                 username: '',
-                password: ''
+                password: '',
+                no_hp_ortu: '',
+                nama_ortu: ''
             },
             addErrors: {},
             addErrorMessage: '',
@@ -902,6 +963,15 @@
             inspectData: null,
 
             openAddModal() {
+                this.addForm = {
+                    name: '',
+                    nisn: '',
+                    kelas_id: '',
+                    username: '',
+                    password: '',
+                    no_hp_ortu: '',
+                    nama_ortu: ''
+                };
                 this.addErrors = {};
                 this.addErrorMessage = '';
                 this.addErrorList = [];

@@ -117,6 +117,8 @@ class SiswaController extends Controller
             'username'      => 'required|string|max:50|unique:users,username,' . $user->id,
             'bio'           => 'nullable|string|max:180',
             'website'       => 'nullable|string|max:255',
+            'no_hp_ortu'    => 'nullable|string|max:30',
+            'nama_ortu'     => 'nullable|string|max:100',
             'avatar'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'banner'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'remove_banner' => 'nullable',
@@ -134,6 +136,12 @@ class SiswaController extends Controller
         $user->username = trim($request->username);
         $user->bio      = $request->bio ? trim($request->bio) : null;
         $user->website  = $request->website ? trim($request->website) : null;
+        if ($request->has('no_hp_ortu')) {
+            $user->no_hp_ortu = $request->no_hp_ortu ? trim($request->no_hp_ortu) : null;
+        }
+        if ($request->has('nama_ortu')) {
+            $user->nama_ortu = $request->nama_ortu ? trim($request->nama_ortu) : null;
+        }
 
         // Avatar Upload
         if ($request->hasFile('avatar')) {
@@ -193,6 +201,8 @@ class SiswaController extends Controller
                 'user'    => [
                     'name'       => $user->name,
                     'username'   => $user->username,
+                    'nama_ortu'  => $user->nama_ortu,
+                    'no_hp_ortu' => $user->no_hp_ortu,
                     'bio'        => $user->bio,
                     'website'    => $user->website,
                     'avatar_url' => $user->avatar_url,
@@ -490,8 +500,10 @@ class SiswaController extends Controller
         }
 
         // 5. Panggil Python FaceService untuk compare
-        $faceService = new FaceService();
-        $result      = $faceService->compare($user->face_descriptor, $request->face_image);
+        $skipLiveness = !config('face.check_liveness_siswa', true);
+        $threshold512 = (float) config('face.threshold_512', 0.88);
+        $faceService  = new FaceService();
+        $result       = $faceService->compare($user->face_descriptor, $request->face_image, $skipLiveness, $threshold512);
 
         if (!$result['success']) {
             return response()->json([
@@ -556,6 +568,13 @@ class SiswaController extends Controller
                 SchoolSetting::getClientIp($request)
             ),
         ]);
+
+        // 8. Kirim notifikasi WhatsApp ke Orang Tua
+        try {
+            app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+        } catch (\Throwable $e) {
+            \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success'    => true,

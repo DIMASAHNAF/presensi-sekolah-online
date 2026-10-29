@@ -202,6 +202,8 @@ class AuthController extends Controller
                 'kelas_id'         => $data['kelas_id'],
                 'role'             => 'siswa',
                 'password'         => Hash::make($data['password']),
+                'no_hp_ortu'       => $data['no_hp_ortu'] ?? null,
+                'nama_ortu'        => $data['nama_ortu'] ?? null,
                 'face_descriptor'  => $result['descriptor'],
                 'face_enrolled_at' => now(),
             ]);
@@ -261,8 +263,10 @@ class AuthController extends Controller
             'username' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email'    => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             'nisn'     => ['required', 'string', 'digits:10', 'unique:users,nisn'],
-            'kelas_id' => ['required', 'exists:kelas,id'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'kelas_id'   => ['required', 'exists:kelas,id'],
+            'password'   => ['required', 'confirmed', Password::defaults()],
+            'no_hp_ortu' => ['nullable', 'string', 'max:30'],
+            'nama_ortu'  => ['nullable', 'string', 'max:100'],
         ], [
             'nisn.digits'         => 'NISN harus terdiri dari 10 digit angka.',
             'username.alpha_dash' => 'Username hanya boleh huruf, angka, strip, dan underscore.',
@@ -274,8 +278,10 @@ class AuthController extends Controller
             'username' => $validated['username'],
             'email'    => $validated['email'] ?? null,
             'nisn'     => $validated['nisn'],
-            'kelas_id' => $validated['kelas_id'],
-            'password' => $validated['password'], // plain — di-hash nanti saat buat user
+            'kelas_id'   => $validated['kelas_id'],
+            'password'   => $validated['password'], // plain — di-hash nanti saat buat user
+            'no_hp_ortu' => $validated['no_hp_ortu'] ?? null,
+            'nama_ortu'  => $validated['nama_ortu'] ?? null,
         ]);
 
         // Redirect ke halaman yang sama dengan flag step=2 (scan wajah)

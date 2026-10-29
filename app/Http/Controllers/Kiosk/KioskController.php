@@ -275,6 +275,13 @@ class KioskController extends Controller
             ),
         ]);
 
+        // Kirim notifikasi WhatsApp ke Orang Tua
+        try {
+            app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+        } catch (\Throwable $e) {
+            Log::warning('[WhatsApp] Gagal kirim notif ortu dari Kiosk: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success'          => true,
             'already_attended' => false,

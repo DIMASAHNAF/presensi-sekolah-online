@@ -50,10 +50,26 @@ app = FastAPI(
     version="3.0"
 )
 
+# ── Baca konfigurasi .env Laravel jika ada ──
+try:
+    _env_file = os.path.join(os.path.dirname(__file__), '..', '.env')
+    if os.path.exists(_env_file):
+        with open(_env_file, 'r', encoding='utf-8') as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith('#') and '=' in _line:
+                    _k, _v = _line.split('=', 1)
+                    _k = _k.strip()
+                    _v = _v.strip().strip('"').strip("'")
+                    if _k not in os.environ:
+                        os.environ[_k] = _v
+except Exception:
+    pass
+
 # ── Ambang Batas Pengenalan (Thresholds) ──
-THRESHOLD_128 = 0.50       # dlib 128-D euclidean distance
-THRESHOLD_512 = 0.65       # ArcFace normalized euclidean distance (ekuivalen cosine similarity > 0.78)
-LIVENESS_THRESHOLD = 0.60  # MiniFASNet real face probability threshold
+THRESHOLD_128 = float(os.getenv('THRESHOLD_128', '0.50'))       # dlib 128-D euclidean distance
+THRESHOLD_512 = float(os.getenv('THRESHOLD_512', '0.88'))       # ArcFace normalized euclidean distance (0.88 optimal untuk HP siswa)
+LIVENESS_THRESHOLD = float(os.getenv('LIVENESS_THRESHOLD', '0.20'))  # MiniFASNet real face probability threshold (0.20 realistis untuk webcam/HP)
 
 # ── Direktori & Model Loader ──
 MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
@@ -118,6 +134,7 @@ class CompareRequest(BaseModel):
     stored: List[float]
     image_b64: str
     skip_liveness: Optional[bool] = False
+    threshold: Optional[float] = None
 
 class Candidate(BaseModel):
     id: int
@@ -135,7 +152,7 @@ class IdentifyRequest(BaseModel):
 
 # --- Helper Functions ---
 
-def decode_image(b64_string: str, max_dimension: int = 720) -> np.ndarray:
+def decode_image(b64_string: str, max_dimension: int = 1080) -> np.ndarray:
     """
     Decode base64 encoded string gambar ke format RGB numpy array.
     """
@@ -175,24 +192,39 @@ def check_liveness(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -
         if crop_face.size > 0:
             gray_face = cv2.cvtColor(crop_face, cv2.COLOR_RGB2GRAY)
             laplacian_var = float(cv2.Laplacian(gray_face, cv2.CV_64F).var())
-            if laplacian_var < 15.0 and box_w > 120:
+            if laplacian_var < 10.0 and box_w > 120:
                 return False, 0.20, "Presensi ditolak: Tekstur wajah terlalu buram atau terdeteksi cetakan kertas (Anti-Spoofing)."
 
         # MiniFASNet 2.7x Context Crop
+        # Gunakan square crop dengan border reflect padding
+        # agar rasio aspek wajah tidak terdistorsi/tergepeng saat di-resize ke 80x80.
         scale = 2.7
         cx = left + box_w / 2.0
         cy = top + box_h / 2.0
-        crop_w = box_w * scale
-        crop_h = box_h * scale
+        max_dim = max(box_w, box_h)
+        crop_size = int(max_dim * scale)
 
-        x1 = max(0, int(cx - crop_w / 2.0))
-        y1 = max(0, int(cy - crop_h / 2.0))
-        x2 = min(w, int(cx + crop_w / 2.0))
-        y2 = min(h, int(cy + crop_h / 2.0))
+        x1 = int(cx - crop_size / 2.0)
+        y1 = int(cy - crop_size / 2.0)
+        x2 = x1 + crop_size
+        y2 = y1 + crop_size
 
-        crop = img_array[y1:y2, x1:x2]
-        if crop.size == 0 or crop.shape[0] < 20 or crop.shape[1] < 20:
+        pad_left = max(0, -x1)
+        pad_top = max(0, -y1)
+        pad_right = max(0, x2 - w)
+        pad_bottom = max(0, y2 - h)
+
+        src_x1 = max(0, x1)
+        src_y1 = max(0, y1)
+        src_x2 = min(w, x2)
+        src_y2 = min(h, y2)
+
+        crop = img_array[src_y1:src_y2, src_x1:src_x2]
+        if crop.size == 0 or crop.shape[0] < 10 or crop.shape[1] < 10:
             return True, 1.0, None
+
+        if pad_left > 0 or pad_top > 0 or pad_right > 0 or pad_bottom > 0:
+            crop = cv2.copyMakeBorder(crop, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_REFLECT)
 
         crop_bgr = cv2.cvtColor(crop, cv2.COLOR_RGB2BGR)
         resized = cv2.resize(crop_bgr, (80, 80))
@@ -204,8 +236,10 @@ def check_liveness(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -
         probs = exp_out / np.sum(exp_out)
         real_score = float(probs[1])
 
+        print(f"[Anti-Spoofing] Real: {real_score:.4f} (Threshold: {LIVENESS_THRESHOLD}) -> {'PASS' if real_score >= LIVENESS_THRESHOLD else 'REJECT'}")
+
         if real_score < LIVENESS_THRESHOLD:
-            return False, real_score, "Presensi ditolak: Terdeteksi foto 2D atau layar perangkat (Anti-Spoofing). Wajib menghadap langsung dengan wajah asli di depan kamera."
+            return False, real_score, f"Presensi ditolak: Skor keaslian wajah ({real_score:.2f}) di bawah ambang batas ({LIVENESS_THRESHOLD:.2f}). Pastikan wajah asli di depan kamera dan tidak terhalang silau layar."
 
         return True, real_score, None
     except Exception as e:
@@ -585,13 +619,14 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
             new_vec = np.array(new_desc_512, dtype=np.float32)
 
             distance = float(np.linalg.norm(stored_vec - new_vec))
-            match = distance < THRESHOLD_512
+            thr_512 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.50) else THRESHOLD_512
+            match = distance < thr_512
 
             if distance < 0.45:
                 confidence = "very_high"
             elif distance < 0.55:
                 confidence = "high"
-            elif distance <= THRESHOLD_512:
+            elif distance <= thr_512:
                 confidence = "medium"
             else:
                 confidence = "low"
@@ -600,10 +635,10 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
                 "success": True,
                 "match": match,
                 "distance": round(distance, 4),
-                "threshold": THRESHOLD_512,
+                "threshold": thr_512,
                 "confidence": confidence,
                 "engine": "arcface-512-aligned",
-                "reason": "Wajah dikenali (ArcFace 512-D Aligned)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {THRESHOLD_512})."
+                "reason": "Wajah dikenali (ArcFace 512-D Aligned)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {thr_512})."
             }
         else:
             stored_vec = np.array(stored, dtype=np.float32)
@@ -615,13 +650,14 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
                 stored_vec = stored_vec * new_norm
 
             distance = float(np.linalg.norm(stored_vec - new_vec))
-            match = distance < THRESHOLD_128
+            thr_128 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.35) else THRESHOLD_128
+            match = distance < thr_128
 
             if distance < 0.35:
                 confidence = "very_high"
             elif distance < 0.45:
                 confidence = "high"
-            elif distance <= THRESHOLD_128:
+            elif distance <= thr_128:
                 confidence = "medium"
             else:
                 confidence = "low"
@@ -630,10 +666,10 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
                 "success": True,
                 "match": match,
                 "distance": round(distance, 4),
-                "threshold": THRESHOLD_128,
+                "threshold": thr_128,
                 "confidence": confidence,
                 "engine": "dlib-128",
-                "reason": "Wajah dikenali (dlib 128-D)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {THRESHOLD_128})."
+                "reason": "Wajah dikenali (dlib 128-D)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {thr_128})."
             }
     except Exception as e:
         return {"success": False, "error": str(e), "trace": traceback.format_exc()}

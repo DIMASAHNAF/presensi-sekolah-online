@@ -146,12 +146,19 @@ class FaceService
      * Bandingkan stored descriptor dengan foto baru.
      * Return: ['success' => bool, 'match' => bool, 'distance' => float, 'confidence' => string]
      */
-    public function compare(array $storedDescriptor, string $imageB64): array
+    public function compare(array $storedDescriptor, string $imageB64, bool $skipLiveness = false, ?float $threshold = null): array
     {
-        return $this->call('compare', [
-            'stored'    => $storedDescriptor,
-            'image_b64' => $imageB64,
-        ]);
+        $payload = [
+            'stored'        => $storedDescriptor,
+            'image_b64'     => $imageB64,
+            'skip_liveness' => $skipLiveness,
+        ];
+
+        if ($threshold !== null) {
+            $payload['threshold'] = $threshold;
+        }
+
+        return $this->call('compare', $payload);
     }
 
     /**

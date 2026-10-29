@@ -20,6 +20,8 @@ class StoreSiswaRequest extends FormRequest
             'nisn' => 'required|string|digits:10|unique:users,nisn',
             'kelas_id' => 'nullable|exists:kelas,id',
             'password' => 'required|string|min:6',
+            'no_hp_ortu' => 'nullable|string|max:30',
+            'nama_ortu' => 'nullable|string|max:100',
         ];
     }
 

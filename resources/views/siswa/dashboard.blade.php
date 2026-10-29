@@ -569,52 +569,23 @@
                                 'bg-white': livenessState === 'action_success'
                             }"></span>
                         <span class="font-medium tracking-wide" x-text="livenessPrompt"></span>
-
-                        {{-- Tombol ganti tantangan cepat --}}
-                        <button type="button" @click.stop="switchChallenge()" title="Ganti tantangan"
-                            class="ml-1 text-slate-400 hover:text-white transition p-1 rounded-full hover:bg-white/10 active:scale-90 cursor-pointer">
-                            <i class="fas fa-arrows-rotate text-[10px]"></i>
-                        </button>
                     </div>
                 </div>
 
-                {{-- Clean Live Progress Meter with Animated Action Icon --}}
+                {{-- Clean Live Progress Meter with Animated Status Icon --}}
                 <div x-show="scanState === 'ready'" class="absolute bottom-3 left-4 right-4 flex justify-center z-20 pointer-events-none">
                     <div class="w-full max-w-[295px] bg-slate-900/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-2xl flex items-center gap-2.5 pointer-events-auto">
                         
-                        {{-- Animated Action Icon Container --}}
+                        {{-- Animated Status Icon Container --}}
                         <div class="relative flex items-center justify-center w-7 h-7 rounded-full shrink-0 transition-all duration-300"
                              :class="{
-                                 'anim-ring-amber bg-amber-500/25 ring-2 ring-amber-400': currentChallenge && currentChallenge.type === 'smile' && actionProgress > 15,
-                                 'anim-ring-sky bg-sky-500/25 ring-2 ring-sky-400': currentChallenge && currentChallenge.type === 'blink' && actionProgress > 15,
-                                 'bg-white/10': actionProgress <= 15
+                                 'anim-ring-sky bg-sky-500/25 ring-2 ring-sky-400': livenessState === 'face_aligned' && actionProgress > 15,
+                                 'anim-ring-emerald bg-emerald-500/25 ring-2 ring-emerald-400': livenessState === 'action_success',
+                                 'bg-white/10': livenessState === 'waiting_face'
                              }">
-                            <template x-if="currentChallenge && currentChallenge.type === 'smile'">
-                                <span class="select-none transition-transform duration-200 inline-block"
-                                      :class="{
-                                          'text-xs anim-float': actionProgress === 0,
-                                          'text-sm scale-110': actionProgress > 0 && actionProgress < 40,
-                                          'text-base anim-wiggle': actionProgress >= 40 && actionProgress < 85,
-                                          'text-lg animate-bounce drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]': actionProgress >= 85
-                                      }">
-                                    <span x-show="actionProgress < 70">😊</span>
-                                    <span x-show="actionProgress >= 70">😁</span>
-                                </span>
-                            </template>
-                            <template x-if="currentChallenge && currentChallenge.type === 'blink'">
-                                <span class="select-none transition-transform duration-200 inline-block"
-                                      :class="{
-                                          'text-xs anim-float': actionProgress === 0,
-                                          'text-sm scale-110 animate-pulse': actionProgress > 0 && actionProgress < 50,
-                                          'text-base scale-125 animate-ping': actionProgress >= 50 && actionProgress < 85,
-                                          'text-lg animate-bounce drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]': actionProgress >= 85
-                                      }">
-                                    😉
-                                </span>
-                            </template>
-                            <template x-if="!currentChallenge">
-                                <span class="text-xs animate-spin select-none">🎯</span>
-                            </template>
+                            <span class="text-xs select-none" x-show="livenessState === 'waiting_face'">🎯</span>
+                            <span class="text-xs select-none" x-show="livenessState === 'face_aligned' && actionProgress < 85">👤</span>
+                            <span class="text-xs select-none" x-show="actionProgress >= 85">📸</span>
                         </div>
 
                         {{-- Progress Track --}}
@@ -693,7 +664,7 @@
                         <span x-text="scanState === 'processing' ? 'Memproses Presensi...' : 'Ambil Foto Manual'">Ambil Foto Manual</span>
                     </button>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center mt-2 font-medium">
-                        Otomatis terpotret saat gerakan terdeteksi, atau tekan tombol manual di atas.
+                        Otomatis terpotret saat posisi wajah pas, atau tekan tombol di atas.
                     </p>
                 </div>
 
@@ -847,6 +818,31 @@
                             </span>
                             <input type="text" x-model="editWebsite" placeholder="instagram.com/akun atau portfolio.me"
                                 class="w-full bg-white dark:bg-slate-800 px-3 py-2.5 text-xs text-slate-800 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    {{-- Kontak Orang Tua / Notifikasi WA --}}
+                    <div class="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">
+                                <i class="fab fa-whatsapp"></i>
+                            </span>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Kontak Orang Tua / Wali</h4>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400">Notifikasi presensi otomatis akan dikirim ke nomor WhatsApp ini.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Nama Orang Tua / Wali</label>
+                                <input type="text" x-model="editNamaOrtu" placeholder="Contoh: Bpk. Budi Santoso"
+                                    class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">No. WhatsApp Orang Tua</label>
+                                <input type="text" x-model="editNoHpOrtu" placeholder="08xxxxxxxxxx"
+                                    class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500">
+                            </div>
                         </div>
                     </div>
 
@@ -1468,6 +1464,8 @@
                 // Active Profile Display
                 profileName: '{{ addslashes($user->name) }}',
                 profileUsername: '{{ addslashes($user->username ?? "siswa") }}',
+                profileNamaOrtu: {!! json_encode($user->nama_ortu ?? '') !!},
+                profileNoHpOrtu: {!! json_encode($user->no_hp_ortu ?? '') !!},
                 profileBio: {!! json_encode($user->bio ?? '') !!},
                 profileWebsite: {!! json_encode($user->website ?? '') !!},
                 profileAvatarUrl: {!! json_encode($user->avatar_url) !!},
@@ -1487,6 +1485,8 @@
 
                 // Edit Form State
                 editUsername: '{{ addslashes($user->username ?? "siswa") }}',
+                editNamaOrtu: {!! json_encode($user->nama_ortu ?? '') !!},
+                editNoHpOrtu: {!! json_encode($user->no_hp_ortu ?? '') !!},
                 editBio: {!! json_encode($user->bio ?? '') !!},
                 editWebsite: {!! json_encode($user->website ?? '') !!},
                 editAvatarPreview: {!! json_encode($user->avatar_url) !!},
@@ -1681,7 +1681,9 @@
                                 }
                             }
                         } else {
-                            if (data.errors) {
+                            if (res.status === 429) {
+                                this.passwordError = 'Terlalu banyak permintaan. Silakan tunggu beberapa detik lalu tekan tombol lagi.';
+                            } else if (data.errors) {
                                 this.passwordError = Object.values(data.errors).flat()[0];
                             } else {
                                 this.passwordError = data.message || 'Gagal menyimpan password.';
@@ -2001,11 +2003,10 @@
                 },
 
                 updateLivenessPrompt() {
-                    const ch = this.currentChallenge || this.challenges[0];
                     if (this.livenessState === 'action_success') {
-                        this.livenessPrompt = 'Gerakan terverifikasi! ✓';
+                        this.livenessPrompt = 'Wajah Siap! Mengambil foto...';
                     } else if (this.livenessState === 'face_aligned') {
-                        this.livenessPrompt = ch.actionText;
+                        this.livenessPrompt = 'Wajah terdeteksi, tahan posisi...';
                     } else {
                         this.livenessPrompt = 'Posisikan wajah di dalam oval';
                     }
@@ -2016,7 +2017,7 @@
                     this.scanMessage = '';
                     this.livenessState = 'waiting_face';
                     this.actionProgress = 0;
-                    this.pickRandomChallenge();
+                    this.updateLivenessPrompt();
                     this.startLivenessDetection();
                 },
 
@@ -2308,154 +2309,36 @@
                                         this.livenessState = 'waiting_face';
                                         this.updateLivenessPrompt();
                                     }
-                                    currentProgressVal = Math.max(0, currentProgressVal - 5);
+                                    currentProgressVal = Math.max(0, currentProgressVal - 10);
                                     this.actionProgress = Math.round(currentProgressVal);
-                                    baselineSmileRatio = null;
-                                    baselineCornerLift = null;
-                                    baselineInnerRatio = null;
-                                    baselineEyeContrast = null;
-                                    smileHoldCount = 0;
-                                    blinkPhase = 'idle';
                                 }
                                 this.aiLoopTimer = requestAnimationFrame(processFrame);
                                 return;
                             }
 
-                            // Posisi wajah utuh terdeteksi!
+                            // Posisi wajah utuh terdeteksi di dalam oval!
                             stableFrames++;
 
-                            // ── FASE WARM-UP (~0.8 detik tahan posisi stabil dulu) ──
-                            if (stableFrames < WARMUP_FRAMES) {
+                            if (this.livenessState !== 'face_aligned') {
                                 this.livenessState = 'face_aligned';
-                                this.livenessPrompt = 'Tahan posisi wajah...';
-                                this.actionProgress = 0;
-                                currentProgressVal = 0;
+                                this.updateLivenessPrompt();
+                            }
 
-                                // Rekam baseline netral saat wajah diam
-                                if (baselineSmileRatio === null) {
-                                    baselineSmileRatio = smileRatio;
-                                    baselineCornerLift = cornerLift;
-                                    baselineInnerRatio = normalizedInnerY;
-                                    baselineEyeContrast = eyeVerticalGrad;
-                                } else {
-                                    baselineSmileRatio = baselineSmileRatio * 0.85 + smileRatio * 0.15;
-                                    baselineCornerLift = baselineCornerLift * 0.85 + cornerLift * 0.15;
-                                    baselineInnerRatio = baselineInnerRatio * 0.85 + normalizedInnerY * 0.15;
-                                    baselineEyeContrast = baselineEyeContrast * 0.85 + eyeVerticalGrad * 0.15;
-                                }
+                            // Auto-capture mulus: tahan posisi stabil ~12 frame (~0.4 - 0.5 detik)
+                            const AUTO_CAPTURE_FRAMES = 12;
+                            const targetProgress = Math.min(100, Math.round((stableFrames / AUTO_CAPTURE_FRAMES) * 100));
+                            currentProgressVal = (currentProgressVal * 0.6) + (targetProgress * 0.4);
+                            this.actionProgress = Math.min(100, Math.round(currentProgressVal));
 
-                                prevCheekY = cheekAvgY;
-                                this.aiLoopTimer = requestAnimationFrame(processFrame);
+                            if (stableFrames >= AUTO_CAPTURE_FRAMES) {
+                                this.actionProgress = 100;
+                                isTriggered = true;
+                                this.livenessState = 'action_success';
+                                this.updateLivenessPrompt();
+                                audioFx.playBlink();
+                                this.triggerShutterFlash();
+                                setTimeout(() => { this.captureAndSend(); }, 150);
                                 return;
-                            }
-
-                            // Wajah sudah stabil! Tampilkan instruksi aksi
-                            const challengeType = this.currentChallenge ? this.currentChallenge.type : 'blink';
-                            const ch = this.currentChallenge || this.challenges[0];
-                            if (this.livenessPrompt === 'Tahan posisi wajah...') {
-                                this.livenessPrompt = ch.actionText;
-                            }
-
-                            // ── 3. DETEKSI GERAKAN DENGAN METER REAL-TIME ──
-
-                            // A. TANTANGAN SENYUM (😊)
-                            if (challengeType === 'smile') {
-                                const deltaRatio = baselineSmileRatio > 0.1 ? ((smileRatio - baselineSmileRatio) / baselineSmileRatio) : 0;
-                                const deltaCorner = cornerLift - baselineCornerLift;
-                                const deltaInner = Math.max(0, normalizedInnerY - baselineInnerRatio);
-
-                                // Jika wajah sedang santai/netral, adaptasi baseline perlahan
-                                if (deltaRatio < 0.07 && deltaCorner < 1.0) {
-                                    baselineSmileRatio = baselineSmileRatio * 0.96 + smileRatio * 0.04;
-                                    baselineCornerLift = baselineCornerLift * 0.96 + cornerLift * 0.04;
-                                    baselineInnerRatio = baselineInnerRatio * 0.96 + normalizedInnerY * 0.04;
-                                }
-
-                                // Skor senyum: wajib ada pelebaran bibir nyata (>= 6%) atau angkatan sudut bibir
-                                let smileScore = 0;
-                                if (deltaRatio >= 0.06 || deltaCorner >= 1.2 || deltaInner >= 0.12) {
-                                    smileScore = (Math.max(0, deltaRatio - 0.05) * 350.0) + 
-                                                 (Math.max(0, deltaCorner - 0.5) * 18.0) + 
-                                                 (Math.max(0, deltaInner - 0.08) * 40.0);
-                                }
-
-                                let targetProgress = 0;
-                                // Ambang batas: wajah diam/netral = 0%
-                                if (smileScore >= 10.0) {
-                                    targetProgress = Math.min(100, Math.round(((smileScore - 10.0) / 40.0) * 100));
-                                }
-
-                                // Lerp responsif & halus
-                                currentProgressVal = (currentProgressVal * 0.78) + (targetProgress * 0.22);
-                                this.actionProgress = Math.round(currentProgressVal);
-
-                                if (this.actionProgress >= 88) {
-                                    smileHoldCount++;
-                                    // Tahan senyum minimal 10 frame (~330ms)
-                                    if (smileHoldCount >= 10) {
-                                        this.actionProgress = 100;
-                                        isTriggered = true;
-                                        this.livenessState = 'action_success';
-                                        this.updateLivenessPrompt();
-                                        audioFx.playBlink();
-                                        this.triggerShutterFlash();
-                                        setTimeout(() => { this.captureAndSend(); }, 200);
-                                        return;
-                                    }
-                                } else {
-                                    smileHoldCount = 0;
-                                }
-                            }
-
-                            // B. TANTANGAN KEDIP (😉)
-                            else if (challengeType === 'blink') {
-                                const cheekDelta = prevCheekY !== null ? Math.abs(cheekAvgY - prevCheekY) : 0;
-                                prevCheekY = cheekAvgY;
-
-                                const currentG = eyeVerticalGrad;
-                                if (currentG >= (baselineEyeContrast * 0.85) && cheekDelta <= 3.0) {
-                                    baselineEyeContrast = baselineEyeContrast * 0.96 + currentG * 0.04;
-                                }
-
-                                const contrastDrop = baselineEyeContrast - currentG;
-                                const dropPercent = baselineEyeContrast > 100 ? (contrastDrop / baselineEyeContrast) : 0;
-
-                                // Syarat mata terpejam:
-                                // 1. Penurunan gradien vertikal mata >= 30%
-                                // 2. Pipi diam / stabil (cheekDelta <= 3.0) agar bukan karena goyangan kamera
-                                const isEyesClosed = (dropPercent >= 0.30 && cheekDelta <= 3.0);
-                                const now = Date.now();
-
-                                if (blinkPhase === 'idle') {
-                                    if (isEyesClosed) {
-                                        blinkPhase = 'closed';
-                                        blinkClosedStart = now;
-                                        currentProgressVal = 50;
-                                        this.actionProgress = 50;
-                                    } else {
-                                        currentProgressVal = Math.max(0, currentProgressVal - 4);
-                                        this.actionProgress = Math.round(currentProgressVal);
-                                    }
-                                } else if (blinkPhase === 'closed') {
-                                    const closedDuration = now - blinkClosedStart;
-
-                                    // Mata terbuka kembali (dropPercent < 0.15) dalam rentang kedipan manusia normal (140ms - 650ms)
-                                    if (!isEyesClosed && closedDuration >= 140 && closedDuration <= 650) {
-                                        this.actionProgress = 100;
-                                        isTriggered = true;
-                                        this.livenessState = 'action_success';
-                                        this.updateLivenessPrompt();
-                                        audioFx.playBlink();
-                                        this.triggerShutterFlash();
-                                        setTimeout(() => { this.captureAndSend(); }, 200);
-                                        return;
-                                    } else if (closedDuration > 700) {
-                                        // Terpejam terlalu lama -> reset
-                                        blinkPhase = 'idle';
-                                        currentProgressVal = 0;
-                                        this.actionProgress = 0;
-                                    }
-                                }
                             }
 
                         } catch (err) {
@@ -2493,7 +2376,7 @@
                     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
                     ctx.restore();
 
-                    const imageB64 = canvas.toDataURL('image/jpeg', 0.92);
+                    const imageB64 = canvas.toDataURL('image/jpeg', 0.96);
 
                     this.scanState = 'processing';
                     this.scanMessage = 'Memverifikasi wajah di server AI...';
@@ -2571,6 +2454,8 @@
                 // ── Profile Methods ──
                 openEditProfileModal() {
                     this.editUsername = this.profileUsername;
+                    this.editNamaOrtu = this.profileNamaOrtu || '';
+                    this.editNoHpOrtu = this.profileNoHpOrtu || '';
                     this.editBio = this.profileBio || '';
                     this.editWebsite = this.profileWebsite || '';
                     this.editAvatarPreview = this.profileAvatarUrl;
@@ -2651,6 +2536,8 @@
 
                     const formData = new FormData();
                     formData.append('username', this.editUsername.trim());
+                    formData.append('nama_ortu', this.editNamaOrtu ? this.editNamaOrtu.trim() : '');
+                    formData.append('no_hp_ortu', this.editNoHpOrtu ? this.editNoHpOrtu.trim() : '');
                     formData.append('bio', this.editBio || '');
                     formData.append('website', this.editWebsite || '');
                     if (this.avatarFile) formData.append('avatar', this.avatarFile);
@@ -2673,6 +2560,8 @@
                         if (res.ok && data.success) {
                             this.profileAlert = { type: 'success', message: 'Profil berhasil diperbarui!' };
                             this.profileUsername = data.user.username;
+                            this.profileNamaOrtu = data.user.nama_ortu;
+                            this.profileNoHpOrtu = data.user.no_hp_ortu;
                             this.profileBio = data.user.bio;
                             this.profileWebsite = data.user.website;
                             this.profileAvatarUrl = data.user.avatar_url;

@@ -33,8 +33,8 @@ Route::middleware(['auth', 'role:siswa'])->group(function () {
     // Re-enroll wajah untuk siswa yang sudah ada (belum punya face_descriptor)
     Route::get('/siswa/enroll-wajah', [SiswaController::class, 'showEnrollWajah'])->name('siswa.enroll');
     Route::post('/siswa/enroll-wajah', [SiswaController::class, 'enrollWajah'])->name('siswa.enroll.store')->middleware('throttle:enroll');
-    Route::post('/siswa/profile', [SiswaController::class, 'updateProfile'])->name('siswa.profile.update')->middleware('throttle:15,1');
-    Route::post('/siswa/update-password', [SiswaController::class, 'updatePassword'])->name('siswa.password.update')->middleware('throttle:10,1');
+    Route::post('/siswa/profile', [SiswaController::class, 'updateProfile'])->name('siswa.profile.update')->middleware('throttle:30,1');
+    Route::post('/siswa/update-password', [SiswaController::class, 'updatePassword'])->name('siswa.password.update');
 });
 
 //  GURU & ADMIN DASHBOARD

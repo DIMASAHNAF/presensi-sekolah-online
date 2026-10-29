@@ -34,4 +34,15 @@ return [
     | URL endpoint FastAPI Face Recognition.
     */
     'api_url' => env('FACE_API_URL', 'http://127.0.0.1:8005'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anti-Spoofing & Liveness Settings
+    |--------------------------------------------------------------------------
+    | Ambang batas MiniFASNet V2 (0.20 optimal untuk webcam/kamera HP siswa).
+    | check_liveness_siswa: jika false, mengandalkan active liveness di browser (senyum/kedip).
+    */
+    'liveness_threshold'   => env('LIVENESS_THRESHOLD', 0.20),
+    'check_liveness_siswa' => env('FACE_CHECK_LIVENESS_SISWA', true),
+    'threshold_512'        => (float) env('THRESHOLD_512', 0.88),
 ];

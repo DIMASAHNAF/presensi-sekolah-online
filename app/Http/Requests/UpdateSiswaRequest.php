@@ -21,6 +21,8 @@ class UpdateSiswaRequest extends FormRequest
             'nisn' => 'required|string|digits:10|unique:users,nisn,'.$siswa->id,
             'kelas_id' => 'nullable|exists:kelas,id',
             'password' => 'nullable|string|min:6',
+            'no_hp_ortu' => 'nullable|string|max:30',
+            'nama_ortu' => 'nullable|string|max:100',
             'bio' => 'nullable|string|max:255',
             'website' => 'nullable|string|max:255',
             'remove_avatar' => 'nullable|boolean',
