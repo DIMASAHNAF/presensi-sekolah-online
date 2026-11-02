@@ -46,13 +46,12 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* AR Target Face Box with GPU Smooth Tracking */
+        /* AR Target Face Box — NO CSS transition, rAF lerp handles smoothness at 60fps */
         .ar-face-box {
             position: absolute;
             top: 0;
             left: 0;
             pointer-events: none;
-            transition: transform 0.10s cubic-bezier(0, 0, 0.2, 1), width 0.10s linear, height 0.10s linear;
             border-radius: 12px;
             z-index: 20;
             will-change: transform, width, height;
@@ -69,14 +68,13 @@
         .ar-bl { bottom: -2px; left: -2px; border-bottom: 3.5px solid; border-left: 3.5px solid; border-bottom-left-radius: 8px; }
         .ar-br { bottom: -2px; right: -2px; border-bottom: 3.5px solid; border-right: 3.5px solid; border-bottom-right-radius: 8px; }
 
-        /* Floating AR HUD Tag (GPU Smooth Tracking along with walking person) */
+        /* Floating AR HUD Tag — NO CSS transition, rAF lerp handles at 60fps */
         .ar-hud-tag {
             position: absolute;
             top: 0;
             left: 0;
             pointer-events: none;
             z-index: 25;
-            transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1);
             will-change: transform;
         }
 
@@ -178,7 +176,7 @@
             <template x-for="face in activeFaces" :key="face.id">
                 <div>
                     <!-- Target Face Bounding Box with Futuristic Corner Brackets -->
-                    <div class="ar-face-box" :style="getFaceBoxStyle(face.box_norm)">
+                    <div class="ar-face-box" :id="'face-box-' + face.student.id" style="display:none">
                         <div class="ar-corner ar-tl" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
                         <div class="ar-corner ar-tr" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
                         <div class="ar-corner ar-bl" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
@@ -192,7 +190,7 @@
                     </div>
 
                     <!-- Floating HUD Card (GPU tracking directly under/above student's face) -->
-                    <div class="ar-hud-tag" :style="getHudTagStyle(face.box_norm)">
+                    <div class="ar-hud-tag" :id="'face-tag-' + face.student.id" style="display:none">
                         
                         <div class="glass-panel w-[250px] sm:w-[275px] rounded-2xl p-3 border shadow-2xl relative overflow-hidden backdrop-blur-xl"
                              :class="face.already_attended ? 'border-amber-400/70 shadow-amber-500/20' : 'border-emerald-400/80 shadow-emerald-500/25'">
@@ -376,6 +374,9 @@
                 frameTick: 0,
                 isLoopActive: false,
 
+                // rAF lerp: smoothed display coords per student (keyed by student id)
+                smoothedFaces: {},
+
                 initKiosk() {
                     this.videoEl = document.getElementById('camera-feed');
                     this.canvasEl = document.getElementById('snapshot-canvas');
@@ -387,6 +388,9 @@
 
                     // Start continuous zero-delay stream detection loop
                     this.startContinuousDetection();
+
+                    // Start 60fps rAF lerp render loop for smooth face box / card tracking
+                    this.startRenderLoop();
 
                     // Clean expired HUD tags every 200ms
                     setInterval(() => {
@@ -413,6 +417,101 @@
                         // Micro-pause 90ms for instant reactivity without CPU thrashing
                         await new Promise(r => setTimeout(r, 90));
                     }
+                },
+
+                startRenderLoop() {
+                    // Lerp factor: 0.16 = smooth glide at ~60fps. Lower = laggier/smoother. Higher = snappier.
+                    const LERP = 0.16;
+
+                    const tick = () => {
+                        const videoEl = this.videoEl;
+                        if (!videoEl) { requestAnimationFrame(tick); return; }
+
+                        // Compute how video is rendered inside the container (object-fit: cover)
+                        const containerW = videoEl.clientWidth  || window.innerWidth;
+                        const containerH = videoEl.clientHeight || window.innerHeight;
+                        const videoW = videoEl.videoWidth  || 1280;
+                        const videoH = videoEl.videoHeight || 720;
+
+                        const containerRatio = containerW / containerH;
+                        const videoRatio     = videoW / videoH;
+                        let renderW, renderH, offsetX, offsetY;
+
+                        if (containerRatio > videoRatio) {
+                            renderW = containerW; renderH = containerW / videoRatio;
+                            offsetX = 0; offsetY = (containerH - renderH) / 2;
+                        } else {
+                            renderH = containerH; renderW = containerH * videoRatio;
+                            offsetX = (containerW - renderW) / 2; offsetY = 0;
+                        }
+
+                        // Build set of currently active student ids
+                        const activeIds = new Set();
+
+                        for (const face of this.activeFaces) {
+                            const sid = face.student?.id;
+                            if (!sid || !face.box_norm) continue;
+                            activeIds.add(sid);
+
+                            const bn = face.box_norm;
+                            // Target pixel coords
+                            const tx = offsetX + bn.x * renderW;
+                            const ty = offsetY + bn.y * renderH;
+                            const tw = bn.w * renderW;
+                            const th = bn.h * renderH;
+
+                            // Init smoothed position on first sight
+                            if (!this.smoothedFaces[sid]) {
+                                this.smoothedFaces[sid] = { x: tx, y: ty, w: tw, h: th };
+                            }
+                            const s = this.smoothedFaces[sid];
+
+                            // Exponential lerp toward target
+                            s.x += (tx - s.x) * LERP;
+                            s.y += (ty - s.y) * LERP;
+                            s.w += (tw - s.w) * LERP;
+                            s.h += (th - s.h) * LERP;
+
+                            // Apply directly to DOM elements — bypasses Alpine reactivity entirely
+                            const boxEl = document.getElementById('face-box-' + sid);
+                            const tagEl = document.getElementById('face-tag-' + sid);
+
+                            if (boxEl) {
+                                boxEl.style.display  = '';
+                                boxEl.style.transform = `translate3d(${s.x|0}px,${s.y|0}px,0)`;
+                                boxEl.style.width    = `${s.w|0}px`;
+                                boxEl.style.height   = `${s.h|0}px`;
+                            }
+                            if (tagEl) {
+                                const cx      = (s.x + s.w / 2) | 0;
+                                const isAbove = (s.y + s.h + 160) > containerH;
+                                tagEl.style.display = '';
+                                if (isAbove) {
+                                    const topPos = Math.max(12, (s.y - 12)) | 0;
+                                    tagEl.style.transform = `translate3d(${cx}px,${topPos}px,0) translate(-50%,-100%)`;
+                                } else {
+                                    const topPos = (s.y + s.h + 14) | 0;
+                                    tagEl.style.transform = `translate3d(${cx}px,${topPos}px,0) translate(-50%,0)`;
+                                }
+                            }
+                        }
+
+                        // Clean up smoothedFaces for students that expired / left frame
+                        for (const sid of Object.keys(this.smoothedFaces)) {
+                            if (!activeIds.has(parseInt(sid))) {
+                                delete this.smoothedFaces[sid];
+                                // Also hide their DOM elements immediately
+                                const boxEl = document.getElementById('face-box-' + sid);
+                                const tagEl = document.getElementById('face-tag-' + sid);
+                                if (boxEl) boxEl.style.display = 'none';
+                                if (tagEl) tagEl.style.display = 'none';
+                            }
+                        }
+
+                        requestAnimationFrame(tick);
+                    };
+
+                    requestAnimationFrame(tick);
                 },
 
                 updateClock() {
@@ -673,67 +772,10 @@
                     }
                 },
 
-                getFaceScreenRect(boxNorm) {
-                    if (!this.videoEl || !boxNorm) return null;
-                    const dummy = this.frameTick; // Re-evaluates on every face position update!
-
-                    const containerW = this.videoEl.clientWidth || window.innerWidth;
-                    const containerH = this.videoEl.clientHeight || window.innerHeight;
-                    const videoW = this.videoEl.videoWidth || 1280;
-                    const videoH = this.videoEl.videoHeight || 720;
-
-                    const containerRatio = containerW / containerH;
-                    const videoRatio = videoW / videoH;
-
-                    let renderW, renderH, offsetX, offsetY;
-
-                    if (containerRatio > videoRatio) {
-                        renderW = containerW;
-                        renderH = containerW / videoRatio;
-                        offsetX = 0;
-                        offsetY = (containerH - renderH) / 2;
-                    } else {
-                        renderH = containerH;
-                        renderW = containerH * videoRatio;
-                        offsetX = (containerW - renderW) / 2;
-                        offsetY = 0;
-                    }
-
-                    const x = offsetX + (boxNorm.x * renderW);
-                    const y = offsetY + (boxNorm.y * renderH);
-                    const w = boxNorm.w * renderW;
-                    const h = boxNorm.h * renderH;
-
-                    return { x, y, w, h };
-                },
-
-                getFaceBoxStyle(boxNorm) {
-                    const rect = this.getFaceScreenRect(boxNorm);
-                    if (!rect) return 'display: none;';
-                    const rx = Math.round(rect.x);
-                    const ry = Math.round(rect.y);
-                    const rw = Math.round(rect.w);
-                    const rh = Math.round(rect.h);
-                    return `transform: translate3d(${rx}px, ${ry}px, 0); width: ${rw}px; height: ${rh}px;`;
-                },
-
-                getHudTagStyle(boxNorm) {
-                    const rect = this.getFaceScreenRect(boxNorm);
-                    if (!rect) return 'display: none;';
-
-                    const containerH = this.videoEl ? this.videoEl.clientHeight : window.innerHeight;
-                    const centerX = Math.round(rect.x + (rect.w / 2));
-
-                    if ((rect.y + rect.h + 160) > containerH) {
-                        // Tag placed above face
-                        const topPos = Math.round(Math.max(12, rect.y - 12));
-                        return `transform: translate3d(${centerX}px, ${topPos}px, 0) translate(-50%, -100%);`;
-                    } else {
-                        // Tag placed below face
-                        const topPos = Math.round(rect.y + rect.h + 14);
-                        return `transform: translate3d(${centerX}px, ${topPos}px, 0) translate(-50%, 0);`;
-                    }
-                },
+                // NOTE: getFaceScreenRect / getFaceBoxStyle / getHudTagStyle are replaced by
+                // the startRenderLoop() rAF lerp engine above. Kept as no-ops for safety.
+                getFaceBoxStyle() { return ''; },
+                getHudTagStyle()  { return ''; },
 
                 playSuccessChime() {
                     try {
