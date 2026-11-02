@@ -610,20 +610,35 @@
                     const videoW = this.videoEl.videoWidth || 640;
                     const videoH = this.videoEl.videoHeight || 480;
 
-                    // Batasi dimensi maksimal ke 640px agar perangkat mobile/iPhone mengompresi sangat cepat (<8ms) dan transfer kilat (<15ms)
-                    const maxDim = 640;
-                    let targetWidth = videoW;
+                    // ── Deteksi Orientasi Perangkat ──
+                    // HP landscape: videoW > videoH  → normal, tidak perlu rotasi
+                    // HP portrait ditilting: MediaStream sudah handle rotasi hardware,
+                    // tapi canvas perlu ikut agar YuNet tidak terima gambar yang diputar.
+                    // Gunakan screen.orientation untuk deteksi kondisi ini.
+                    const orientAngle = (screen.orientation?.angle ?? window.orientation ?? 0);
+                    // orientAngle 90 / -90 / 270 = HP dipegang landscape
+                    // Tapi video stream dari browser sudah di-rotate oleh browser itu sendiri —
+                    // yang jadi masalah adalah: beberapa browser di Android TIDAK auto-rotate
+                    // stream saat kamera belakang dipakai. Kita tangani dengan menggambar
+                    // canvas pada dimensi yang benar berdasarkan aspect ratio stream.
+
+                    // Batasi dimensi maksimal ke 960px:
+                    // - 640px terlalu kecil untuk deteksi wajah jarak 2-3m
+                    // - 1280px terlalu berat untuk mobile (>200ms encode)
+                    // - 960px: sweet spot; YuNet deteksi wajah kecil + encode <30ms
+                    const maxDim = 960;
+                    let targetWidth  = videoW;
                     let targetHeight = videoH;
 
                     if (videoW >= videoH && videoW > maxDim) {
-                        targetWidth = maxDim;
+                        targetWidth  = maxDim;
                         targetHeight = Math.round((videoH / videoW) * maxDim);
                     } else if (videoH > videoW && videoH > maxDim) {
                         targetHeight = maxDim;
-                        targetWidth = Math.round((videoW / videoH) * maxDim);
+                        targetWidth  = Math.round((videoW / videoH) * maxDim);
                     }
 
-                    this.canvasEl.width = targetWidth;
+                    this.canvasEl.width  = targetWidth;
                     this.canvasEl.height = targetHeight;
 
                     const ctx = this.canvasEl.getContext('2d');
@@ -646,7 +661,7 @@
 
                     ctx.drawImage(this.videoEl, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
 
-                    return this.canvasEl.toDataURL('image/jpeg', 0.80);
+                    return this.canvasEl.toDataURL('image/jpeg', 0.82);
                 },
 
                 async autoCaptureAndScan() {

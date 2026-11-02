@@ -19,6 +19,7 @@ import io
 import os
 import traceback
 import sys
+import concurrent.futures
 
 # ── Load Core & AI Libraries ──
 try:
@@ -106,11 +107,14 @@ if OPENCV_AVAILABLE and hasattr(cv2, 'FaceDetectorYN') and os.path.exists(YUNET_
         print(f"⚠️ Gagal load YuNet ONNX: {e}")
 
 if ONNX_AVAILABLE:
-    # Konfigurasi Session Optimization untuk Intel Xeon 16-Core
+    # Max-out semua 16 core Intel Xeon untuk inferensi ONNX (ArcFace + MiniFASNet)
+    # intra_op = komputasi paralel dalam satu operator (matmul, conv) → pakai semua core
+    # inter_op = paralelisme antar-operator dalam graph → 4 cukup, terlalu tinggi malah overhead
     session_options = ort.SessionOptions()
-    session_options.intra_op_num_threads = 4
-    session_options.inter_op_num_threads = 2
+    session_options.intra_op_num_threads = 16   # gunakan semua 16 core untuk GEMM/Conv
+    session_options.inter_op_num_threads  = 4    # pipeline antar-node ringan
     session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    session_options.execution_mode = ort.ExecutionMode.ORT_PARALLEL  # aktifkan mode paralel
 
     # 1. Inisialisasi MiniFASNet Anti-Spoofing
     if os.path.exists(MINIFASNET_PATH):
@@ -173,12 +177,32 @@ class IdentifyRequest(BaseModel):
 def decode_image(b64_string: str, max_dimension: int = 1080) -> np.ndarray:
     """
     Decode base64 encoded string gambar ke format RGB numpy array.
+    Koreksi orientasi EXIF otomatis agar gambar landscape dari HP tidak diputar.
     """
     try:
         if ',' in b64_string:
             b64_string = b64_string.split(',', 1)[1]
         img_bytes = base64.b64decode(b64_string)
         img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+
+        # ── Koreksi Orientasi EXIF ──
+        # HP landscape mengirim gambar dengan tag EXIF rotation 90°/270°.
+        # Tanpa koreksi ini, YuNet menerima gambar yang diputar → wajah menjadi horizontal
+        # dan tidak terdeteksi sama sekali.
+        try:
+            from PIL.ExifTags import TAGS
+            exif_data = img._getexif()
+            if exif_data:
+                for tag_id, value in exif_data.items():
+                    tag = TAGS.get(tag_id, tag_id)
+                    if tag == 'Orientation':
+                        if   value == 3: img = img.rotate(180, expand=True)
+                        elif value == 6: img = img.rotate(270, expand=True)
+                        elif value == 8: img = img.rotate(90,  expand=True)
+                        break
+        except Exception:
+            pass  # Tidak semua gambar punya EXIF — aman di-skip
+
         if max(img.size) > max_dimension:
             img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
         return np.array(img)
@@ -439,6 +463,10 @@ def ensure_candidates_loaded() -> None:
 
 # Muat cache awal jika sudah ada di disk
 ensure_candidates_loaded()
+
+# Thread pool untuk inferensi ArcFace paralel multi-wajah (max 5 wajah sekaligus)
+# Menggunakan 5 worker karena max_faces = 5; setiap wajah proses di thread terpisah
+_ARCFACE_POOL = concurrent.futures.ThreadPoolExecutor(max_workers=5, thread_name_prefix="arcface")
 
 
 # --- Endpoints ---
@@ -1022,34 +1050,48 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
         unmatched = []
         seen_user_ids = set()
 
-        for face in detected_faces:
-            box_px = face["box_px"]
-            box_norm = face["box_norm"]
+        # ── Paralel ArcFace embedding untuk semua wajah sekaligus ──
+        def extract_face_embedding(face):
+            """Ekstrak 512-D embedding untuk satu wajah (dijalankan paralel per-wajah)."""
+            box_px  = face["box_px"]
             dst_pts = face["landmarks"]
-
-            vec_512 = None
-            if arcface_session is not None:
-                try:
-                    if dst_pts is not None:
-                        M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
-                        if M is not None:
-                            aligned = cv2.warpAffine(bgr_img, M, (112, 112), borderMode=cv2.BORDER_REFLECT_101)
-                        else:
-                            crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
-                            aligned = cv2.resize(crop, (112, 112))
+            if arcface_session is None:
+                return None
+            try:
+                if dst_pts is not None:
+                    M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
+                    if M is not None:
+                        aligned = cv2.warpAffine(bgr_img, M, (112, 112), borderMode=cv2.BORDER_REFLECT_101)
                     else:
                         crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
                         aligned = cv2.resize(crop, (112, 112))
+                else:
+                    crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
+                    aligned = cv2.resize(crop, (112, 112))
 
-                    blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
-                    blob = (blob - 127.5) / 127.5
-                    blob = np.expand_dims(blob, axis=0)
-                    out = arcface_session.run(None, {'input.1': blob})[0][0]
-                    norm = float(np.linalg.norm(out))
-                    if norm > 0:
-                        vec_512 = (out / norm).tolist()
-                except Exception as ex:
-                    print(f"Error ArcFace align in multi: {ex}")
+                blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
+                blob = (blob - 127.5) / 127.5
+                blob = np.expand_dims(blob, axis=0)
+                out  = arcface_session.run(None, {'input.1': blob})[0][0]
+                norm = float(np.linalg.norm(out))
+                return (out / norm).tolist() if norm > 0 else None
+            except Exception as ex:
+                print(f"Error ArcFace paralel: {ex}")
+                return None
+
+        # Jalankan semua wajah sekaligus di thread pool
+        futures = {_ARCFACE_POOL.submit(extract_face_embedding, face): face for face in detected_faces}
+        face_embeddings = {}  # face obj -> vec_512
+        for fut, face in futures.items():
+            try:
+                face_embeddings[id(face)] = fut.result(timeout=3.0)
+            except Exception:
+                face_embeddings[id(face)] = None
+
+        for face in detected_faces:
+            box_norm = face["box_norm"]
+            box_px   = face["box_px"]
+            vec_512  = face_embeddings.get(id(face))
 
             min_dist_512 = 999.0
             matched_user_id = None
