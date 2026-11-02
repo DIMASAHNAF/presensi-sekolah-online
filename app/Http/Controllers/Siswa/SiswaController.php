@@ -601,7 +601,10 @@ class SiswaController extends Controller
             return redirect()->route('siswa.dashboard')->with('error', 'Biometrik wajah Anda sudah terdaftar dan dikunci permanen demi keamanan. Hubungi Admin atau Guru Piket jika memerlukan reset wajah.');
         }
 
-        return view('siswa.enroll-wajah', compact('user'));
+        return response()
+            ->view('siswa.enroll-wajah', compact('user'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -675,13 +678,13 @@ class SiswaController extends Controller
 
                 if ($extLen === 512 && $desc512) {
                     $dupDist = $faceService->calculateEuclideanDistance($desc512, $existingDesc);
-                    $dupThreshold = 0.60;
+                    $dupThreshold = 0.85; // Ambang batas duplikasi ArcFace 512-D (jarak orang sama < 0.88)
                 } elseif ($extLen === 128 && $desc128) {
                     $dupDist = $faceService->calculateEuclideanDistance($desc128, $existingDesc);
-                    $dupThreshold = 0.48;
+                    $dupThreshold = 0.50;
                 } elseif ($dupDist === null && $extLen === count($newDescriptor)) {
                     $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
-                    $dupThreshold = $extLen === 512 ? 0.60 : 0.48;
+                    $dupThreshold = $extLen === 512 ? 0.85 : 0.50;
                 }
 
                 if ($dupDist !== null && $dupDist < $dupThreshold) {

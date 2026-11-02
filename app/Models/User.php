@@ -14,12 +14,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        // SECURITY: 'role' dan 'face_descriptor' TIDAK ada di fillable agar tidak bisa
-        // di-mass-assign melalui request HTTP (mencegah privilege escalation).
-        // Gunakan $user->role = ... atau forceFill() secara eksplisit dari controller terpercaya.
         'name', 'username', 'email', 'avatar', 'banner', 'bio', 'website',
         'nisn', 'nik', 'no_hp_ortu', 'nama_ortu', 'password', 'password_changed_at', 'kelas_id',
-        'face_enrolled_at',
+        'face_descriptor', 'face_enrolled_at',
     ];
 
     /**

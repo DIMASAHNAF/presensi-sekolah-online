@@ -182,7 +182,7 @@ class AuthController extends Controller
 
                 if (is_array($existingDesc) && in_array(count($existingDesc), [128, 512])) {
                     $dupDist = $faceService->calculateEuclideanDistance($newDescriptor, $existingDesc);
-                    $dupThreshold = count($existingDesc) === 512 ? 0.60 : 0.48;
+                    $dupThreshold = count($existingDesc) === 512 ? 0.85 : 0.50;
                     if ($dupDist !== null && $dupDist < $dupThreshold) {
                         $otherKelas = $existing->kelas?->nama_kelas ?? 'Siswa';
                         Log::warning("Percobaan duplikasi wajah pada register: Calon siswa {$data['name']} mencoba mendaftarkan wajah yang identik dengan {$existing->name} (jarak: {$dupDist})");

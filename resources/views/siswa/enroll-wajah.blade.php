@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Face ID Setup — {{ $user->name }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.webp') }}">
     
@@ -30,26 +33,28 @@
         }
         [x-cloak] { display: none !important; }
 
-        /* Apple Face ID Stage (340px) */
+        /* Apple Face ID Stage (320px) */
         .faceid-stage {
             position: relative;
-            width: 340px;
-            height: 340px;
+            width: 320px;
+            height: 320px;
+            max-width: 92vw;
+            max-height: 92vw;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Central Circular Camera Viewport (240px) */
+        /* Central Circular Camera Viewport (220px) */
         .faceid-viewport {
             position: relative;
-            width: 240px;
-            height: 240px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
             overflow: hidden;
             background: #000;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 20px 40px rgba(0, 0, 0, 0.85);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 20px 40px rgba(0, 0, 0, 0.85);
             z-index: 10;
         }
 
@@ -64,8 +69,8 @@
         #faceid-ring-canvas {
             position: absolute;
             inset: 0;
-            width: 340px;
-            height: 340px;
+            width: 320px;
+            height: 320px;
             pointer-events: none;
             z-index: 20;
         }
@@ -89,8 +94,8 @@
         /* Continuous Smooth Success Ring */
         .success-solid-ring {
             position: absolute;
-            width: 248px;
-            height: 248px;
+            width: 228px;
+            height: 228px;
             border-radius: 50%;
             border: 4px solid #30D158;
             box-shadow: 0 0 25px rgba(48, 209, 88, 0.65), inset 0 0 15px rgba(48, 209, 88, 0.35);
@@ -165,11 +170,11 @@
         .bounce-right { animation: subtle-bounce-right 1.2s infinite ease-in-out; }
     </style>
 </head>
-<body class="min-h-screen w-screen flex flex-col justify-between items-center px-4 py-6 bg-black select-none"
+<body class="min-h-screen w-screen flex flex-col justify-between items-center px-4 py-5 bg-black select-none"
       x-data="faceIdAppleApp()" x-init="init()">
 
     <!-- TOP: APPLE HEADER & ICON -->
-    <header class="w-full max-w-md text-center pt-1 sm:pt-3">
+    <header class="w-full max-w-md text-center pt-1 sm:pt-2">
         <!-- Iconic Apple Face ID Icon (Square with bracket corners & eyes/smile) -->
         <div class="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-zinc-900/90 border border-white/10 mb-2 shadow-lg shadow-black">
             <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -199,7 +204,7 @@
     <main class="w-full flex flex-col items-center justify-center my-auto py-2 relative">
         
         <div class="faceid-stage">
-            <!-- Central Circular Camera Viewport (240px) -->
+            <!-- Central Circular Camera Viewport (220px) -->
             <div class="faceid-viewport">
                 <video id="video-enroll" autoplay playsinline muted></video>
                 <canvas id="canvas-enroll" class="hidden"></canvas>
@@ -216,8 +221,8 @@
                 </div>
             </div>
 
-            <!-- 60 Radial Ticks Canvas (340px) Overlay — 100% Guaranteed Render in All Browsers -->
-            <canvas id="faceid-ring-canvas" width="340" height="340"></canvas>
+            <!-- 60 Radial Ticks Canvas (320px) Overlay — 60fps Native High-DPI Rendering -->
+            <canvas id="faceid-ring-canvas" width="320" height="320"></canvas>
 
             <!-- Success Solid Ring when Complete -->
             <div x-show="isSuccess" x-cloak class="success-solid-ring"></div>
@@ -247,18 +252,23 @@
             <!-- Interactive Arrow Helper -->
             <div x-show="isFaceDetected && !isPoseMatching" class="text-xs text-amber-300/90 font-medium flex items-center gap-1.5">
                 <template x-if="capturedImages.length === 1">
-                    <span class="inline-flex items-center gap-1 bounce-left">
+                    <span class="inline-flex items-center gap-1.5 bounce-left">
                         <i class="fas fa-arrow-left text-xs"></i> Tolehkan sedikit ke kiri
                     </span>
                 </template>
                 <template x-if="capturedImages.length === 2">
-                    <span class="inline-flex items-center gap-1 bounce-right">
+                    <span class="inline-flex items-center gap-1.5 bounce-right">
                         Tolehkan sedikit ke kanan <i class="fas fa-arrow-right text-xs"></i>
                     </span>
                 </template>
                 <template x-if="capturedImages.length === 3">
                     <span class="inline-flex items-center gap-1">
                         😊 Tersenyumlah santai ke kamera
+                    </span>
+                </template>
+                <template x-if="capturedImages.length === 4">
+                    <span class="inline-flex items-center gap-1">
+                        🔒 Hadap lurus untuk mengunci data
                     </span>
                 </template>
             </div>
@@ -348,7 +358,7 @@
                 const gain = ctx.createGain();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1750, now);
-                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.setValueAtTime(0.04, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
@@ -402,6 +412,10 @@
         }
     };
 
+    // Unlock Audio Context on first mobile touch
+    window.addEventListener('touchstart', () => appleFx.getCtx(), { once: true, passive: true });
+    window.addEventListener('mousedown', () => appleFx.getCtx(), { once: true, passive: true });
+
     function faceIdAppleApp() {
         return {
             capturedImages: [],
@@ -417,15 +431,15 @@
             displayFilledTicks: 0,
             targetFilledTicks: 0,
             radarAngle: 0,
-            canvasCtx: null,
 
             // Tracking & Pose States
             isFaceDetected: false,
             isPoseMatching: false,
             currentYaw: 1.0,
+            baselineYaw: 1.0,
+            isBaselineCalibrated: false,
             currentSmile: 0.0,
             holdProgress: 0,
-            holdDurationMs: 420, // Snappy & cepat! Cukup tahan 0.42 detik
             cooldownUntil: 0,
             animLoopId: null,
 
@@ -474,6 +488,7 @@
 
             init() {
                 this.initCanvas();
+                this.startAnimationLoop(); // Mulai render ticks canvas seketika sejak frame 0
                 this.loadFaceApi();
                 this.startCamera();
             },
@@ -481,7 +496,11 @@
             initCanvas() {
                 const canvas = document.getElementById('faceid-ring-canvas');
                 if (canvas) {
-                    this.canvasCtx = canvas.getContext('2d');
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = 320 * dpr;
+                    canvas.height = 320 * dpr;
+                    canvas.style.width = '320px';
+                    canvas.style.height = '320px';
                 }
             },
 
@@ -502,7 +521,7 @@
             async startCamera() {
                 try {
                     if (!navigator.mediaDevices?.getUserMedia) {
-                        throw new Error("Akses kamera tidak didukung.");
+                        throw new Error("Akses kamera tidak didukung pada peramban ini.");
                     }
 
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
@@ -522,7 +541,6 @@
                             await video.play();
                         } catch (e) {}
                         this.isCameraReady = true;
-                        this.startAnimationLoop();
                     };
                 } catch (err) {
                     this.isCameraReady = false;
@@ -609,7 +627,7 @@
                             }
                         }
                     } else {
-                        // Fallback detection via video brightness if faceapi is loading
+                        // Fallback detection if faceapi still loading
                         this.isFaceDetected = true;
                     }
                 } catch (e) {
@@ -620,43 +638,80 @@
             },
 
             evaluatePoseState(dt) {
+                if (!this.isFaceDetected) {
+                    this.isPoseMatching = false;
+                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 150) * 100);
+                    return;
+                }
+
                 const step = this.capturedImages.length;
                 let matches = false;
 
-                if (this.isFaceDetected) {
-                    switch (step) {
-                        case 0: // 1. Lurus depan
-                            matches = (this.currentYaw >= 0.76 && this.currentYaw <= 1.28);
-                            break;
-                        case 1: // 2. Toleh KIRI (Yaw > 1.12)
-                            matches = (this.currentYaw > 1.12);
-                            break;
-                        case 2: // 3. Toleh KANAN (Yaw < 0.88)
-                            matches = (this.currentYaw < 0.88);
-                            break;
-                        case 3: // 4. Senyum santai
-                            matches = (this.currentSmile > 0.28) || (this.currentYaw >= 0.78 && this.currentYaw <= 1.25);
-                            break;
-                        case 4: // 5. Kunci Face ID (Lurus kembali)
-                            matches = (this.currentYaw >= 0.76 && this.currentYaw <= 1.26);
-                            break;
-                    }
+                // Hitung rotasi relatif terhadap baseline istirahat kepala pengguna
+                const deltaLeft  = this.currentYaw - this.baselineYaw; // bernilai positif saat toleh ke kiri
+                const deltaRight = this.baselineYaw - this.currentYaw; // bernilai positif saat toleh ke kanan
+
+                switch (step) {
+                    case 0: // 1. Lurus depan
+                        if (this.currentYaw >= 0.70 && this.currentYaw <= 1.30) {
+                            matches = true;
+                            // Adaptasikan baseline ke sudut istirahat natural kepala
+                            if (!this.isBaselineCalibrated) {
+                                this.baselineYaw = (this.baselineYaw * 0.8) + (this.currentYaw * 0.2);
+                            }
+                        }
+                        break;
+
+                    case 1: // 2. Toleh KIRI
+                        // Cukup toleh sedikit (delta > 0.08) atau pengaman absolute yaw > 1.18
+                        if (deltaLeft > 0.08 || this.currentYaw > 1.18) {
+                            matches = true;
+                        }
+                        break;
+
+                    case 2: // 3. Toleh KANAN
+                        // Cukup toleh sedikit (delta > 0.08) atau pengaman absolute yaw < 0.85
+                        if (deltaRight > 0.08 || this.currentYaw < 0.85) {
+                            matches = true;
+                        }
+                        break;
+
+                    case 3: // 4. Senyum santai
+                        if (this.currentSmile > 0.22 || (Math.abs(this.currentYaw - this.baselineYaw) < 0.12 && this.holdProgress > 25)) {
+                            matches = true;
+                        }
+                        break;
+
+                    case 4: // 5. Kunci Face ID (Hadap lurus kembali)
+                        if (Math.abs(this.currentYaw - this.baselineYaw) < 0.12 || (this.currentYaw >= 0.75 && this.currentYaw <= 1.25)) {
+                            matches = true;
+                        }
+                        break;
                 }
 
                 this.isPoseMatching = matches;
 
+                // Durasi tahan sangat cepat (280ms untuk toleh, 340ms untuk lurus/senyum)
+                const targetHoldMs = (step === 1 || step === 2) ? 280 : 340;
+
                 if (matches) {
-                    this.holdProgress += (dt / this.holdDurationMs) * 100;
+                    this.holdProgress += (dt / targetHoldMs) * 100;
                     if (this.holdProgress >= 100) {
                         this.holdProgress = 0;
                         this.autoSnapStep();
                     }
                 } else {
-                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 100) * 100);
+                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 120) * 100);
                 }
             },
 
             autoSnapStep() {
+                // Kunci baseline saat langkah 0 selesai
+                if (this.capturedImages.length === 0) {
+                    this.baselineYaw = this.currentYaw;
+                    this.isBaselineCalibrated = true;
+                }
+
                 this.triggerFlash();
                 this.captureFrame();
                 appleFx.playStepSnap();
@@ -666,7 +721,7 @@
                 if (this.capturedImages.length >= 5) {
                     this.submitEnroll();
                 } else {
-                    this.cooldownUntil = performance.now() + 600;
+                    this.cooldownUntil = performance.now() + 500;
                     this.isPoseMatching = false;
                     this.holdProgress = 0;
                 }
@@ -708,14 +763,18 @@
                 const canvas = document.getElementById('faceid-ring-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                const W = 340;
-                const H = 340;
+                const dpr = window.devicePixelRatio || 1;
+                const W = 320;
+                const H = 320;
+
+                ctx.save();
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 ctx.clearRect(0, 0, W, H);
 
                 const cx = W / 2;
                 const cy = H / 2;
-                const rIn = 126;
-                const rOut = 146;
+                const rIn = 116;
+                const rOut = 138;
                 const count = 60;
 
                 // Smoothly increment display filled ticks towards target
@@ -744,7 +803,7 @@
                     ctx.lineCap = 'round';
 
                     if (i < Math.floor(this.displayFilledTicks)) {
-                        // Completed Ticks: Apple Vibrant Green #30D158
+                        // Completed Ticks: Apple Vibrant Neon Green #30D158
                         ctx.lineWidth = 4.2;
                         ctx.strokeStyle = '#30D158';
                         ctx.shadowColor = 'rgba(48, 209, 88, 0.75)';
@@ -756,9 +815,10 @@
                         ctx.shadowColor = 'rgba(56, 189, 248, 0.85)';
                         ctx.shadowBlur = 8;
                     } else {
-                        // Inactive Ticks: Translucent Silver
+                        // Inactive Ticks: Frosted Silver
                         ctx.lineWidth = 3.2;
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+                        ctx.shadowColor = 'transparent';
                         ctx.shadowBlur = 0;
                     }
 
@@ -767,24 +827,24 @@
                     ctx.stroke();
                 }
 
-                // 2. Animated Radar Scanner Beam (Apple Futuristic Glow)
+                // 2. Animated Apple Radar Scanner Arc
                 this.radarAngle = (this.radarAngle + 0.035) % (Math.PI * 2);
                 ctx.beginPath();
-                ctx.arc(cx, cy, 136, this.radarAngle, this.radarAngle + Math.PI * 0.45);
+                ctx.arc(cx, cy, 127, this.radarAngle, this.radarAngle + Math.PI * 0.45);
                 ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
                 ctx.lineWidth = 2.2;
                 ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
                 ctx.shadowBlur = 8;
                 ctx.stroke();
 
-                // 3. Subtle Apple Target Corner Brackets inside the 240px circle
-                const bSize = 22;
-                const bOffset = 90;
-                const bRadius = 6;
+                // 3. Apple Viewport Corner Guide Brackets
+                const bSize = 20;
+                const bOffset = 82;
+                const bRadius = 5;
                 ctx.lineWidth = 2.5;
                 ctx.lineCap = 'round';
                 ctx.strokeStyle = this.isFaceDetected
-                    ? (this.isPoseMatching ? '#30D158' : 'rgba(255, 255, 255, 0.55)')
+                    ? (this.isPoseMatching ? '#30D158' : 'rgba(255, 255, 255, 0.6)')
                     : 'rgba(255, 255, 255, 0.2)';
                 ctx.shadowColor = this.isPoseMatching ? 'rgba(48, 209, 88, 0.6)' : 'transparent';
                 ctx.shadowBlur = this.isPoseMatching ? 6 : 0;
@@ -817,9 +877,11 @@
                 ctx.beginPath();
                 ctx.moveTo(cx + bOffset, cy + bOffset - bSize);
                 ctx.lineTo(cx + bOffset, cy + bOffset - bRadius);
-                ctx.quadraticCurveTo(cx + bOffset, cy + bOffset, cx + bOffset - bRadius, cy + bOffset);
+                ctx.quadraticCurveTo(cx + bOffset, cy + bOffset, cx + bOffset, cy + bOffset - bRadius);
                 ctx.lineTo(cx + bOffset - bSize, cy + bOffset);
                 ctx.stroke();
+
+                ctx.restore();
             },
 
             restartEnroll() {
@@ -831,6 +893,8 @@
                 this.errorMessage = '';
                 this.holdProgress = 0;
                 this.isPoseMatching = false;
+                this.baselineYaw = 1.0;
+                this.isBaselineCalibrated = false;
                 this.cooldownUntil = performance.now() + 500;
             },
 
