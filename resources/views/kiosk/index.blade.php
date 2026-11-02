@@ -420,8 +420,10 @@
                 },
 
                 startRenderLoop() {
-                    // Lerp factor: 0.16 = smooth glide at ~60fps. Lower = laggier/smoother. Higher = snappier.
-                    const LERP = 0.16;
+                    // Apple Spring Dynamics (Damped Harmonic Oscillator)
+                    // springK = stiffness (responsiveness), damping = friction (eliminates oscillations/jitters)
+                    const springK = 0.15;
+                    const damping = 0.74;
 
                     const tick = () => {
                         const videoEl = this.videoEl;
@@ -460,38 +462,51 @@
                             const tw = bn.w * renderW;
                             const th = bn.h * renderH;
 
-                            // Init smoothed position on first sight
+                            // Init smoothed position and velocity on first sight
                             if (!this.smoothedFaces[sid]) {
-                                this.smoothedFaces[sid] = { x: tx, y: ty, w: tw, h: th };
+                                this.smoothedFaces[sid] = {
+                                    x: tx, y: ty, w: tw, h: th,
+                                    vx: 0, vy: 0, vw: 0, vh: 0
+                                };
                             }
                             const s = this.smoothedFaces[sid];
 
-                            // Exponential lerp toward target
-                            s.x += (tx - s.x) * LERP;
-                            s.y += (ty - s.y) * LERP;
-                            s.w += (tw - s.w) * LERP;
-                            s.h += (th - s.h) * LERP;
+                            // Apple Fluid Spring Dynamics: smooth acceleration & cushioned deceleration
+                            s.vx = (s.vx + (tx - s.x) * springK) * damping;
+                            s.vy = (s.vy + (ty - s.y) * springK) * damping;
+                            s.vw = (s.vw + (tw - s.w) * springK) * damping;
+                            s.vh = (s.vh + (th - s.h) * springK) * damping;
 
-                            // Apply directly to DOM elements — bypasses Alpine reactivity entirely
+                            s.x += s.vx;
+                            s.y += s.vy;
+                            s.w += s.vw;
+                            s.h += s.vh;
+
+                            // Apply directly to DOM elements with subpixel GPU precision
                             const boxEl = document.getElementById('face-box-' + sid);
                             const tagEl = document.getElementById('face-tag-' + sid);
 
+                            const rx = s.x.toFixed(1);
+                            const ry = s.y.toFixed(1);
+                            const rw = s.w.toFixed(1);
+                            const rh = s.h.toFixed(1);
+
                             if (boxEl) {
-                                boxEl.style.display  = '';
-                                boxEl.style.transform = `translate3d(${s.x|0}px,${s.y|0}px,0)`;
-                                boxEl.style.width    = `${s.w|0}px`;
-                                boxEl.style.height   = `${s.h|0}px`;
+                                boxEl.style.display   = '';
+                                boxEl.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+                                boxEl.style.width     = `${rw}px`;
+                                boxEl.style.height    = `${rh}px`;
                             }
                             if (tagEl) {
-                                const cx      = (s.x + s.w / 2) | 0;
+                                const cx      = (s.x + s.w / 2).toFixed(1);
                                 const isAbove = (s.y + s.h + 160) > containerH;
                                 tagEl.style.display = '';
                                 if (isAbove) {
-                                    const topPos = Math.max(12, (s.y - 12)) | 0;
-                                    tagEl.style.transform = `translate3d(${cx}px,${topPos}px,0) translate(-50%,-100%)`;
+                                    const topPos = Math.max(12, (s.y - 12)).toFixed(1);
+                                    tagEl.style.transform = `translate3d(${cx}px, ${topPos}px, 0) translate(-50%, -100%)`;
                                 } else {
-                                    const topPos = (s.y + s.h + 14) | 0;
-                                    tagEl.style.transform = `translate3d(${cx}px,${topPos}px,0) translate(-50%,0)`;
+                                    const topPos = (s.y + s.h + 14).toFixed(1);
+                                    tagEl.style.transform = `translate3d(${cx}px, ${topPos}px, 0) translate(-50%, 0)`;
                                 }
                             }
                         }
