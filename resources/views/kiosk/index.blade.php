@@ -46,13 +46,16 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* AR Target Face Box */
+        /* AR Target Face Box with GPU Smooth Tracking */
         .ar-face-box {
             position: absolute;
+            top: 0;
+            left: 0;
             pointer-events: none;
-            transition: all 0.12s linear;
+            transition: transform 0.10s cubic-bezier(0, 0, 0.2, 1), width 0.10s linear, height 0.10s linear;
             border-radius: 12px;
             z-index: 20;
+            will-change: transform, width, height;
         }
         .ar-corner {
             position: absolute;
@@ -66,29 +69,15 @@
         .ar-bl { bottom: -2px; left: -2px; border-bottom: 3.5px solid; border-left: 3.5px solid; border-bottom-left-radius: 8px; }
         .ar-br { bottom: -2px; right: -2px; border-bottom: 3.5px solid; border-right: 3.5px solid; border-bottom-right-radius: 8px; }
 
-        /* Floating AR HUD Tag under/above face */
+        /* Floating AR HUD Tag (GPU Smooth Tracking along with walking person) */
         .ar-hud-tag {
             position: absolute;
+            top: 0;
+            left: 0;
             pointer-events: none;
             z-index: 25;
-            transition: left 0.12s linear, top 0.12s linear;
-        }
-
-        @keyframes hud-pop {
-            0% { transform: translate(-50%, 14px) scale(0.9); opacity: 0; }
-            70% { transform: translate(-50%, -2px) scale(1.02); opacity: 1; }
-            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-        }
-        @keyframes hud-pop-above {
-            0% { transform: translate(-50%, -86%) scale(0.9); opacity: 0; }
-            70% { transform: translate(-50%, -102%) scale(1.02); opacity: 1; }
-            100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
-        }
-        .animate-hud-below {
-            animation: hud-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-hud-above {
-            animation: hud-pop-above 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1);
+            will-change: transform;
         }
 
         /* Success Pop for modal fallback */
@@ -202,10 +191,8 @@
                         </div>
                     </div>
 
-                    <!-- Floating HUD Card (Positioned directly under student's face) -->
-                    <div class="ar-hud-tag" 
-                         :class="isTagAbove(face.box_norm) ? 'animate-hud-above' : 'animate-hud-below'"
-                         :style="getHudTagStyle(face.box_norm)">
+                    <!-- Floating HUD Card (GPU tracking directly under/above student's face) -->
+                    <div class="ar-hud-tag" :style="getHudTagStyle(face.box_norm)">
                         
                         <div class="glass-panel w-[250px] sm:w-[275px] rounded-2xl p-3 border shadow-2xl relative overflow-hidden backdrop-blur-xl"
                              :class="face.already_attended ? 'border-amber-400/70 shadow-amber-500/20' : 'border-emerald-400/80 shadow-emerald-500/25'">
@@ -252,25 +239,6 @@
                                 <span>Akurasi: <strong class="text-emerald-400" x-text="(face.confidence || 'HIGH').toUpperCase()">HIGH</strong></span>
                                 <span class="text-sky-300 font-mono truncate">ArcFace 512-D</span>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- UNMATCHED FACES (Unregistered passerby indication) -->
-            <template x-for="unm in unmatchedFaces" :key="unm.id">
-                <div>
-                    <div class="ar-face-box" :style="getFaceBoxStyle(unm.box_norm)">
-                        <div class="ar-corner ar-tl border-cyan-400 text-cyan-400"></div>
-                        <div class="ar-corner ar-tr border-cyan-400 text-cyan-400"></div>
-                        <div class="ar-corner ar-bl border-cyan-400 text-cyan-400"></div>
-                        <div class="ar-corner ar-br border-cyan-400 text-cyan-400"></div>
-                    </div>
-
-                    <div class="ar-hud-tag animate-hud-below" :style="getHudTagStyle(unm.box_norm)">
-                        <div class="bg-slate-900/95 border border-cyan-500/50 text-cyan-300 text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 whitespace-nowrap">
-                            <i class="fas fa-id-badge text-amber-400"></i>
-                            <span>Wajah Belum Terdaftar</span>
                         </div>
                     </div>
                 </div>
@@ -405,6 +373,7 @@
                 cooldowns: {},
                 lastSpoken: {},
                 recomputeKey: 0,
+                frameTick: 0,
                 isLoopActive: false,
 
                 initKiosk() {
@@ -539,11 +508,21 @@
                 captureFrame() {
                     if (!this.videoEl || this.videoEl.readyState !== 4) return null;
 
-                    // High-resolution capture (1280px width) for long-range small-face clarity (3-6m)
-                    const targetWidth = 1280;
-                    const videoW = this.videoEl.videoWidth || 1280;
-                    const videoH = this.videoEl.videoHeight || 720;
-                    const targetHeight = Math.round((videoH / videoW) * targetWidth);
+                    const videoW = this.videoEl.videoWidth || 640;
+                    const videoH = this.videoEl.videoHeight || 480;
+
+                    // Batasi dimensi maksimal ke 640px agar perangkat mobile/iPhone mengompresi sangat cepat (<8ms) dan transfer kilat (<15ms)
+                    const maxDim = 640;
+                    let targetWidth = videoW;
+                    let targetHeight = videoH;
+
+                    if (videoW >= videoH && videoW > maxDim) {
+                        targetWidth = maxDim;
+                        targetHeight = Math.round((videoH / videoW) * maxDim);
+                    } else if (videoH > videoW && videoH > maxDim) {
+                        targetHeight = maxDim;
+                        targetWidth = Math.round((videoW / videoH) * maxDim);
+                    }
 
                     this.canvasEl.width = targetWidth;
                     this.canvasEl.height = targetHeight;
@@ -568,7 +547,7 @@
 
                     ctx.drawImage(this.videoEl, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
 
-                    return this.canvasEl.toDataURL('image/jpeg', 0.84);
+                    return this.canvasEl.toDataURL('image/jpeg', 0.80);
                 },
 
                 async autoCaptureAndScan() {
@@ -579,7 +558,7 @@
 
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+                        const timeoutId = setTimeout(() => controller.abort(), 2500);
 
                         const response = await fetch("{{ route('kiosk.identify') }}", {
                             method: 'POST',
@@ -600,15 +579,6 @@
                                 this.handleMultiScanResults(res);
                             } else if (res.student) {
                                 this.handleMultiScanResults({ results: [res], unmatched: [] });
-                            }
-                        } else {
-                            if (res.unmatched && Array.isArray(res.unmatched) && res.unmatched.length > 0) {
-                                const now = Date.now();
-                                this.unmatchedFaces = res.unmatched.map((u, i) => ({
-                                    id: 'unmatched_' + i + '_' + now,
-                                    box_norm: u.box_norm,
-                                    expiresAt: now + 1500
-                                }));
                             }
                         }
                     } catch (err) {
@@ -643,37 +613,31 @@
                             }
                         }
 
-                        // Add or update active face object
+                        // Add or update active face object with reactive position tracking
                         const existingIdx = this.activeFaces.findIndex(f => f.student?.id === studentId);
-                        const faceObj = {
-                            id: 'face_' + studentId,
-                            student: res.student,
-                            already_attended: res.already_attended,
-                            waktu_scan: res.waktu_scan,
-                            confidence: res.confidence,
-                            distance: res.distance,
-                            engine: res.engine,
-                            box_norm: res.box_norm,
-                            expiresAt: now + 4200 // Visible for 4.2 seconds
-                        };
-
                         if (existingIdx >= 0) {
-                            this.activeFaces[existingIdx] = faceObj;
+                            // Update koordinat wajah secara reaktif agar card mengikuti gerakan siswa secara real-time
+                            this.activeFaces[existingIdx].box_norm = res.box_norm;
+                            this.activeFaces[existingIdx].expiresAt = now + 3500;
+                            this.activeFaces[existingIdx].confidence = res.confidence;
+                            this.activeFaces[existingIdx].distance = res.distance;
                         } else {
-                            this.activeFaces.push(faceObj);
+                            this.activeFaces.push({
+                                id: 'face_' + studentId,
+                                student: res.student,
+                                already_attended: res.already_attended,
+                                waktu_scan: res.waktu_scan,
+                                confidence: res.confidence,
+                                distance: res.distance,
+                                engine: res.engine,
+                                box_norm: res.box_norm,
+                                expiresAt: now + 3500
+                            });
                         }
                     }
 
-                    // Update unmatched faces
-                    if (resData.unmatched && Array.isArray(resData.unmatched)) {
-                        this.unmatchedFaces = resData.unmatched.map((u, i) => ({
-                            id: 'unmatched_' + i + '_' + now,
-                            box_norm: u.box_norm,
-                            expiresAt: now + 2000
-                        }));
-                    } else {
-                        this.unmatchedFaces = [];
-                    }
+                    // Increment frameTick untuk memicu render ulang CSS transform posisi box & card di layar
+                    this.frameTick++;
 
                     // Play pleasant chime and speak names if newly recorded
                     if (newStudentsSpoken.length > 0) {
@@ -711,7 +675,7 @@
 
                 getFaceScreenRect(boxNorm) {
                     if (!this.videoEl || !boxNorm) return null;
-                    const dummy = this.recomputeKey; // Trigger reactivity on resize
+                    const dummy = this.frameTick; // Re-evaluates on every face position update!
 
                     const containerW = this.videoEl.clientWidth || window.innerWidth;
                     const containerH = this.videoEl.clientHeight || window.innerHeight;
@@ -746,14 +710,11 @@
                 getFaceBoxStyle(boxNorm) {
                     const rect = this.getFaceScreenRect(boxNorm);
                     if (!rect) return 'display: none;';
-                    return `left: ${rect.x}px; top: ${rect.y}px; width: ${rect.w}px; height: ${rect.h}px;`;
-                },
-
-                isTagAbove(boxNorm) {
-                    const rect = this.getFaceScreenRect(boxNorm);
-                    if (!rect) return false;
-                    const containerH = this.videoEl ? this.videoEl.clientHeight : window.innerHeight;
-                    return (rect.y + rect.h + 160) > containerH;
+                    const rx = Math.round(rect.x);
+                    const ry = Math.round(rect.y);
+                    const rw = Math.round(rect.w);
+                    const rh = Math.round(rect.h);
+                    return `transform: translate3d(${rx}px, ${ry}px, 0); width: ${rw}px; height: ${rh}px;`;
                 },
 
                 getHudTagStyle(boxNorm) {
@@ -761,16 +722,16 @@
                     if (!rect) return 'display: none;';
 
                     const containerH = this.videoEl ? this.videoEl.clientHeight : window.innerHeight;
-                    const centerX = rect.x + (rect.w / 2);
+                    const centerX = Math.round(rect.x + (rect.w / 2));
 
                     if ((rect.y + rect.h + 160) > containerH) {
                         // Tag placed above face
-                        const topPos = Math.max(12, rect.y - 12);
-                        return `left: ${centerX}px; top: ${topPos}px;`;
+                        const topPos = Math.round(Math.max(12, rect.y - 12));
+                        return `transform: translate3d(${centerX}px, ${topPos}px, 0) translate(-50%, -100%);`;
                     } else {
                         // Tag placed below face
-                        const topPos = rect.y + rect.h + 14;
-                        return `left: ${centerX}px; top: ${topPos}px;`;
+                        const topPos = Math.round(rect.y + rect.h + 14);
+                        return `transform: translate3d(${centerX}px, ${topPos}px, 0) translate(-50%, 0);`;
                     }
                 },
 

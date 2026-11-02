@@ -204,6 +204,37 @@ class KioskController extends Controller
      */
     private function processStudentAttendance(User $user, array $matchData, ?string $rawImg): array
     {
+        $today = today();
+
+        // Cek cepat apakah siswa sudah tercatat HADIR hari ini (menghemat query & CPU secara signifikan)
+        $existingHadir = Presensi::where('siswa_id', $user->id)
+            ->where('status', 'hadir')
+            ->whereHas('sesiPresensi', function ($q) use ($today) {
+                $q->whereDate('tanggal', $today);
+            })
+            ->first();
+
+        if ($existingHadir) {
+            $waktuFormatted = $existingHadir->waktu_scan ? $existingHadir->waktu_scan->format('H:i') : now()->format('H:i');
+            return [
+                'student' => [
+                    'id'         => $user->id,
+                    'name'       => $user->name,
+                    'nisn'       => $user->nisn ?? '-',
+                    'kelas'      => $user->kelas?->nama_kelas ?? 'Reguler',
+                    'avatar_url' => $user->avatar_url,
+                    'scan_url'   => null,
+                ],
+                'already_attended' => true,
+                'waktu_scan'       => $waktuFormatted . ' WIB',
+                'box'              => $matchData['box'] ?? null,
+                'box_norm'         => $matchData['box_norm'] ?? null,
+                'confidence'       => $matchData['confidence'] ?? 'HIGH',
+                'distance'         => $matchData['distance'] ?? null,
+                'engine'           => $matchData['engine'] ?? 'ArcFace 512-D YuNet',
+            ];
+        }
+
         $mapHari = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat'];
         $hariKey = $mapHari[now()->dayOfWeek] ?? 'senin';
 

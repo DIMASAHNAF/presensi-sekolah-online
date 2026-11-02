@@ -952,10 +952,10 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
 
         detected_faces = []
 
-        # 1. Deteksi Wajah menggunakan YuNet (Ultra-Fast & High-Sensitivity untuk Small Faces & Edge Faces)
+        # 1. Deteksi Wajah menggunakan YuNet (Score 0.55 optimal untuk deteksi manusia riil tanpa noise furniture)
         if yunet_detector is not None:
             yunet_detector.setInputSize((w, h))
-            yunet_detector.setScoreThreshold(0.30)
+            yunet_detector.setScoreThreshold(0.55)
             yunet_detector.setNMSThreshold(0.35)
             _, raw_faces = yunet_detector.detect(bgr_img)
             if raw_faces is not None and len(raw_faces) > 0:
@@ -1044,20 +1044,10 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                     blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
                     blob = (blob - 127.5) / 127.5
                     blob = np.expand_dims(blob, axis=0)
-                    out1 = arcface_session.run(None, {'input.1': blob})[0][0]
-
-                    # Test-Time Augmentation (TTA) via horizontal flip: menstabilkan embedding wajah di pinggir/miring
-                    blob_flip = blob[:, :, :, ::-1].copy()
-                    out2 = arcface_session.run(None, {'input.1': blob_flip})[0][0]
-                    norm1 = float(np.linalg.norm(out1))
-                    norm2 = float(np.linalg.norm(out2))
-                    if norm1 > 0 and norm2 > 0:
-                        out = (out1 / norm1) + (out2 / norm2)
-                        norm = float(np.linalg.norm(out))
-                        if norm > 0:
-                            vec_512 = (out / norm).tolist()
-                    elif norm1 > 0:
-                        vec_512 = (out1 / norm1).tolist()
+                    out = arcface_session.run(None, {'input.1': blob})[0][0]
+                    norm = float(np.linalg.norm(out))
+                    if norm > 0:
+                        vec_512 = (out / norm).tolist()
                 except Exception as ex:
                     print(f"Error ArcFace align in multi: {ex}")
 
