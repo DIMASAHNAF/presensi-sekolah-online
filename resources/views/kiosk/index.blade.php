@@ -278,20 +278,26 @@
 
         </div>
 
-        <!-- SUBTLE BOTTOM STATUS PILL -->
+        <!-- SUBTLE BOTTOM STATUS PILL (Zero-Loading Indicator) -->
         <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-25 text-center pointer-events-none">
             <div class="inline-flex items-center space-x-2.5 px-5 py-2 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300"
                  :class="{
-                    'bg-slate-900/80 border-cyan-500/40 text-cyan-300': scanState === 'idle',
-                    'bg-blue-900/85 border-blue-400 text-blue-200': scanState === 'scanning',
-                    'bg-emerald-950/85 border-emerald-400 text-emerald-200': scanState === 'success',
-                    'bg-red-950/85 border-red-400 text-red-200': scanState === 'error'
+                    'bg-slate-900/85 border-cyan-500/40 text-cyan-300': scanState === 'idle',
+                    'bg-emerald-950/90 border-emerald-400 text-emerald-200': scanState === 'success',
+                    'bg-amber-950/90 border-amber-400 text-amber-200': scanState === 'warning',
+                    'bg-red-950/90 border-red-400 text-red-200': scanState === 'error'
                  }">
+                <!-- Glowing Live Dot instead of spinning loader -->
+                <span class="relative flex h-2.5 w-2.5" x-show="scanState === 'idle'">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+
                 <i class="fas text-xs"
                    :class="{
-                        'fa-video text-cyan-400': scanState === 'idle',
-                        'fa-spinner fa-spin text-cyan-400': scanState === 'scanning',
+                        'hidden': scanState === 'idle',
                         'fa-circle-check text-emerald-400': scanState === 'success',
+                        'fa-circle-info text-amber-400': scanState === 'warning',
                         'fa-triangle-exclamation text-red-400': scanState === 'error'
                    }"></i>
                 <span class="text-xs font-bold tracking-wide" x-text="statusMessage">Sistem Siap • Siswa silakan lewat gerbang</span>
@@ -399,6 +405,7 @@
                 cooldowns: {},
                 lastSpoken: {},
                 recomputeKey: 0,
+                isLoopActive: false,
 
                 initKiosk() {
                     this.videoEl = document.getElementById('camera-feed');
@@ -409,19 +416,15 @@
 
                     this.startCamera();
 
-                    // Continuous fast detection loop (every 750ms for smooth walkthrough)
-                    setInterval(() => {
-                        if (!this.isProcessing && !this.showNisnModal) {
-                            this.autoCaptureAndScan();
-                        }
-                    }, 750);
+                    // Start continuous zero-delay stream detection loop
+                    this.startContinuousDetection();
 
-                    // Clean expired HUD tags every 250ms
+                    // Clean expired HUD tags every 200ms
                     setInterval(() => {
                         const now = Date.now();
                         this.activeFaces = this.activeFaces.filter(f => f.expiresAt > now);
                         this.unmatchedFaces = this.unmatchedFaces.filter(f => f.expiresAt > now);
-                    }, 250);
+                    }, 200);
 
                     // Polling Live Stats every 15 seconds
                     setInterval(() => this.fetchStats(), 15000);
@@ -430,6 +433,17 @@
                     window.addEventListener('resize', () => {
                         this.recomputeKey++;
                     });
+                },
+
+                async startContinuousDetection() {
+                    this.isLoopActive = true;
+                    while (this.isLoopActive) {
+                        if (!this.isProcessing && !this.showNisnModal && !document.hidden && this.videoEl && this.videoEl.readyState >= 2) {
+                            await this.autoCaptureAndScan();
+                        }
+                        // Micro-pause 90ms for instant reactivity without CPU thrashing
+                        await new Promise(r => setTimeout(r, 90));
+                    }
                 },
 
                 updateClock() {
@@ -554,7 +568,7 @@
 
                     ctx.drawImage(this.videoEl, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
 
-                    return this.canvasEl.toDataURL('image/jpeg', 0.88);
+                    return this.canvasEl.toDataURL('image/jpeg', 0.84);
                 },
 
                 async autoCaptureAndScan() {
@@ -562,9 +576,11 @@
                     if (!b64) return;
 
                     this.isProcessing = true;
-                    this.scanState = 'scanning';
 
                     try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
                         const response = await fetch("{{ route('kiosk.identify') }}", {
                             method: 'POST',
                             headers: {
@@ -572,9 +588,11 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                 'Accept': 'application/json'
                             },
-                            body: JSON.stringify({ face_image: b64 })
+                            body: JSON.stringify({ face_image: b64 }),
+                            signal: controller.signal
                         });
 
+                        clearTimeout(timeoutId);
                         const res = await response.json();
 
                         if (res.success) {
@@ -589,15 +607,12 @@
                                 this.unmatchedFaces = res.unmatched.map((u, i) => ({
                                     id: 'unmatched_' + i + '_' + now,
                                     box_norm: u.box_norm,
-                                    expiresAt: now + 2000
+                                    expiresAt: now + 1500
                                 }));
                             }
-                            this.scanState = 'idle';
-                            this.statusMessage = 'Sistem Siap • Siswa silakan lewat gerbang';
                         }
                     } catch (err) {
-                        console.error('Scan error:', err);
-                        this.scanState = 'idle';
+                        // Silent catch on network timeout to maintain continuous loop
                     } finally {
                         this.isProcessing = false;
                     }
@@ -666,6 +681,13 @@
                         this.scanState = 'success';
                         this.statusMessage = `${newStudentsSpoken.length} Siswa Berhasil Presensi`;
 
+                        setTimeout(() => {
+                            if (this.scanState === 'success') {
+                                this.scanState = 'idle';
+                                this.statusMessage = 'Sistem Siap • Siswa silakan lewat gerbang';
+                            }
+                        }, 3200);
+
                         if (this.voiceEnabled) {
                             if (newStudentsSpoken.length === 1) {
                                 this.speak(`Selamat pagi ${newStudentsSpoken[0]}! Presensi berhasil dicatat.`);
@@ -675,8 +697,15 @@
                                 this.speak(`Presensi berhasil untuk ${newStudentsSpoken[0]}, ${newStudentsSpoken[1]}, dan siswa lainnya.`);
                             }
                         }
-                    } else {
-                        this.scanState = 'idle';
+                    } else if (results.some(r => r.already_attended)) {
+                        this.scanState = 'warning';
+                        this.statusMessage = 'Siswa Sudah Hadir Sebelumnya';
+                        setTimeout(() => {
+                            if (this.scanState === 'warning') {
+                                this.scanState = 'idle';
+                                this.statusMessage = 'Sistem Siap • Siswa silakan lewat gerbang';
+                            }
+                        }, 2500);
                     }
                 },
 

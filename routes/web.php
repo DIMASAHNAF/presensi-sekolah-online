@@ -109,7 +109,7 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
 // ============================================================
 Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
 Route::get('/kiosk/gerbang', [KioskController::class, 'index'])->name('kiosk.gerbang');
-Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify')->middleware('throttle:30,1');
+Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify')->middleware('throttle:360,1');
 Route::post('/kiosk/sync', [KioskController::class, 'syncCandidates'])->name('kiosk.sync');
 Route::get('/kiosk/live-stats', [KioskController::class, 'liveStats'])->name('kiosk.stats');
 

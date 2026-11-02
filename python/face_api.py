@@ -68,7 +68,7 @@ except Exception:
 
 # ── Ambang Batas Pengenalan (Thresholds) ──
 THRESHOLD_128 = float(os.getenv('THRESHOLD_128', '0.50'))       # dlib 128-D euclidean distance
-THRESHOLD_512 = float(os.getenv('THRESHOLD_512', '0.88'))       # ArcFace normalized euclidean distance (0.88 optimal untuk HP siswa)
+THRESHOLD_512 = float(os.getenv('THRESHOLD_512', '0.94'))       # ArcFace normalized euclidean distance (0.94 optimal untuk Walkthrough Kiosk & edge faces)
 LIVENESS_THRESHOLD = float(os.getenv('LIVENESS_THRESHOLD', '0.20'))  # MiniFASNet real face probability threshold (0.20 realistis untuk webcam/HP)
 
 # ── Direktori & Model Loader ──
@@ -945,17 +945,18 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
         bgr_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
         max_faces = payload.max_faces if payload.max_faces and payload.max_faces > 0 else 5
-        thr_512 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.55) else THRESHOLD_512
+        thr_512 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.55) else 0.94
 
         mat512 = CANDIDATE_512_MATRIX
         ids512 = CANDIDATE_512_IDS
 
         detected_faces = []
 
-        # 1. Deteksi Wajah menggunakan YuNet (Ultra-Fast & High-Sensitivity untuk Small Faces dari Jauh)
+        # 1. Deteksi Wajah menggunakan YuNet (Ultra-Fast & High-Sensitivity untuk Small Faces & Edge Faces)
         if yunet_detector is not None:
             yunet_detector.setInputSize((w, h))
-            yunet_detector.setScoreThreshold(0.45)
+            yunet_detector.setScoreThreshold(0.30)
+            yunet_detector.setNMSThreshold(0.35)
             _, raw_faces = yunet_detector.detect(bgr_img)
             if raw_faces is not None and len(raw_faces) > 0:
                 sorted_faces = sorted(raw_faces, key=lambda f: float(f[14]) * (float(f[2]) * float(f[3])), reverse=True)
@@ -1032,7 +1033,7 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                     if dst_pts is not None:
                         M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
                         if M is not None:
-                            aligned = cv2.warpAffine(bgr_img, M, (112, 112), borderValue=0.0)
+                            aligned = cv2.warpAffine(bgr_img, M, (112, 112), borderMode=cv2.BORDER_REFLECT_101)
                         else:
                             crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
                             aligned = cv2.resize(crop, (112, 112))
@@ -1043,10 +1044,20 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                     blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
                     blob = (blob - 127.5) / 127.5
                     blob = np.expand_dims(blob, axis=0)
-                    out = arcface_session.run(None, {'input.1': blob})[0][0]
-                    norm = float(np.linalg.norm(out))
-                    if norm > 0:
-                        vec_512 = (out / norm).tolist()
+                    out1 = arcface_session.run(None, {'input.1': blob})[0][0]
+
+                    # Test-Time Augmentation (TTA) via horizontal flip: menstabilkan embedding wajah di pinggir/miring
+                    blob_flip = blob[:, :, :, ::-1].copy()
+                    out2 = arcface_session.run(None, {'input.1': blob_flip})[0][0]
+                    norm1 = float(np.linalg.norm(out1))
+                    norm2 = float(np.linalg.norm(out2))
+                    if norm1 > 0 and norm2 > 0:
+                        out = (out1 / norm1) + (out2 / norm2)
+                        norm = float(np.linalg.norm(out))
+                        if norm > 0:
+                            vec_512 = (out / norm).tolist()
+                    elif norm1 > 0:
+                        vec_512 = (out1 / norm1).tolist()
                 except Exception as ex:
                     print(f"Error ArcFace align in multi: {ex}")
 
@@ -1060,7 +1071,14 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                 matched_user_id = ids512[idx_512]
 
                 if min_dist_512 <= thr_512:
-                    if matched_user_id not in seen_user_ids:
+                    is_safe = True
+                    # Margin verification jika jarak > 0.88
+                    if min_dist_512 > 0.88 and len(dists_512) > 1:
+                        second_min = float(np.partition(dists_512, 1)[1])
+                        if (second_min - min_dist_512) < 0.08:
+                            is_safe = False
+
+                    if is_safe and matched_user_id not in seen_user_ids:
                         seen_user_ids.add(matched_user_id)
                         conf = max(0.0, 1.0 - (min_dist_512 / thr_512))
                         matches.append({
@@ -1068,10 +1086,10 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                             "distance": round(min_dist_512, 4),
                             "threshold": thr_512,
                             "confidence_pct": round(conf * 100, 1),
-                            "confidence": "very_high" if min_dist_512 < 0.45 else ("high" if min_dist_512 < 0.55 else "medium"),
+                            "confidence": "very_high" if min_dist_512 < 0.50 else ("high" if min_dist_512 < 0.70 else "medium"),
                             "box": box_px,
                             "box_norm": box_norm,
-                            "engine": "arcface-512-yunet"
+                            "engine": "arcface-512-yunet-tta"
                         })
                         continue
 

@@ -296,10 +296,20 @@ class KioskController extends Controller
                 ),
             ]);
 
+            // Kirim notifikasi WhatsApp ke Orang Tua secara Asynchronous (Deferred) agar respon kiosk instant tanpa delay
             try {
-                app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                defer(function () use ($presensi) {
+                    try {
+                        app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                    } catch (\Throwable $e) {
+                        Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+                    }
+                });
             } catch (\Throwable $e) {
-                Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+                // Fallback jika runtime defer tidak aktif
+                try {
+                    app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                } catch (\Throwable $e2) {}
             }
         }
 
