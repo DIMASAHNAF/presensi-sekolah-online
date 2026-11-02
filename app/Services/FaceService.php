@@ -46,6 +46,32 @@ class FaceService
     }
 
     /**
+     * Identifikasi Multi-Face 1:N (Walkthrough Smart Gate Kiosk).
+     * Mampu mendeteksi dan mengidentifikasi 1 s/d 5 siswa sekaligus dalam 1 frame.
+     */
+    public function identifyMulti(string $imageB64, ?float $threshold = null, int $maxFaces = 5): array
+    {
+        $payload = [
+            'image_b64' => $imageB64,
+            'max_faces' => $maxFaces,
+        ];
+        if ($threshold !== null) {
+            $payload['threshold'] = $threshold;
+        }
+
+        $res = $this->call('identify-multi', $payload);
+
+        if (isset($res['need_sync']) && $res['need_sync'] === true) {
+            $syncRes = $this->syncAllEnrolledStudents();
+            if ($syncRes['success'] && ($syncRes['total'] ?? 0) > 0) {
+                return $this->call('identify-multi', $payload);
+            }
+        }
+
+        return $res;
+    }
+
+    /**
      * Sinkronkan daftar kandidat ke RAM server FastAPI.
      */
     public function syncCandidates(array $candidates): array

@@ -86,13 +86,11 @@ class KioskController extends Controller
         }
 
         $faceService = new FaceService();
-        $user = null;
-        $identifyResult = null;
 
-        // MODE 1: Jika NISN diinput/discan via Barcode/QR
+        // MODE 1: Jika NISN diinput/discan via Barcode/QR (Single Match 1:1)
         if ($request->filled('nisn')) {
             $nisn = trim($request->nisn);
-            $user = User::where('nisn', $nisn)->where('role', 'siswa')->first();
+            $user = User::with('kelas')->where('nisn', $nisn)->where('role', 'siswa')->first();
 
             if (!$user) {
                 return response()->json([
@@ -118,52 +116,94 @@ class KioskController extends Controller
                 ], 422);
             }
 
-            $identifyResult = $compareRes;
-        } else {
-            // MODE 2: Auto Face ID (1:N Matching terhadap seluruh database siswa)
-            $identifyResult = $faceService->identify($request->face_image);
+            $singleResult = $this->processStudentAttendance($user, $compareRes, $request->face_image);
 
-            if (!$identifyResult['success']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $identifyResult['error'] ?? 'Gagal memproses gambar pada server AI.',
-                ], 500);
-            }
-
-            if (!($identifyResult['match'] ?? false) || empty($identifyResult['user_id'])) {
-                return response()->json([
-                    'success'  => false,
-                    'message'  => $identifyResult['reason'] ?? 'Wajah tidak dikenali atau belum terdaftar.',
-                    'distance' => $identifyResult['distance'] ?? null,
-                ], 404);
-            }
-
-            $user = User::find($identifyResult['user_id']);
-            if (!$user || $user->role !== 'siswa') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data identifikasi tidak valid.',
-                ], 422);
-            }
+            return response()->json([
+                'success'          => true,
+                'is_multi'         => false,
+                'already_attended' => $singleResult['already_attended'],
+                'student'          => $singleResult['student'],
+                'waktu_scan'       => $singleResult['waktu_scan'],
+                'confidence'       => $singleResult['confidence'],
+                'distance'         => $singleResult['distance'],
+                'engine'           => $singleResult['engine'],
+                'message'          => $singleResult['already_attended']
+                    ? "Halo {$user->name}, kamu sudah tercatat HADIR hari ini."
+                    : "Selamat pagi, {$user->name}! Presensi berhasil dicatat.",
+            ]);
         }
 
-        // Pastikan siswa memiliki kelas
-        if (!$user->kelas_id) {
+        // MODE 2: Multi-Face 1:N Recognition (Walkthrough Smart Gate Kiosk)
+        $identifyRes = $faceService->identifyMulti($request->face_image, null, 5);
+
+        if (!$identifyRes['success']) {
             return response()->json([
                 'success' => false,
-                'message' => "Siswa {$user->name} belum terdaftar di kelas manapun.",
+                'message' => $identifyRes['error'] ?? 'Gagal memproses gambar pada server AI.',
+            ], 500);
+        }
+
+        $matches = $identifyRes['matches'] ?? [];
+        $unmatched = $identifyRes['unmatched'] ?? [];
+
+        if (empty($matches)) {
+            return response()->json([
+                'success'     => false,
+                'message'     => 'Wajah tidak dikenali atau belum terdaftar.',
+                'total_faces' => $identifyRes['total_faces'] ?? 0,
+                'unmatched'   => $unmatched,
+            ], 404);
+        }
+
+        $results = [];
+        foreach ($matches as $match) {
+            $user = User::with('kelas')->find($match['user_id']);
+            if (!$user || $user->role !== 'siswa' || !$user->kelas_id) {
+                continue;
+            }
+
+            $studentResult = $this->processStudentAttendance($user, $match, $request->face_image);
+            $results[] = $studentResult;
+        }
+
+        if (empty($results)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa terdeteksi belum memiliki data kelas terdaftar.',
             ], 422);
         }
 
-        // Cek apakah siswa sudah mengamankan akun dengan password baru
-        if (!$user->hasChangedPassword()) {
-            return response()->json([
-                'success' => false,
-                'message' => "Presensi ditolak: Siswa {$user->name} belum membuat password akun. Silakan login ke portal web siswa dan buat password baru terlebih dahulu.",
-            ], 403);
-        }
+        $first = $results[0];
+        $totalAttended = count($results);
 
-        // Dapatkan atau buat otomatis Sesi Presensi Pagi (tipe: kelas) untuk hari ini sesuai jadwal pelajaran
+        return response()->json([
+            'success'          => true,
+            'is_multi'         => true,
+            'total_matched'    => $totalAttended,
+            'results'          => $results,
+            'unmatched'        => $unmatched,
+            // Kompatibilitas single student
+            'student'          => $first['student'],
+            'already_attended' => $first['already_attended'],
+            'waktu_scan'       => $first['waktu_scan'],
+            'box'              => $first['box'] ?? null,
+            'box_norm'         => $first['box_norm'] ?? null,
+            'confidence'       => $first['confidence'],
+            'distance'         => $first['distance'],
+            'engine'           => $first['engine'],
+            'message'          => $totalAttended > 1
+                ? "{$totalAttended} siswa berhasil diverifikasi serentak!"
+                : ($first['already_attended']
+                    ? "Halo {$first['student']['name']}, kamu sudah tercatat HADIR hari ini."
+                    : "Selamat pagi, {$first['student']['name']}! Presensi berhasil dicatat."),
+        ]);
+    }
+
+    /**
+     * Helper untuk memproses pencatatan presensi 1 siswa di Kiosk.
+     */
+    private function processStudentAttendance(User $user, array $matchData, ?string $rawImg): array
+    {
         $mapHari = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat'];
         $hariKey = $mapHari[now()->dayOfWeek] ?? 'senin';
 
@@ -202,7 +242,6 @@ class KioskController extends Controller
             ]
         );
 
-        // Cari atau buat record presensi siswa di sesi ini
         $presensi = Presensi::firstOrCreate(
             [
                 'sesi_presensi_id' => $sesi->id,
@@ -213,79 +252,59 @@ class KioskController extends Controller
             ]
         );
 
-        // Jika siswa sudah tercatat HADIR hari ini
-        if ($presensi->status === 'hadir') {
-            $waktuFormatted = $presensi->waktu_scan ? $presensi->waktu_scan->format('H:i') : ($presensi->updated_at ? $presensi->updated_at->format('H:i') : '-');
-            return response()->json([
-                'success'          => true,
-                'already_attended' => true,
-                'student'          => [
-                    'id'         => $user->id,
-                    'name'       => $user->name,
-                    'nisn'       => $user->nisn ?? '-',
-                    'kelas'      => $user->kelas?->nama_kelas ?? 'Reguler',
-                    'avatar_url' => $user->avatar_url,
-                ],
-                'waktu_scan'       => $waktuFormatted . ' WIB',
-                'message'          => "Halo {$user->name}, kamu sudah tercatat HADIR hari ini pada pukul {$waktuFormatted} WIB.",
-                'confidence'       => $identifyResult['confidence'] ?? 'high',
-                'distance'         => $identifyResult['distance'] ?? null,
-                'engine'           => $identifyResult['engine'] ?? 'ArcFace 512-D Aligned',
-            ]);
-        }
-
-        // Simpan foto snapshot presensi ke storage
+        $alreadyAttended = ($presensi->status === 'hadir');
+        $waktuFormatted = $presensi->waktu_scan ? $presensi->waktu_scan->format('H:i') : now()->format('H:i');
         $fotoPath = null;
-        try {
-            $rawImg = $request->face_image;
-            if (str_contains($rawImg, ',')) {
-                $rawImg = explode(',', $rawImg, 2)[1];
+
+        if (!$alreadyAttended) {
+            try {
+                if ($rawImg) {
+                    $cleanImg = $rawImg;
+                    if (str_contains($cleanImg, ',')) {
+                        $cleanImg = explode(',', $cleanImg, 2)[1];
+                    }
+                    $decoded = base64_decode($cleanImg);
+                    if ($decoded) {
+                        $folder = 'face_scans/' . date('Y-m-d');
+                        $filename = $folder . '/kiosk_' . $user->id . '_' . time() . '.jpg';
+                        Storage::disk('public')->put($filename, $decoded);
+                        $fotoPath = $filename;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[KioskController] Gagal simpan foto scan: ' . $e->getMessage());
             }
-            $decoded = base64_decode($rawImg);
-            if ($decoded) {
-                $folder = 'face_scans/' . date('Y-m-d');
-                $filename = $folder . '/kiosk_' . $user->id . '_' . time() . '.jpg';
-                Storage::disk('public')->put($filename, $decoded);
-                $fotoPath = $filename;
+
+            $statusSebelumnya = $presensi->status;
+            $now = now();
+            $presensi->update([
+                'status'     => 'hadir',
+                'waktu_scan' => $now,
+                'keterangan' => $fotoPath ? "Scan Face ID Kiosk Gerbang (Tersimpan: {$fotoPath})" : 'Scan Face ID Kiosk Gerbang',
+            ]);
+
+            LogPresensi::create([
+                'presensi_id'       => $presensi->id,
+                'guru_id'           => $sesi->guru_id,
+                'status_sebelumnya' => $statusSebelumnya,
+                'status_baru'       => 'hadir',
+                'keterangan'        => sprintf(
+                    'Presensi Face ID Kiosk Gerbang (%s, confidence: %s, distance: %.4f)',
+                    $matchData['engine'] ?? 'ArcFace 512-D YuNet',
+                    $matchData['confidence'] ?? 'high',
+                    $matchData['distance'] ?? 0
+                ),
+            ]);
+
+            try {
+                app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+            } catch (\Throwable $e) {
+                Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            Log::warning('[KioskController] Gagal menyimpan foto scan: ' . $e->getMessage());
         }
 
-        $statusSebelumnya = $presensi->status;
-        $now = now();
-
-        $presensi->update([
-            'status'     => 'hadir',
-            'waktu_scan' => $now,
-            'keterangan' => $fotoPath ? "Scan Face ID Kiosk Gerbang (Tersimpan: {$fotoPath})" : 'Scan Face ID Kiosk Gerbang',
-        ]);
-
-        // Catat ke LogPresensi
-        LogPresensi::create([
-            'presensi_id'       => $presensi->id,
-            'guru_id'           => $sesi->guru_id,
-            'status_sebelumnya' => $statusSebelumnya,
-            'status_baru'       => 'hadir',
-            'keterangan'        => sprintf(
-                'Presensi Face ID Kiosk Gerbang (%s, confidence: %s, distance: %.4f)',
-                $identifyResult['engine'] ?? 'ArcFace 512-D',
-                $identifyResult['confidence'] ?? 'high',
-                $identifyResult['distance'] ?? 0
-            ),
-        ]);
-
-        // Kirim notifikasi WhatsApp ke Orang Tua
-        try {
-            app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
-        } catch (\Throwable $e) {
-            Log::warning('[WhatsApp] Gagal kirim notif ortu dari Kiosk: ' . $e->getMessage());
-        }
-
-        return response()->json([
-            'success'          => true,
-            'already_attended' => false,
-            'student'          => [
+        return [
+            'student' => [
                 'id'         => $user->id,
                 'name'       => $user->name,
                 'nisn'       => $user->nisn ?? '-',
@@ -293,12 +312,14 @@ class KioskController extends Controller
                 'avatar_url' => $user->avatar_url,
                 'scan_url'   => $fotoPath ? asset('storage/' . $fotoPath) : null,
             ],
-            'waktu_scan'       => $now->format('H:i') . ' WIB',
-            'message'          => "Selamat pagi, {$user->name}! Presensi berhasil dicatat.",
-            'confidence'       => $identifyResult['confidence'] ?? 'high',
-            'distance'         => $identifyResult['distance'] ?? null,
-            'engine'           => $identifyResult['engine'] ?? 'ArcFace 512-D Aligned',
-        ]);
+            'already_attended' => $alreadyAttended,
+            'waktu_scan'       => $waktuFormatted . ' WIB',
+            'box'              => $matchData['box'] ?? null,
+            'box_norm'         => $matchData['box_norm'] ?? null,
+            'confidence'       => $matchData['confidence'] ?? 'HIGH',
+            'distance'         => $matchData['distance'] ?? null,
+            'engine'           => $matchData['engine'] ?? 'ArcFace 512-D YuNet',
+        ];
     }
 
     /**

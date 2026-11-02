@@ -7,7 +7,7 @@
     <title>Kiosk Presensi Face ID — {{ $schoolSetting->school_name ?? 'SMKN 1 Beringin' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.webp') }}">
     
-    <!-- Tailwind CSS & Google Fonts -->
+    <!-- Tailwind CSS & AlpineJS & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -19,7 +19,7 @@
         * { -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #090d16;
+            background-color: #070b14;
             color: #f8fafc;
             overflow: hidden;
             user-select: none;
@@ -27,247 +27,274 @@
         h1, h2, h3, .font-heading { font-family: 'Outfit', sans-serif; }
         [x-cloak] { display: none !important; }
 
-        /* Face Scanner Oval Ring */
-        .face-oval {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -52%);
-            width: 250px;
-            height: 330px;
-            border-radius: 50% / 46%;
-            border: 3.5px dashed rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65);
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 20;
-        }
-        @media (min-width: 768px) {
-            .face-oval { width: 300px; height: 390px; }
-        }
-
-        .face-oval.state-idle {
-            border: 3px solid rgba(56, 189, 248, 0.6);
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65), 0 0 25px rgba(56, 189, 248, 0.3);
-        }
-        .face-oval.state-scanning {
-            border: 3.5px solid #38bdf8;
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65), 0 0 45px rgba(56, 189, 248, 0.65);
-        }
-        .face-oval.state-success {
-            border: 4px solid #10b981;
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65), 0 0 50px rgba(16, 185, 129, 0.8);
-        }
-        .face-oval.state-warning {
-            border: 4px solid #f59e0b;
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65), 0 0 40px rgba(245, 158, 11, 0.7);
-        }
-        .face-oval.state-error {
-            border: 4px solid #ef4444;
-            box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.65), 0 0 40px rgba(239, 68, 68, 0.7);
-        }
-
-        /* Sci-Fi Laser Scan Line */
-        .laser-line {
-            position: absolute;
-            left: 8%;
-            right: 8%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #38bdf8, #60a5fa, #38bdf8, transparent);
-            box-shadow: 0 0 15px #38bdf8, 0 0 30px #60a5fa;
-            border-radius: 50%;
-            animation: scan-move 1.8s ease-in-out infinite alternate;
-        }
-        @keyframes scan-move {
-            0% { top: 12%; opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { top: 88%; opacity: 0.3; }
-        }
-
-        /* Pulsing Target Markers */
-        .target-corner {
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            border-color: #38bdf8;
-            pointer-events: none;
-            transition: all .3s;
-        }
-        .target-tl { top: -2px; left: -2px; border-top: 3.5px solid; border-left: 3.5px solid; border-top-left-radius: 6px; }
-        .target-tr { top: -2px; right: -2px; border-top: 3.5px solid; border-right: 3.5px solid; border-top-right-radius: 6px; }
-        .target-bl { bottom: -2px; left: -2px; border-bottom: 3.5px solid; border-left: 3.5px solid; border-bottom-left-radius: 6px; }
-        .target-br { bottom: -2px; right: -2px; border-bottom: 3.5px solid; border-right: 3.5px solid; border-bottom-right-radius: 6px; }
-
+        /* Camera feed base */
         #camera-feed {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.25s ease-out;
+        }
+        .mirror-mode {
             transform: scaleX(-1);
         }
 
         /* Glassmorphism Panels */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(13, 20, 36, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Success Pop Pop Animation */
+        /* AR Target Face Box */
+        .ar-face-box {
+            position: absolute;
+            pointer-events: none;
+            transition: all 0.12s linear;
+            border-radius: 12px;
+            z-index: 20;
+        }
+        .ar-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            filter: drop-shadow(0 0 6px currentColor);
+        }
+        .ar-tl { top: -2px; left: -2px; border-top: 3.5px solid; border-left: 3.5px solid; border-top-left-radius: 8px; }
+        .ar-tr { top: -2px; right: -2px; border-top: 3.5px solid; border-right: 3.5px solid; border-top-right-radius: 8px; }
+        .ar-bl { bottom: -2px; left: -2px; border-bottom: 3.5px solid; border-left: 3.5px solid; border-bottom-left-radius: 8px; }
+        .ar-br { bottom: -2px; right: -2px; border-bottom: 3.5px solid; border-right: 3.5px solid; border-bottom-right-radius: 8px; }
+
+        /* Floating AR HUD Tag under/above face */
+        .ar-hud-tag {
+            position: absolute;
+            pointer-events: none;
+            z-index: 25;
+            transition: left 0.12s linear, top 0.12s linear;
+        }
+
+        @keyframes hud-pop {
+            0% { transform: translate(-50%, 14px) scale(0.9); opacity: 0; }
+            70% { transform: translate(-50%, -2px) scale(1.02); opacity: 1; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+        @keyframes hud-pop-above {
+            0% { transform: translate(-50%, -86%) scale(0.9); opacity: 0; }
+            70% { transform: translate(-50%, -102%) scale(1.02); opacity: 1; }
+            100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+        }
+        .animate-hud-below {
+            animation: hud-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-hud-above {
+            animation: hud-pop-above 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Success Pop for modal fallback */
         @keyframes modal-pop {
-            0% { transform: scale(0.85); opacity: 0; }
-            70% { transform: scale(1.03); opacity: 1; }
+            0% { transform: scale(0.9); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-        .animate-pop { animation: modal-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-pop { animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-between overflow-hidden" x-data="kioskApp()" x-init="initKiosk()">
+<body class="h-screen w-screen flex flex-col justify-between overflow-hidden bg-slate-950" x-data="kioskApp()" x-init="initKiosk()">
 
-    <!-- TOP BAR: HEADER & CLOCK -->
-    <header class="glass-panel px-6 py-3.5 z-30 flex items-center justify-between border-b border-white/10 shadow-lg">
-        <div class="flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+    <!-- TOP BAR: HEADER & CLOCK & CONTROLS -->
+    <header class="glass-panel px-4 sm:px-6 py-3 z-30 flex items-center justify-between border-b border-white/10 shadow-xl">
+        <div class="flex items-center space-x-3 sm:space-x-3.5">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-emerald-400 p-0.5 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                 <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center overflow-hidden">
                     <img src="{{ asset('images/logo.webp') }}" class="w-8 h-8 object-contain" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=SMK&background=0D8ABC&color=fff'">
                 </div>
             </div>
             <div>
-                <h1 class="text-base sm:text-lg font-black tracking-wide text-white uppercase flex items-center gap-2">
+                <h1 class="text-sm sm:text-base md:text-lg font-black tracking-wide text-white uppercase flex items-center gap-2">
                     {{ $schoolSetting->school_name ?? 'SMKN 1 BERINGIN' }}
-                    <span class="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono font-bold tracking-widest">
-                        KIOSK GERBANG
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono font-bold tracking-widest">
+                        GERBANG WALKTHROUGH
                     </span>
-                    <span class="hidden md:inline-flex text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold items-center gap-1">
-                        <i class="fas fa-brain text-[10px]"></i> AI v3.0 ENTERPRISE
+                    <span class="hidden lg:inline-flex text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold items-center gap-1">
+                        <i class="fas fa-brain text-[10px]"></i> AI MULTI-FACE (3-6m)
                     </span>
                 </h1>
-                <p class="text-xs text-slate-400 font-medium">Dual-Engine Face Recognition (ArcFace 512-D & Anti-Spoofing)</p>
+                <p class="text-[11px] sm:text-xs text-slate-400 font-medium hidden sm:block">Real-Time Multi-Person Long-Range Attendance (YuNet + ArcFace 512-D)</p>
             </div>
         </div>
 
         <!-- Clock & Controls -->
-        <div class="flex items-center space-x-5">
+        <div class="flex items-center space-x-2 sm:space-x-4">
             <!-- Digital Clock -->
             <div class="hidden sm:flex flex-col text-right">
-                <span class="text-xl sm:text-2xl font-black text-cyan-400 font-mono tracking-wider" x-text="currentTime">--:--:--</span>
-                <span class="text-[11px] text-slate-400 font-medium" x-text="currentDate">--</span>
+                <span class="text-lg sm:text-2xl font-black text-cyan-400 font-mono tracking-wider" x-text="currentTime">--:--:--</span>
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium" x-text="currentDate">--</span>
             </div>
 
             <div class="h-8 w-px bg-white/10 hidden sm:block"></div>
 
-            <!-- Action Buttons -->
-            <div class="flex items-center space-x-2">
-                <!-- Sync Candidate Cache Button -->
-                <button @click="syncDatabase()" title="Sinkronkan Database Wajah ke RAM" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-cyan-400 flex items-center justify-center transition active:scale-95">
-                    <i class="fas fa-arrows-rotate text-sm" :class="isSyncing ? 'fa-spin text-amber-400' : ''"></i>
+            <!-- Action Controls -->
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+                <!-- Zoom Control Button (1.0x / 1.5x / 2.0x) -->
+                <button @click="cycleZoom()" 
+                        :title="'Zoom Kamera: ' + zoomLevel.toFixed(1) + 'x (Klik untuk perbesar jangkauan)'" 
+                        class="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-cyan-300 flex items-center gap-1.5 transition active:scale-95 shadow">
+                    <i class="fas fa-magnifying-glass-plus text-xs"></i>
+                    <span class="text-xs font-mono font-extrabold" x-text="zoomLevel.toFixed(1) + 'x'">1.0x</span>
                 </button>
 
-                <!-- Voice Audio Mute Toggle -->
-                <button @click="toggleVoice()" :title="voiceEnabled ? 'Suara Aktif' : 'Suara Dimatikan'" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 flex items-center justify-center transition active:scale-95" :class="voiceEnabled ? 'text-emerald-400' : 'text-slate-500'">
-                    <i class="fas text-sm" :class="voiceEnabled ? 'fa-volume-high' : 'fa-volume-xmark'"></i>
+                <!-- Camera Switcher (Kamera Belakang vs Depan) -->
+                <button @click="switchCamera()" 
+                        :title="cameraFacing === 'environment' ? 'Kamera Belakang Aktif (Gerbang) - Klik untuk ganti kamera' : 'Kamera Depan Aktif (Selfie) - Klik untuk ganti kamera'" 
+                        class="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition active:scale-95 shadow"
+                        :class="cameraFacing === 'environment' ? 'bg-cyan-950/80 border-cyan-400/50 text-cyan-300' : 'bg-slate-800/90 border-white/15 text-slate-300'">
+                    <i class="fas fa-camera-rotate text-xs"></i>
+                    <span class="text-xs font-bold hidden md:inline" x-text="cameraFacing === 'environment' ? 'Kamera Belakang' : 'Kamera Depan'">Kamera</span>
+                </button>
+
+                <!-- Sync Database to RAM -->
+                <button @click="syncDatabase()" title="Sinkronkan Biometrik ke RAM Server" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-cyan-400 flex items-center justify-center transition active:scale-95">
+                    <i class="fas fa-arrows-rotate text-xs sm:text-sm" :class="isSyncing ? 'fa-spin text-amber-400' : ''"></i>
+                </button>
+
+                <!-- Audio TTS Mute Toggle -->
+                <button @click="toggleVoice()" :title="voiceEnabled ? 'Suara Aktif' : 'Suara Dimatikan'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 flex items-center justify-center transition active:scale-95" :class="voiceEnabled ? 'text-emerald-400' : 'text-slate-500'">
+                    <i class="fas text-xs sm:text-sm" :class="voiceEnabled ? 'fa-volume-high' : 'fa-volume-xmark'"></i>
                 </button>
 
                 <!-- Fullscreen Toggle -->
-                <button @click="toggleFullscreen()" title="Layar Penuh" class="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition active:scale-95 shadow-md shadow-blue-500/25">
-                    <i class="fas text-sm" :class="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+                <button @click="toggleFullscreen()" title="Layar Penuh" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition active:scale-95 shadow-md shadow-blue-500/25">
+                    <i class="fas text-xs sm:text-sm" :class="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- MAIN BODY: CAMERA VIEWPORT & OVERLAY -->
+    <!-- MAIN BODY: CLEAN CAMERA VIEWPORT & AR FLOATING TAGS LAYER -->
     <main class="relative flex-1 w-full h-full overflow-hidden flex items-center justify-center bg-black">
 
-        <!-- Live Camera Video -->
-        <video id="camera-feed" autoplay playsinline muted></video>
+        <!-- Live Camera Video (Clean, No Centered Dark Mask) -->
+        <video id="camera-feed" 
+               autoplay 
+               playsinline 
+               muted 
+               :class="cameraFacing === 'user' ? 'mirror-mode' : ''"
+               :style="getVideoTransformStyle()"></video>
         <canvas id="snapshot-canvas" class="hidden"></canvas>
 
-        <!-- Face Target Scanner Overlay (Face ID Oval) -->
-        <div class="face-oval" :class="'state-' + scanState">
-            <!-- Target Corners -->
-            <div class="target-corner target-tl"></div>
-            <div class="target-corner target-tr"></div>
-            <div class="target-corner target-bl"></div>
-            <div class="target-corner target-br"></div>
+        <!-- AR FLOATING HUD OVERLAY LAYER (Tracks Detected Faces) -->
+        <div id="ar-overlay" class="absolute inset-0 pointer-events-none overflow-hidden z-20">
+            
+            <!-- RECOGNIZED STUDENTS (Multi-Person Floating HUD Cards) -->
+            <template x-for="face in activeFaces" :key="face.id">
+                <div>
+                    <!-- Target Face Bounding Box with Futuristic Corner Brackets -->
+                    <div class="ar-face-box" :style="getFaceBoxStyle(face.box_norm)">
+                        <div class="ar-corner ar-tl" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
+                        <div class="ar-corner ar-tr" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
+                        <div class="ar-corner ar-bl" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
+                        <div class="ar-corner ar-br" :class="face.already_attended ? 'border-amber-400 text-amber-400' : 'border-emerald-400 text-emerald-400'"></div>
+                        
+                        <!-- Top Mini Tag Indicator -->
+                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded text-[9px] font-mono font-black uppercase tracking-wider shadow-md backdrop-blur-md"
+                             :class="face.already_attended ? 'bg-amber-950/90 text-amber-300 border border-amber-500/40' : 'bg-emerald-950/90 text-emerald-300 border border-emerald-500/40'">
+                            <span x-text="face.already_attended ? 'SUDAH HADIR' : 'VERIFIED 512-D'"></span>
+                        </div>
+                    </div>
 
-            <!-- Animated Laser Scanning Line -->
-            <div class="laser-line" x-show="scanState === 'scanning'"></div>
+                    <!-- Floating HUD Card (Positioned directly under student's face) -->
+                    <div class="ar-hud-tag" 
+                         :class="isTagAbove(face.box_norm) ? 'animate-hud-above' : 'animate-hud-below'"
+                         :style="getHudTagStyle(face.box_norm)">
+                        
+                        <div class="glass-panel w-[250px] sm:w-[275px] rounded-2xl p-3 border shadow-2xl relative overflow-hidden backdrop-blur-xl"
+                             :class="face.already_attended ? 'border-amber-400/70 shadow-amber-500/20' : 'border-emerald-400/80 shadow-emerald-500/25'">
+
+                            <!-- Top Glowing Accent -->
+                            <div class="absolute top-0 left-0 right-0 h-1"
+                                 :class="face.already_attended ? 'bg-gradient-to-r from-amber-500 to-yellow-400' : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400'"></div>
+
+                            <!-- Header: Avatar + Status Badge + NISN -->
+                            <div class="flex items-center gap-2.5">
+                                <div class="relative w-11 h-11 flex-shrink-0">
+                                    <img :src="face.student?.avatar_url || face.student?.scan_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(face.student?.name || 'S') + '&size=100&background=0284c7&color=fff'"
+                                         class="w-full h-full rounded-xl object-cover border-2 shadow"
+                                         :class="face.already_attended ? 'border-amber-400' : 'border-emerald-400'"
+                                         alt="Foto">
+                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-md flex items-center justify-center text-[9px] text-white shadow"
+                                         :class="face.already_attended ? 'bg-amber-500' : 'bg-emerald-500'">
+                                        <i class="fas" :class="face.already_attended ? 'fa-clock' : 'fa-check'"></i>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <div class="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider mb-0.5"
+                                         :class="face.already_attended ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'">
+                                        <span x-text="face.already_attended ? 'SUDAH HADIR' : 'PRESENSI BERHASIL'"></span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 font-mono truncate">
+                                        NISN: <span class="text-slate-200 font-semibold" x-text="face.student?.nisn || '-'"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Student Name -->
+                            <h3 class="text-xs sm:text-sm font-black text-white font-heading uppercase truncate mt-2 leading-tight" x-text="face.student?.name">Nama Siswa</h3>
+
+                            <!-- Class & Scan Time Row -->
+                            <div class="flex items-center justify-between gap-1.5 mt-1.5 pt-1.5 border-t border-white/10 text-[10px]">
+                                <span class="px-2 py-0.5 rounded bg-blue-500/25 text-blue-300 border border-blue-500/30 font-bold" x-text="face.student?.kelas || 'Siswa'">Kelas</span>
+                                <span class="text-cyan-300 font-mono font-bold" x-text="face.waktu_scan || '--:-- WIB'">--:-- WIB</span>
+                            </div>
+
+                            <!-- Meta Details (Accuracy & AI Engine) -->
+                            <div class="flex items-center justify-between text-[9px] text-slate-400 mt-1 pt-1 border-t border-white/5">
+                                <span>Akurasi: <strong class="text-emerald-400" x-text="(face.confidence || 'HIGH').toUpperCase()">HIGH</strong></span>
+                                <span class="text-sky-300 font-mono truncate">ArcFace 512-D</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- UNMATCHED FACES (Unregistered passerby indication) -->
+            <template x-for="unm in unmatchedFaces" :key="unm.id">
+                <div>
+                    <div class="ar-face-box" :style="getFaceBoxStyle(unm.box_norm)">
+                        <div class="ar-corner ar-tl border-cyan-400 text-cyan-400"></div>
+                        <div class="ar-corner ar-tr border-cyan-400 text-cyan-400"></div>
+                        <div class="ar-corner ar-bl border-cyan-400 text-cyan-400"></div>
+                        <div class="ar-corner ar-br border-cyan-400 text-cyan-400"></div>
+                    </div>
+
+                    <div class="ar-hud-tag animate-hud-below" :style="getHudTagStyle(unm.box_norm)">
+                        <div class="bg-slate-900/95 border border-cyan-500/50 text-cyan-300 text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 whitespace-nowrap">
+                            <i class="fas fa-id-badge text-amber-400"></i>
+                            <span>Wajah Belum Terdaftar</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
         </div>
 
-        <!-- Center Guide / Status Pill -->
-        <div class="absolute bottom-28 md:bottom-24 left-1/2 -translate-x-1/2 z-25 text-center pointer-events-none">
-            <div class="inline-flex items-center space-x-2.5 px-6 py-2.5 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300"
+        <!-- SUBTLE BOTTOM STATUS PILL -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-25 text-center pointer-events-none">
+            <div class="inline-flex items-center space-x-2.5 px-5 py-2 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300"
                  :class="{
                     'bg-slate-900/80 border-cyan-500/40 text-cyan-300': scanState === 'idle',
-                    'bg-blue-900/90 border-blue-400 text-blue-200 animate-pulse': scanState === 'scanning',
-                    'bg-emerald-950/90 border-emerald-400 text-emerald-200': scanState === 'success',
-                    'bg-amber-950/90 border-amber-400 text-amber-200': scanState === 'warning',
-                    'bg-red-950/90 border-red-400 text-red-200': scanState === 'error'
+                    'bg-blue-900/85 border-blue-400 text-blue-200': scanState === 'scanning',
+                    'bg-emerald-950/85 border-emerald-400 text-emerald-200': scanState === 'success',
+                    'bg-red-950/85 border-red-400 text-red-200': scanState === 'error'
                  }">
-                <i class="fas text-sm"
+                <i class="fas text-xs"
                    :class="{
-                        'fa-face-viewfinder': scanState === 'idle',
+                        'fa-video text-cyan-400': scanState === 'idle',
                         'fa-spinner fa-spin text-cyan-400': scanState === 'scanning',
                         'fa-circle-check text-emerald-400': scanState === 'success',
-                        'fa-circle-exclamation text-amber-400': scanState === 'warning',
                         'fa-triangle-exclamation text-red-400': scanState === 'error'
                    }"></i>
-                <span class="text-sm font-bold tracking-wide" x-text="statusMessage">Posisikan wajah di dalam lingkaran...</span>
-            </div>
-        </div>
-
-        <!-- POPUP: SUCCESS / VERIFIED STUDENT CARD -->
-        <div x-show="showResultModal" x-cloak
-             class="absolute inset-0 z-40 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4">
-            
-            <div class="glass-panel w-full max-w-sm rounded-3xl p-6 border shadow-2xl text-center relative overflow-hidden animate-pop"
-                 :class="resultData.already_attended ? 'border-amber-500/40' : 'border-emerald-500/50'">
-
-                <!-- Top Glow Banner -->
-                <div class="absolute top-0 left-0 right-0 h-2"
-                     :class="resultData.already_attended ? 'bg-gradient-to-r from-amber-500 to-yellow-400' : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400'"></div>
-
-                <!-- Avatar with Badge -->
-                <div class="relative w-28 h-28 mx-auto mb-4 mt-2">
-                    <img :src="resultData.student?.avatar_url || resultData.student?.scan_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(resultData.student?.name || 'S') + '&size=200&background=0284c7&color=fff'"
-                         class="w-full h-full rounded-2xl object-cover border-2 shadow-xl"
-                         :class="resultData.already_attended ? 'border-amber-400' : 'border-emerald-400'"
-                         alt="Foto Siswa">
-                    
-                    <div class="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg"
-                         :class="resultData.already_attended ? 'bg-amber-500' : 'bg-emerald-500'">
-                        <i class="fas" :class="resultData.already_attended ? 'fa-clock' : 'fa-check'"></i>
-                    </div>
-                </div>
-
-                <!-- Status Badge -->
-                <div class="inline-block px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2"
-                     :class="resultData.already_attended ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'">
-                    <span x-text="resultData.already_attended ? 'SUDAH HADIR' : 'PRESENSI BERHASIL'"></span>
-                </div>
-
-                <!-- Student Details -->
-                <h2 class="text-xl sm:text-2xl font-black text-white font-heading leading-tight" x-text="resultData.student?.name">Nama Siswa</h2>
-                
-                <div class="flex items-center justify-center gap-2 mt-2">
-                    <span class="px-2.5 py-0.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold text-xs" x-text="resultData.student?.kelas">Kelas</span>
-                    <span class="text-slate-400 text-xs font-mono">NISN: <strong class="text-slate-200" x-text="resultData.student?.nisn">0000000000</strong></span>
-                </div>
-
-                <div class="mt-4 pt-3 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-xs">
-                    <div>
-                        <p class="text-slate-400 text-[11px]">Waktu Masuk</p>
-                        <p class="text-cyan-400 font-bold text-xs sm:text-sm font-mono mt-0.5" x-text="resultData.waktu_scan">--:-- WIB</p>
-                    </div>
-                    <div class="border-x border-white/10 px-1">
-                        <p class="text-slate-400 text-[11px]">Tingkat Akurasi</p>
-                        <p class="text-emerald-400 font-bold text-xs sm:text-sm mt-0.5" x-text="resultData.confidence ? resultData.confidence.toUpperCase() : 'OPTIMAL'">HIGH</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-400 text-[11px]">AI Engine</p>
-                        <p class="text-sky-300 font-bold text-xs sm:text-sm mt-0.5 truncate" x-text="resultData.engine ? (resultData.engine.includes('512') ? 'ArcFace 512-D' : 'dlib 128-D') : 'ArcFace 512-D'">ArcFace 512-D</p>
-                    </div>
-                </div>
+                <span class="text-xs font-bold tracking-wide" x-text="statusMessage">Sistem Siap • Siswa silakan lewat gerbang</span>
             </div>
         </div>
 
@@ -284,7 +311,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-white">Input / Scan NISN</h3>
-                        <p class="text-xs text-slate-400">Gunakan jika wajah tidak terdeteksi</p>
+                        <p class="text-xs text-slate-400">Gunakan jika wajah belum terdaftar</p>
                     </div>
                 </div>
 
@@ -297,7 +324,7 @@
 
                     <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3 rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 active:scale-98 transition">
                         <i class="fas fa-camera"></i>
-                        <span>Verifikasi & Ambil Foto</span>
+                        <span>Verifikasi & Catat Hadir</span>
                     </button>
                 </form>
             </div>
@@ -305,15 +332,15 @@
 
     </main>
 
-    <!-- BOTTOM BAR: STATS & LIVE TICKER -->
-    <footer class="glass-panel px-6 py-3.5 z-30 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3">
+    <!-- BOTTOM BAR: STATS & CONTROLS -->
+    <footer class="glass-panel px-4 sm:px-6 py-3 z-30 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-2.5">
         
         <!-- Counter Info -->
-        <div class="flex items-center space-x-6 text-xs">
-            <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-4 sm:space-x-6 text-xs">
+            <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                 <span class="text-slate-300 font-medium">Hadir Hari Ini:</span>
-                <span class="text-emerald-400 font-extrabold text-base font-mono" x-text="hadirCount">{{ $hadirHariIniCount }}</span>
+                <span class="text-emerald-400 font-black text-base font-mono" x-text="hadirCount">{{ $hadirHariIniCount }}</span>
                 <span class="text-slate-500">/ {{ $totalSiswa }} Siswa</span>
             </div>
 
@@ -321,7 +348,12 @@
 
             <div class="hidden sm:flex items-center space-x-2 text-slate-400">
                 <i class="fas fa-database text-cyan-400"></i>
-                <span>Biometrik Aktif: <strong class="text-cyan-300">{{ $totalEnrolled }}</strong> siswa di RAM</span>
+                <span>Biometrik RAM: <strong class="text-cyan-300">{{ $totalEnrolled }}</strong> siswa</span>
+            </div>
+
+            <div class="hidden lg:flex items-center space-x-1.5 text-slate-400">
+                <i class="fas fa-circle-nodes text-emerald-400"></i>
+                <span class="text-[11px] text-slate-300">Deteksi Multi-Wajah Aktif (Hingga 5 Siswa Sekaligus)</span>
             </div>
         </div>
 
@@ -347,19 +379,26 @@
                 voiceEnabled: true,
                 isSyncing: false,
                 isProcessing: false,
-                scanState: 'idle', // idle, scanning, success, warning, error
-                statusMessage: 'Posisikan wajah di dalam lingkaran oval...',
+                scanState: 'idle',
+                statusMessage: 'Sistem Siap • Siswa silakan lewat gerbang',
                 
-                showResultModal: false,
-                resultData: {},
-                modalTimer: null,
+                // Camera facing mode: 'environment' (rear camera default for kiosk gate) or 'user' (front camera)
+                cameraFacing: localStorage.getItem('kiosk_camera_facing') || 'environment',
+                zoomLevel: 1.0,
+                hasHardwareZoom: false,
+
+                // Active recognized faces and unmatched faces
+                activeFaces: [],
+                unmatchedFaces: [],
                 
                 showNisnModal: false,
                 manualNisn: '',
                 hadirCount: {{ $hadirHariIniCount }},
 
-                // Cooldown map: student_id -> last_scan_timestamp
+                // Cooldown map: student_id -> last_attendance_timestamp
                 cooldowns: {},
+                lastSpoken: {},
+                recomputeKey: 0,
 
                 initKiosk() {
                     this.videoEl = document.getElementById('camera-feed');
@@ -370,15 +409,27 @@
 
                     this.startCamera();
 
-                    // Start Continuous Detection Loop (every 1.5 seconds)
+                    // Continuous fast detection loop (every 750ms for smooth walkthrough)
                     setInterval(() => {
-                        if (!this.isProcessing && !this.showResultModal && !this.showNisnModal) {
+                        if (!this.isProcessing && !this.showNisnModal) {
                             this.autoCaptureAndScan();
                         }
-                    }, 1500);
+                    }, 750);
+
+                    // Clean expired HUD tags every 250ms
+                    setInterval(() => {
+                        const now = Date.now();
+                        this.activeFaces = this.activeFaces.filter(f => f.expiresAt > now);
+                        this.unmatchedFaces = this.unmatchedFaces.filter(f => f.expiresAt > now);
+                    }, 250);
 
                     // Polling Live Stats every 15 seconds
                     setInterval(() => this.fetchStats(), 15000);
+
+                    // Window resize listener to recompute AR positions accurately
+                    window.addEventListener('resize', () => {
+                        this.recomputeKey++;
+                    });
                 },
 
                 updateClock() {
@@ -394,16 +445,43 @@
 
                 async startCamera() {
                     try {
+                        if (this.stream) {
+                            this.stream.getTracks().forEach(t => t.stop());
+                            this.stream = null;
+                        }
+
                         const constraints = {
                             video: {
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 },
-                                facingMode: 'user'
+                                facingMode: { ideal: this.cameraFacing },
+                                width: { ideal: 1920, min: 1280 },
+                                height: { ideal: 1080, min: 720 }
                             },
                             audio: false
                         };
-                        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                        try {
+                            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        } catch (errFallback) {
+                            console.warn('Fallback basic getUserMedia:', errFallback);
+                            this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                        }
+
                         this.videoEl.srcObject = this.stream;
+                        this.scanState = 'idle';
+                        this.statusMessage = 'Sistem Siap • Arahkan kamera ke gerbang masuk';
+
+                        // Check for hardware zoom capability on the selected camera track
+                        setTimeout(() => {
+                            const track = this.stream?.getVideoTracks()[0];
+                            const caps = track?.getCapabilities?.() || {};
+                            this.hasHardwareZoom = Boolean(caps.zoom);
+                            if (this.hasHardwareZoom && this.zoomLevel > 1.0) {
+                                track.applyConstraints({
+                                    advanced: [{ zoom: Math.min(this.zoomLevel, caps.zoom.max || 2.0) }]
+                                }).catch(() => {});
+                            }
+                        }, 500);
+
                     } catch (err) {
                         console.error('Camera access error:', err);
                         this.statusMessage = 'Akses kamera gagal. Pastikan izin kamera aktif.';
@@ -411,21 +489,72 @@
                     }
                 },
 
+                async switchCamera() {
+                    this.cameraFacing = (this.cameraFacing === 'environment') ? 'user' : 'environment';
+                    localStorage.setItem('kiosk_camera_facing', this.cameraFacing);
+                    await this.startCamera();
+                },
+
+                async cycleZoom() {
+                    const levels = [1.0, 1.5, 2.0];
+                    const currentIndex = levels.indexOf(this.zoomLevel);
+                    this.zoomLevel = levels[(currentIndex + 1) % levels.length];
+
+                    if (this.hasHardwareZoom && this.stream) {
+                        try {
+                            const track = this.stream.getVideoTracks()[0];
+                            const caps = track?.getCapabilities?.() || {};
+                            await track.applyConstraints({
+                                advanced: [{ zoom: Math.min(this.zoomLevel, caps.zoom.max || 2.0) }]
+                            });
+                        } catch (e) {
+                            console.warn('Apply zoom error:', e);
+                        }
+                    }
+                },
+
+                getVideoTransformStyle() {
+                    // If hardware zoom is NOT supported and zoom > 1.0, apply CSS scale transform
+                    const baseScaleX = (this.cameraFacing === 'user') ? -1 : 1;
+                    if (!this.hasHardwareZoom && this.zoomLevel > 1.0) {
+                        return `transform: scale(${baseScaleX * this.zoomLevel}, ${this.zoomLevel});`;
+                    }
+                    return (this.cameraFacing === 'user') ? 'transform: scaleX(-1);' : 'transform: none;';
+                },
+
                 captureFrame() {
                     if (!this.videoEl || this.videoEl.readyState !== 4) return null;
-                    const width = 640;
-                    const height = Math.round((this.videoEl.videoHeight / this.videoEl.videoWidth) * width);
 
-                    this.canvasEl.width = width;
-                    this.canvasEl.height = height;
+                    // High-resolution capture (1280px width) for long-range small-face clarity (3-6m)
+                    const targetWidth = 1280;
+                    const videoW = this.videoEl.videoWidth || 1280;
+                    const videoH = this.videoEl.videoHeight || 720;
+                    const targetHeight = Math.round((videoH / videoW) * targetWidth);
+
+                    this.canvasEl.width = targetWidth;
+                    this.canvasEl.height = targetHeight;
 
                     const ctx = this.canvasEl.getContext('2d');
-                    // Mirroring horizontal to match video display
-                    ctx.translate(width, 0);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(this.videoEl, 0, 0, width, height);
+                    ctx.clearRect(0, 0, targetWidth, targetHeight);
 
-                    return this.canvasEl.toDataURL('image/jpeg', 0.85);
+                    // Support software digital zoom crop if camera lacks hardware zoom
+                    let sx = 0, sy = 0, sw = videoW, sh = videoH;
+                    if (!this.hasHardwareZoom && this.zoomLevel > 1.0) {
+                        sw = videoW / this.zoomLevel;
+                        sh = videoH / this.zoomLevel;
+                        sx = (videoW - sw) / 2;
+                        sy = (videoH - sh) / 2;
+                    }
+
+                    // Mirror horizontally if user mode so coordinates match mirror screen
+                    if (this.cameraFacing === 'user') {
+                        ctx.translate(targetWidth, 0);
+                        ctx.scale(-1, 1);
+                    }
+
+                    ctx.drawImage(this.videoEl, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+
+                    return this.canvasEl.toDataURL('image/jpeg', 0.88);
                 },
 
                 async autoCaptureAndScan() {
@@ -434,7 +563,6 @@
 
                     this.isProcessing = true;
                     this.scanState = 'scanning';
-                    this.statusMessage = 'Memindai biometrik wajah...';
 
                     try {
                         const response = await fetch("{{ route('kiosk.identify') }}", {
@@ -450,61 +578,231 @@
                         const res = await response.json();
 
                         if (res.success) {
-                            const studentId = res.student?.id;
-                            const now = Date.now();
-
-                            // Cooldown: Abaikan jika siswa yang sama baru saja ter-scan dalam 15 detik terakhir
-                            if (studentId && this.cooldowns[studentId] && (now - this.cooldowns[studentId] < 15000)) {
-                                this.resetToIdle();
-                                return;
+                            if (res.results && Array.isArray(res.results)) {
+                                this.handleMultiScanResults(res);
+                            } else if (res.student) {
+                                this.handleMultiScanResults({ results: [res], unmatched: [] });
                             }
-                            this.cooldowns[studentId] = now;
-
-                            this.handleScanSuccess(res);
                         } else {
-                            // Gagal atau wajah tidak cocok
+                            if (res.unmatched && Array.isArray(res.unmatched) && res.unmatched.length > 0) {
+                                const now = Date.now();
+                                this.unmatchedFaces = res.unmatched.map((u, i) => ({
+                                    id: 'unmatched_' + i + '_' + now,
+                                    box_norm: u.box_norm,
+                                    expiresAt: now + 2000
+                                }));
+                            }
                             this.scanState = 'idle';
-                            this.statusMessage = 'Posisikan wajah di dalam lingkaran oval...';
-                            this.isProcessing = false;
+                            this.statusMessage = 'Sistem Siap • Siswa silakan lewat gerbang';
                         }
                     } catch (err) {
                         console.error('Scan error:', err);
                         this.scanState = 'idle';
-                        this.statusMessage = 'Posisikan wajah di dalam lingkaran oval...';
+                    } finally {
                         this.isProcessing = false;
                     }
                 },
 
-                handleScanSuccess(res) {
-                    this.resultData = res;
-                    this.showResultModal = true;
-                    this.scanState = res.already_attended ? 'warning' : 'success';
-                    this.statusMessage = res.message;
+                handleMultiScanResults(resData) {
+                    const now = Date.now();
+                    const newStudentsSpoken = [];
+                    const results = resData.results || [];
 
-                    if (!res.already_attended) {
-                        this.hadirCount++;
+                    for (const res of results) {
+                        const studentId = res.student?.id;
+                        if (!studentId) continue;
+
+                        const lastSeen = this.cooldowns[studentId] || 0;
+                        const isCooldownExpired = (now - lastSeen) > 15000; // 15 detik cooldown
+
+                        if (isCooldownExpired) {
+                            this.cooldowns[studentId] = now;
+                            if (!res.already_attended) {
+                                this.hadirCount++;
+                                newStudentsSpoken.push(res.student.name);
+                            } else {
+                                if (this.voiceEnabled && (!this.lastSpoken[studentId] || (now - this.lastSpoken[studentId] > 20000))) {
+                                    this.lastSpoken[studentId] = now;
+                                    this.speak(`Halo ${res.student.name}, kamu sudah absen hari ini.`);
+                                }
+                            }
+                        }
+
+                        // Add or update active face object
+                        const existingIdx = this.activeFaces.findIndex(f => f.student?.id === studentId);
+                        const faceObj = {
+                            id: 'face_' + studentId,
+                            student: res.student,
+                            already_attended: res.already_attended,
+                            waktu_scan: res.waktu_scan,
+                            confidence: res.confidence,
+                            distance: res.distance,
+                            engine: res.engine,
+                            box_norm: res.box_norm,
+                            expiresAt: now + 4200 // Visible for 4.2 seconds
+                        };
+
+                        if (existingIdx >= 0) {
+                            this.activeFaces[existingIdx] = faceObj;
+                        } else {
+                            this.activeFaces.push(faceObj);
+                        }
                     }
 
-                    // Suara Sambutan Audio TTS
-                    if (this.voiceEnabled) {
-                        this.speak(res.already_attended
-                            ? `Halo ${res.student.name}, kamu sudah absen hari ini.`
-                            : `Selamat pagi ${res.student.name}! Kelas ${res.student.kelas}, presensi berhasil dicatat.`
-                        );
+                    // Update unmatched faces
+                    if (resData.unmatched && Array.isArray(resData.unmatched)) {
+                        this.unmatchedFaces = resData.unmatched.map((u, i) => ({
+                            id: 'unmatched_' + i + '_' + now,
+                            box_norm: u.box_norm,
+                            expiresAt: now + 2000
+                        }));
+                    } else {
+                        this.unmatchedFaces = [];
                     }
 
-                    // Auto dismiss modal after 2.2 seconds & reset for next student
-                    if (this.modalTimer) clearTimeout(this.modalTimer);
-                    this.modalTimer = setTimeout(() => {
-                        this.showResultModal = false;
-                        this.resetToIdle();
-                    }, 2400);
+                    // Play pleasant chime and speak names if newly recorded
+                    if (newStudentsSpoken.length > 0) {
+                        this.playSuccessChime();
+                        this.scanState = 'success';
+                        this.statusMessage = `${newStudentsSpoken.length} Siswa Berhasil Presensi`;
+
+                        if (this.voiceEnabled) {
+                            if (newStudentsSpoken.length === 1) {
+                                this.speak(`Selamat pagi ${newStudentsSpoken[0]}! Presensi berhasil dicatat.`);
+                            } else if (newStudentsSpoken.length === 2) {
+                                this.speak(`Selamat pagi ${newStudentsSpoken[0]} dan ${newStudentsSpoken[1]}! Presensi berhasil dicatat.`);
+                            } else {
+                                this.speak(`Presensi berhasil untuk ${newStudentsSpoken[0]}, ${newStudentsSpoken[1]}, dan siswa lainnya.`);
+                            }
+                        }
+                    } else {
+                        this.scanState = 'idle';
+                    }
                 },
 
-                resetToIdle() {
-                    this.scanState = 'idle';
-                    this.statusMessage = 'Posisikan wajah di dalam lingkaran oval...';
-                    this.isProcessing = false;
+                getFaceScreenRect(boxNorm) {
+                    if (!this.videoEl || !boxNorm) return null;
+                    const dummy = this.recomputeKey; // Trigger reactivity on resize
+
+                    const containerW = this.videoEl.clientWidth || window.innerWidth;
+                    const containerH = this.videoEl.clientHeight || window.innerHeight;
+                    const videoW = this.videoEl.videoWidth || 1280;
+                    const videoH = this.videoEl.videoHeight || 720;
+
+                    const containerRatio = containerW / containerH;
+                    const videoRatio = videoW / videoH;
+
+                    let renderW, renderH, offsetX, offsetY;
+
+                    if (containerRatio > videoRatio) {
+                        renderW = containerW;
+                        renderH = containerW / videoRatio;
+                        offsetX = 0;
+                        offsetY = (containerH - renderH) / 2;
+                    } else {
+                        renderH = containerH;
+                        renderW = containerH * videoRatio;
+                        offsetX = (containerW - renderW) / 2;
+                        offsetY = 0;
+                    }
+
+                    const x = offsetX + (boxNorm.x * renderW);
+                    const y = offsetY + (boxNorm.y * renderH);
+                    const w = boxNorm.w * renderW;
+                    const h = boxNorm.h * renderH;
+
+                    return { x, y, w, h };
+                },
+
+                getFaceBoxStyle(boxNorm) {
+                    const rect = this.getFaceScreenRect(boxNorm);
+                    if (!rect) return 'display: none;';
+                    return `left: ${rect.x}px; top: ${rect.y}px; width: ${rect.w}px; height: ${rect.h}px;`;
+                },
+
+                isTagAbove(boxNorm) {
+                    const rect = this.getFaceScreenRect(boxNorm);
+                    if (!rect) return false;
+                    const containerH = this.videoEl ? this.videoEl.clientHeight : window.innerHeight;
+                    return (rect.y + rect.h + 160) > containerH;
+                },
+
+                getHudTagStyle(boxNorm) {
+                    const rect = this.getFaceScreenRect(boxNorm);
+                    if (!rect) return 'display: none;';
+
+                    const containerH = this.videoEl ? this.videoEl.clientHeight : window.innerHeight;
+                    const centerX = rect.x + (rect.w / 2);
+
+                    if ((rect.y + rect.h + 160) > containerH) {
+                        // Tag placed above face
+                        const topPos = Math.max(12, rect.y - 12);
+                        return `left: ${centerX}px; top: ${topPos}px;`;
+                    } else {
+                        // Tag placed below face
+                        const topPos = rect.y + rect.h + 14;
+                        return `left: ${centerX}px; top: ${topPos}px;`;
+                    }
+                },
+
+                playSuccessChime() {
+                    try {
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const now = audioCtx.currentTime;
+
+                        // Chime Tone 1: 587.33 Hz (D5)
+                        const osc1 = audioCtx.createOscillator();
+                        const gain1 = audioCtx.createGain();
+                        osc1.type = 'sine';
+                        osc1.frequency.setValueAtTime(587.33, now);
+                        gain1.gain.setValueAtTime(0.18, now);
+                        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        osc1.connect(gain1);
+                        gain1.connect(audioCtx.destination);
+                        osc1.start(now);
+                        osc1.stop(now + 0.3);
+
+                        // Chime Tone 2: 880 Hz (A5)
+                        const osc2 = audioCtx.createOscillator();
+                        const gain2 = audioCtx.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(880, now + 0.1);
+                        gain2.gain.setValueAtTime(0.22, now + 0.1);
+                        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc2.connect(gain2);
+                        gain2.connect(audioCtx.destination);
+                        osc2.start(now + 0.1);
+                        osc2.stop(now + 0.5);
+                    } catch (e) {
+                        // Silent audio context error
+                    }
+                },
+
+                speak(text) {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = 'id-ID';
+                        utterance.rate = 1.05;
+                        utterance.pitch = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    }
+                },
+
+                toggleVoice() {
+                    this.voiceEnabled = !this.voiceEnabled;
+                },
+
+                toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => console.log(err));
+                        this.isFullscreen = true;
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                            this.isFullscreen = false;
+                        }
+                    }
                 },
 
                 openNisnModal() {
@@ -549,46 +847,19 @@
                         const res = await response.json();
 
                         if (res.success) {
-                            this.handleScanSuccess(res);
+                            this.handleMultiScanResults({ results: [res], unmatched: [] });
                         } else {
                             this.scanState = 'error';
                             this.statusMessage = res.message || 'Wajah tidak cocok dengan data NISN.';
                             if (this.voiceEnabled) {
                                 this.speak('Maaf, verifikasi wajah dengan data NISN gagal.');
                             }
-                            setTimeout(() => this.resetToIdle(), 3000);
                         }
                     } catch (err) {
                         this.scanState = 'error';
                         this.statusMessage = 'Terjadi kesalahan sistem.';
-                        setTimeout(() => this.resetToIdle(), 3000);
-                    }
-                },
-
-                speak(text) {
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const utterance = new SpeechSynthesisUtterance(text);
-                        utterance.lang = 'id-ID';
-                        utterance.rate = 1.05;
-                        utterance.pitch = 1.0;
-                        window.speechSynthesis.speak(utterance);
-                    }
-                },
-
-                toggleVoice() {
-                    this.voiceEnabled = !this.voiceEnabled;
-                },
-
-                toggleFullscreen() {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch(err => console.log(err));
-                        this.isFullscreen = true;
-                    } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                            this.isFullscreen = false;
-                        }
+                    } finally {
+                        this.isProcessing = false;
                     }
                 },
 
@@ -603,7 +874,7 @@
                             }
                         });
                         const res = await response.json();
-                        alert(res.message || 'Sinkronisasi berhasil!');
+                        alert(res.message || 'Sinkronisasi biometrik berhasil!');
                     } catch (err) {
                         alert('Gagal sinkronisasi data wajah.');
                     } finally {

@@ -75,9 +75,11 @@ LIVENESS_THRESHOLD = float(os.getenv('LIVENESS_THRESHOLD', '0.20'))  # MiniFASNe
 MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
 MINIFASNET_PATH = os.path.join(MODEL_DIR, '2.7_80x80_MiniFASNetV2.onnx')
 ARCFACE_PATH = os.path.join(MODEL_DIR, 'w600k_r50.onnx')
+YUNET_PATH = os.path.join(MODEL_DIR, 'face_detection_yunet_2023mar.onnx')
 
 minifasnet_session = None
 arcface_session = None
+yunet_detector = None
 
 # InsightFace Standard 5-Point Canonical Face Reference (112x112 space)
 ARCFACE_SRC_PTS = np.array([
@@ -87,6 +89,21 @@ ARCFACE_SRC_PTS = np.array([
     [41.5493, 92.3655],  # left mouth corner
     [70.7299, 92.2041]   # right mouth corner
 ], dtype=np.float32)
+
+# Inisialisasi YuNet Small Face Detector (High-Speed Multi-Target dari Jarak Jauh)
+if OPENCV_AVAILABLE and hasattr(cv2, 'FaceDetectorYN') and os.path.exists(YUNET_PATH):
+    try:
+        yunet_detector = cv2.FaceDetectorYN.create(
+            model=YUNET_PATH,
+            config='',
+            input_size=(640, 480),
+            score_threshold=0.50,
+            nms_threshold=0.3,
+            top_k=5000
+        )
+        print(f"✅ YuNet Multi-Face & Small-Face Detector loaded dari: {YUNET_PATH}")
+    except Exception as e:
+        print(f"⚠️ Gagal load YuNet ONNX: {e}")
 
 if ONNX_AVAILABLE:
     # Konfigurasi Session Optimization untuk Intel Xeon 16-Core
@@ -148,6 +165,7 @@ class IdentifyRequest(BaseModel):
     candidates: Optional[List[Candidate]] = None
     threshold: Optional[float] = None
     skip_liveness: Optional[bool] = False
+    max_faces: Optional[int] = 5
 
 
 # --- Helper Functions ---
@@ -897,7 +915,186 @@ def mode_identify(payload: IdentifyRequest) -> Dict[str, Any]:
             "liveness_score": round(liveness_score, 4),
             "is_real": is_real,
             "total_candidates": total_in_cache,
-            "reason": best_match["reason"]
+            "reason": best_match["reason"],
+            "box": face_box
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "trace": traceback.format_exc()}
+
+
+@app.post("/identify-multi")
+def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
+    """
+    Endpoint Multi-Face 1:N Recognition (Smart Walkthrough Gate Kiosk).
+    Mampu mendeteksi dan mengidentifikasi 1 s/d 5 siswa sekaligus dari jarak jauh (YuNet + ArcFace 512-D).
+    """
+    global CANDIDATE_128_IDS, CANDIDATE_128_MATRIX, CANDIDATE_512_IDS, CANDIDATE_512_MATRIX
+
+    try:
+        ensure_candidates_loaded()
+        total_in_cache = len(CANDIDATE_128_IDS) + len(CANDIDATE_512_IDS)
+        if total_in_cache == 0 and not payload.candidates:
+            return {
+                "success": False,
+                "error": "Database biometrik siswa kosong di RAM server.",
+                "need_sync": True
+            }
+
+        img_array = decode_image(payload.image_b64, max_dimension=1280)
+        h, w, _ = img_array.shape
+        bgr_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
+        max_faces = payload.max_faces if payload.max_faces and payload.max_faces > 0 else 5
+        thr_512 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.55) else THRESHOLD_512
+
+        mat512 = CANDIDATE_512_MATRIX
+        ids512 = CANDIDATE_512_IDS
+
+        detected_faces = []
+
+        # 1. Deteksi Wajah menggunakan YuNet (Ultra-Fast & High-Sensitivity untuk Small Faces dari Jauh)
+        if yunet_detector is not None:
+            yunet_detector.setInputSize((w, h))
+            yunet_detector.setScoreThreshold(0.45)
+            _, raw_faces = yunet_detector.detect(bgr_img)
+            if raw_faces is not None and len(raw_faces) > 0:
+                sorted_faces = sorted(raw_faces, key=lambda f: float(f[14]) * (float(f[2]) * float(f[3])), reverse=True)
+                for f in sorted_faces[:max_faces]:
+                    x, y, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
+                    x = max(0, x)
+                    y = max(0, y)
+                    fw = min(w - x, fw)
+                    fh = min(h - y, fh)
+                    if fw < 15 or fh < 15:
+                        continue
+                    
+                    dst_pts = np.array([
+                        [f[4], f[5]],
+                        [f[6], f[7]],
+                        [f[8], f[9]],
+                        [f[10], f[11]],
+                        [f[12], f[13]]
+                    ], dtype=np.float32)
+
+                    detected_faces.append({
+                        "box_px": {"x": x, "y": y, "w": fw, "h": fh},
+                        "box_norm": {
+                            "x": round(x / w, 4),
+                            "y": round(y / h, 4),
+                            "w": round(fw / w, 4),
+                            "h": round(fh / h, 4)
+                        },
+                        "landmarks": dst_pts,
+                        "score": float(f[14])
+                    })
+
+        # Fallback deteksi jika YuNet belum aktif atau 0 wajah
+        if len(detected_faces) == 0:
+            face_locations = face_recognition.face_locations(img_array, number_of_times_to_upsample=1, model="hog")
+            for box in face_locations[:max_faces]:
+                top, right, bottom, left = box
+                bw = right - left
+                bh = bottom - top
+                detected_faces.append({
+                    "box_px": {"x": left, "y": top, "w": bw, "h": bh},
+                    "box_norm": {
+                        "x": round(left / w, 4),
+                        "y": round(top / h, 4),
+                        "w": round(bw / w, 4),
+                        "h": round(bh / h, 4)
+                    },
+                    "landmarks": None,
+                    "score": 0.8
+                })
+
+        if len(detected_faces) == 0:
+            return {
+                "success": True,
+                "total_faces": 0,
+                "matches": [],
+                "unmatched": [],
+                "match": False,
+                "reason": "Tidak ada wajah terdeteksi."
+            }
+
+        matches = []
+        unmatched = []
+        seen_user_ids = set()
+
+        for face in detected_faces:
+            box_px = face["box_px"]
+            box_norm = face["box_norm"]
+            dst_pts = face["landmarks"]
+
+            vec_512 = None
+            if arcface_session is not None:
+                try:
+                    if dst_pts is not None:
+                        M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
+                        if M is not None:
+                            aligned = cv2.warpAffine(bgr_img, M, (112, 112), borderValue=0.0)
+                        else:
+                            crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
+                            aligned = cv2.resize(crop, (112, 112))
+                    else:
+                        crop = bgr_img[box_px["y"]:box_px["y"]+box_px["h"], box_px["x"]:box_px["x"]+box_px["w"]]
+                        aligned = cv2.resize(crop, (112, 112))
+
+                    blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
+                    blob = (blob - 127.5) / 127.5
+                    blob = np.expand_dims(blob, axis=0)
+                    out = arcface_session.run(None, {'input.1': blob})[0][0]
+                    norm = float(np.linalg.norm(out))
+                    if norm > 0:
+                        vec_512 = (out / norm).tolist()
+                except Exception as ex:
+                    print(f"Error ArcFace align in multi: {ex}")
+
+            min_dist_512 = 999.0
+            matched_user_id = None
+            if vec_512 is not None and mat512 is not None and len(ids512) > 0:
+                q512 = np.array(vec_512, dtype=np.float32)
+                dists_512 = np.linalg.norm(mat512 - q512, axis=1)
+                idx_512 = int(np.argmin(dists_512))
+                min_dist_512 = float(dists_512[idx_512])
+                matched_user_id = ids512[idx_512]
+
+                if min_dist_512 <= thr_512:
+                    if matched_user_id not in seen_user_ids:
+                        seen_user_ids.add(matched_user_id)
+                        conf = max(0.0, 1.0 - (min_dist_512 / thr_512))
+                        matches.append({
+                            "user_id": matched_user_id,
+                            "distance": round(min_dist_512, 4),
+                            "threshold": thr_512,
+                            "confidence_pct": round(conf * 100, 1),
+                            "confidence": "very_high" if min_dist_512 < 0.45 else ("high" if min_dist_512 < 0.55 else "medium"),
+                            "box": box_px,
+                            "box_norm": box_norm,
+                            "engine": "arcface-512-yunet"
+                        })
+                        continue
+
+            unmatched.append({
+                "box": box_px,
+                "box_norm": box_norm,
+                "distance": round(min_dist_512, 4) if vec_512 is not None else None
+            })
+
+        best = matches[0] if len(matches) > 0 else None
+        return {
+            "success": True,
+            "total_faces": len(detected_faces),
+            "matches": matches,
+            "unmatched": unmatched,
+            "match": len(matches) > 0,
+            "user_id": best["user_id"] if best else None,
+            "distance": best["distance"] if best else None,
+            "threshold": best["threshold"] if best else thr_512,
+            "confidence": best["confidence"] if best else "low",
+            "box": best["box"] if best else None,
+            "box_norm": best["box_norm"] if best else None,
+            "engine": "arcface-512-yunet"
         }
     except Exception as e:
         return {"success": False, "error": str(e), "trace": traceback.format_exc()}
@@ -931,6 +1128,7 @@ def mode_test() -> Dict[str, Any]:
     results['opencv'] = cv2.__version__ if OPENCV_AVAILABLE else 'NOT INSTALLED'
     results['minifasnet_liveness'] = 'READY' if minifasnet_session is not None else 'NOT LOADED'
     results['arcface_512d'] = 'READY (5-Point Aligned)' if arcface_session is not None else 'NOT LOADED'
+    results['yunet_detector'] = 'READY (Multi-Face Long-Range)' if yunet_detector is not None else 'NOT LOADED'
 
     ensure_candidates_loaded()
     total_pool = len(CANDIDATE_128_IDS) + len(CANDIDATE_512_IDS)
