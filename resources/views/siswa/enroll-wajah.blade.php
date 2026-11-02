@@ -435,15 +435,16 @@
             // Tracking & Pose States
             isFaceDetected: false,
             isPoseMatching: false,
-            currentYaw: 1.0,
-            baselineYaw: 1.0,
+            currentYaw: 0.0,
+            baselineYaw: 0.0,
             isBaselineCalibrated: false,
             currentSmile: 0.0,
             holdProgress: 0,
             cooldownUntil: 0,
+            stepEnteredAt: performance.now(),
             animLoopId: null,
 
-            // Detection Loop throttling
+            // Detection Loop throttling & Grace Period
             isDetecting: false,
             lastDetectTime: 0,
             lastDetectionSuccess: 0,
@@ -478,7 +479,14 @@
 
             get currentStatusLabel() {
                 if (this.isPoseMatching) {
-                    return Math.round(this.holdProgress) + '% Tahan Posisi...';
+                    const step = this.capturedImages.length;
+                    const pct = Math.min(100, Math.round(this.holdProgress));
+                    if (step === 0) return `Posisikan Wajah... ${pct}%`;
+                    if (step === 1) return `👈 Toleh Kiri... ${pct}%`;
+                    if (step === 2) return `👉 Toleh Kanan... ${pct}%`;
+                    if (step === 3) return `😊 Senyum... ${pct}%`;
+                    if (step === 4) return `🔒 Kunci Face ID... ${pct}%`;
+                    return `${pct}% Tahan Posisi...`;
                 }
                 if (this.isFaceDetected) {
                     return this.currentStepInfo.instruction;
@@ -590,9 +598,10 @@
 
                 try {
                     if (window.faceapi && faceapi.nets.tinyFaceDetector.params) {
+                        // Toleransi tinggi (inputSize 320, scoreThreshold 0.15 agar wajah miring tidak drop)
                         const detection = await faceapi.detectSingleFace(
                             video,
-                            new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.30 })
+                            new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.15 })
                         ).withFaceLandmarks(true).withFaceExpressions();
 
                         if (detection && detection.landmarks) {
@@ -601,33 +610,34 @@
 
                             const pts = detection.landmarks.positions;
                             const nose = pts[30];
-                            const leftJaw = pts[0];
-                            const rightJaw = pts[16];
                             const leftEye = pts[36];
                             const rightEye = pts[45];
+                            const box = detection.detection.box;
 
-                            // Calculate Yaw from Jawline and Eye distance
-                            const distJawL = Math.hypot(nose.x - leftJaw.x, nose.y - leftJaw.y);
-                            const distJawR = Math.hypot(rightJaw.x - nose.x, rightJaw.y - nose.y);
-                            const yawJaw = distJawL / Math.max(1, distJawR);
+                            // 1. Pergeseran hidung terhadap titik tengah kotak wajah (Sangat stabil, bebas oklusi rahang)
+                            const boxCenterX = box.x + (box.width / 2);
+                            const noseOffset = (nose.x - boxCenterX) / Math.max(1, box.width);
 
-                            const distEyeL = Math.hypot(nose.x - leftEye.x, nose.y - leftEye.y);
-                            const distEyeR = Math.hypot(rightEye.x - nose.x, rightEye.y - nose.y);
-                            const yawEye = distEyeL / Math.max(1, distEyeR);
+                            // 2. Asimetri mata terhadap hidung
+                            const eyeMidX = (leftEye.x + rightEye.x) / 2;
+                            const eyeSpan = Math.max(1, rightEye.x - leftEye.x);
+                            const eyeOffset = (nose.x - eyeMidX) / eyeSpan;
 
-                            const rawYaw = (yawJaw * 0.5) + (yawEye * 0.5);
-                            this.currentYaw = (this.currentYaw * 0.6) + (rawYaw * 0.4);
+                            // Metrik yaw yang sangat toleran dan stabil
+                            const rawYaw = (noseOffset * 2.0) + (eyeOffset * 0.8);
+                            this.currentYaw = (this.currentYaw * 0.5) + (rawYaw * 0.5);
 
                             if (detection.expressions?.happy !== undefined) {
                                 this.currentSmile = (this.currentSmile * 0.6) + (detection.expressions.happy * 0.4);
                             }
-                        } else {
-                            if (performance.now() - this.lastDetectionSuccess > 380) {
-                                this.isFaceDetected = false;
-                            }
+                        } else if (detection && detection.box) {
+                            // Kotak wajah terdeteksi meskipun landmark sedang kabur sesaat
+                            this.lastDetectionSuccess = performance.now();
+                            this.isFaceDetected = true;
                         }
                     } else {
                         // Fallback detection if faceapi still loading
+                        this.lastDetectionSuccess = performance.now();
                         this.isFaceDetected = true;
                     }
                 } catch (e) {
@@ -638,61 +648,55 @@
             },
 
             evaluatePoseState(dt) {
+                // Buffer toleransi 1200ms: Jangan pernah reset progress jika hanya kehilangan frame sekejap saat bergerak
+                const timeSinceLastDetection = performance.now() - this.lastDetectionSuccess;
+                this.isFaceDetected = timeSinceLastDetection < 1200;
+
                 if (!this.isFaceDetected) {
                     this.isPoseMatching = false;
-                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 150) * 100);
+                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 300) * 100);
                     return;
                 }
 
                 const step = this.capturedImages.length;
                 let matches = false;
 
-                // Hitung rotasi relatif terhadap baseline istirahat kepala pengguna
+                // Hitung rotasi relatif terhadap posisi natural kepala pengguna
                 const deltaLeft  = this.currentYaw - this.baselineYaw; // bernilai positif saat toleh ke kiri
                 const deltaRight = this.baselineYaw - this.currentYaw; // bernilai positif saat toleh ke kanan
+                const timeInCurrentStep = performance.now() - this.stepEnteredAt;
 
                 switch (step) {
                     case 0: // 1. Lurus depan
-                        if (this.currentYaw >= 0.70 && this.currentYaw <= 1.30) {
-                            matches = true;
-                            // Adaptasikan baseline ke sudut istirahat natural kepala
-                            if (!this.isBaselineCalibrated) {
-                                this.baselineYaw = (this.baselineYaw * 0.8) + (this.currentYaw * 0.2);
-                            }
+                        matches = Math.abs(this.currentYaw) < 0.25;
+                        if (matches && !this.isBaselineCalibrated) {
+                            this.baselineYaw = (this.baselineYaw * 0.7) + (this.currentYaw * 0.3);
                         }
                         break;
 
                     case 1: // 2. Toleh KIRI
-                        // Cukup toleh sedikit (delta > 0.08) atau pengaman absolute yaw > 1.18
-                        if (deltaLeft > 0.08 || this.currentYaw > 1.18) {
-                            matches = true;
-                        }
+                        // Cukup toleh sedikit (delta > 0.035) atau dipandu santai ~1.3 detik saat wajah di frame
+                        matches = (deltaLeft > 0.035) || (timeInCurrentStep > 1300);
                         break;
 
                     case 2: // 3. Toleh KANAN
-                        // Cukup toleh sedikit (delta > 0.08) atau pengaman absolute yaw < 0.85
-                        if (deltaRight > 0.08 || this.currentYaw < 0.85) {
-                            matches = true;
-                        }
+                        // Cukup toleh sedikit (delta > 0.035) atau dipandu santai ~1.3 detik saat wajah di frame
+                        matches = (deltaRight > 0.035) || (timeInCurrentStep > 1300);
                         break;
 
                     case 3: // 4. Senyum santai
-                        if (this.currentSmile > 0.22 || (Math.abs(this.currentYaw - this.baselineYaw) < 0.12 && this.holdProgress > 25)) {
-                            matches = true;
-                        }
+                        matches = (this.currentSmile > 0.18) || (timeInCurrentStep > 1100);
                         break;
 
                     case 4: // 5. Kunci Face ID (Hadap lurus kembali)
-                        if (Math.abs(this.currentYaw - this.baselineYaw) < 0.12 || (this.currentYaw >= 0.75 && this.currentYaw <= 1.25)) {
-                            matches = true;
-                        }
+                        matches = (Math.abs(this.currentYaw - this.baselineYaw) < 0.08) || (timeInCurrentStep > 1100);
                         break;
                 }
 
                 this.isPoseMatching = matches;
 
-                // Durasi tahan sangat cepat (280ms untuk toleh, 340ms untuk lurus/senyum)
-                const targetHoldMs = (step === 1 || step === 2) ? 280 : 340;
+                // Progress mengalir cepat (320ms jika pose pas, atau 500ms saat transisi terbimbing)
+                const targetHoldMs = matches ? 320 : 500;
 
                 if (matches) {
                     this.holdProgress += (dt / targetHoldMs) * 100;
@@ -701,7 +705,7 @@
                         this.autoSnapStep();
                     }
                 } else {
-                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 120) * 100);
+                    this.holdProgress = Math.max(0, this.holdProgress - (dt / 350) * 100);
                 }
             },
 
@@ -721,7 +725,8 @@
                 if (this.capturedImages.length >= 5) {
                     this.submitEnroll();
                 } else {
-                    this.cooldownUntil = performance.now() + 500;
+                    this.cooldownUntil = performance.now() + 400;
+                    this.stepEnteredAt = performance.now() + 400;
                     this.isPoseMatching = false;
                     this.holdProgress = 0;
                 }
@@ -893,9 +898,11 @@
                 this.errorMessage = '';
                 this.holdProgress = 0;
                 this.isPoseMatching = false;
-                this.baselineYaw = 1.0;
+                this.baselineYaw = 0.0;
+                this.currentYaw = 0.0;
                 this.isBaselineCalibrated = false;
-                this.cooldownUntil = performance.now() + 500;
+                this.cooldownUntil = performance.now() + 400;
+                this.stepEnteredAt = performance.now() + 400;
             },
 
             async submitEnroll() {
