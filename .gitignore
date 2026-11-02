@@ -37,3 +37,6 @@ python/models/*.dat
 __pycache__/
 *.pyc
 *.npz
+core
+core.*
+python/core

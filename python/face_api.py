@@ -48,7 +48,12 @@ except ImportError:
 app = FastAPI(
     title="Enterprise Face Recognition & Anti-Spoofing API",
     description="Sistem Presensi SMKN 1 Beringin (Enterprise Edition)",
-    version="3.0"
+    version="3.0",
+    # Nonaktifkan Swagger UI & ReDoc di production — endpoint terbuka ke loopback
+    # saja (127.0.0.1) tapi /docs bisa diakses dari localhost browser jika tunnel aktif
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 # ── Baca konfigurasi .env Laravel jika ada ──
@@ -111,8 +116,8 @@ if ONNX_AVAILABLE:
     # intra_op = komputasi paralel dalam satu operator (matmul, conv) → pakai semua core
     # inter_op = paralelisme antar-operator dalam graph → 4 cukup, terlalu tinggi malah overhead
     session_options = ort.SessionOptions()
-    session_options.intra_op_num_threads = 16   # gunakan semua 16 core untuk GEMM/Conv
-    session_options.inter_op_num_threads  = 4    # pipeline antar-node ringan
+    session_options.intra_op_num_threads = 8    # 2 workers × 8 = 16 core pas (tidak over-subscribe)
+    session_options.inter_op_num_threads  = 2    # pipeline antar-node ringan
     session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
     session_options.execution_mode = ort.ExecutionMode.ORT_PARALLEL  # aktifkan mode paralel
 

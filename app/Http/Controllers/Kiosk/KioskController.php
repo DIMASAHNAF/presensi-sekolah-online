@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\FaceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -27,10 +28,12 @@ class KioskController extends Controller
         $totalSiswa = User::where('role', 'siswa')->count();
         $totalEnrolled = User::where('role', 'siswa')->whereNotNull('face_descriptor')->count();
 
-        // Jumlah siswa hadir hari ini lewat sesi kelas
-        $hadirHariIniCount = Presensi::whereHas('sesiPresensi', function ($q) {
-            $q->whereDate('tanggal', today());
-        })->where('status', 'hadir')->count();
+        // Jumlah siswa hadir hari ini — di-cache 30 detik di Redis agar tidak query DB tiap request
+        $hadirHariIniCount = Cache::remember('hadir_count_' . today()->toDateString(), 30, function () {
+            return Presensi::whereHas('sesiPresensi', function ($q) {
+                $q->whereDate('tanggal', today());
+            })->where('status', 'hadir')->count();
+        });
 
         // 6 Presensi Terakhir Hari Ini untuk live feed
         $recentAttendances = Presensi::whereHas('sesiPresensi', function ($q) {
@@ -314,6 +317,9 @@ class KioskController extends Controller
                 'keterangan' => $fotoPath ? "Scan Face ID Kiosk Gerbang (Tersimpan: {$fotoPath})" : 'Scan Face ID Kiosk Gerbang',
             ]);
 
+            // Invalidasi cache hadir count agar polling berikutnya mendapat angka terbaru
+            Cache::forget('hadir_count_' . today()->toDateString());
+
             LogPresensi::create([
                 'presensi_id'       => $presensi->id,
                 'guru_id'           => $sesi->guru_id,
@@ -386,9 +392,12 @@ class KioskController extends Controller
      */
     public function liveStats()
     {
-        $hadirHariIniCount = Presensi::whereHas('sesiPresensi', function ($q) {
-            $q->whereDate('tanggal', today());
-        })->where('status', 'hadir')->count();
+        // Cache hadir count 30 detik di Redis — invalidated setiap presensi baru tercatat
+        $hadirHariIniCount = Cache::remember('hadir_count_' . today()->toDateString(), 30, function () {
+            return Presensi::whereHas('sesiPresensi', function ($q) {
+                $q->whereDate('tanggal', today());
+            })->where('status', 'hadir')->count();
+        });
 
         $recent = Presensi::whereHas('sesiPresensi', function ($q) {
             $q->whereDate('tanggal', today());
@@ -410,9 +419,9 @@ class KioskController extends Controller
             });
 
         return response()->json([
-            'success' => true,
+            'success'     => true,
             'hadir_count' => $hadirHariIniCount,
-            'recent' => $recent,
+            'recent'      => $recent,
         ]);
     }
 }

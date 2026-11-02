@@ -106,12 +106,17 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
 
 // ============================================================
 //  KIOSK GERBANG (FACE ID TABLET ATTENDANCE)
+//  Catatan keamanan:
+//  - /kiosk (GET) = public agar tablet tidak perlu login
+//  - /kiosk/identify = throttle 360/menit, proteksi IP whitelist di controller
+//  - /kiosk/sync = throttle ketat + cek IP whitelist di controller (dipindahkan ke sini)
+//  - /kiosk/live-stats = throttle ketat (polling tiap 15 detik, max 8/menit per IP)
 // ============================================================
 Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
 Route::get('/kiosk/gerbang', [KioskController::class, 'index'])->name('kiosk.gerbang');
 Route::post('/kiosk/identify', [KioskController::class, 'identifyAndAttend'])->name('kiosk.identify')->middleware('throttle:360,1');
-Route::post('/kiosk/sync', [KioskController::class, 'syncCandidates'])->name('kiosk.sync');
-Route::get('/kiosk/live-stats', [KioskController::class, 'liveStats'])->name('kiosk.stats');
+Route::post('/kiosk/sync', [KioskController::class, 'syncCandidates'])->name('kiosk.sync')->middleware('throttle:5,1');
+Route::get('/kiosk/live-stats', [KioskController::class, 'liveStats'])->name('kiosk.stats')->middleware('throttle:30,1');
 
 //  AUTH
 Route::middleware('auth')->group(function () {
