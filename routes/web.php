@@ -25,6 +25,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/guru', [AuthController::class, 'loginGuru'])->middleware('throttle:login');
 });
 
+// ============================================================
+//  PANDUAN PENGGUNAAN & SOP PRESENSI (PUBLIC)
+// ============================================================
+Route::get('/panduan', function () {
+    return view('panduan.index');
+})->name('panduan');
+
 //  SISWA DASHBOARD (Rate Limited for Heavy Endpoints)
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/siswa/dashboard', [SiswaController::class, 'dashboard'])->name('siswa.dashboard');

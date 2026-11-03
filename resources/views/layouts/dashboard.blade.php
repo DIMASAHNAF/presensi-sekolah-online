@@ -417,6 +417,26 @@
                 <span>Manajemen Storage</span>
             </a>
         @endif
+
+        <div class="sidebar-category mt-2">Bantuan &amp; Akses</div>
+
+        <a href="{{ route('panduan') }}" target="_blank"
+           class="nav-link text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
+            <i class="fas fa-book-open icon text-emerald-600 dark:text-emerald-400"></i>
+            <span class="flex items-center justify-between flex-1">
+                <span>Panduan Penggunaan</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold">SOP</span>
+            </span>
+        </a>
+
+        <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+           class="w-[calc(100%-1.2rem)] text-left nav-link text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer">
+            <i class="fas fa-mobile-screen-button icon text-blue-600 dark:text-blue-400"></i>
+            <span class="flex items-center justify-between flex-1">
+                <span>Pasang Aplikasi (APK)</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 font-bold">PWA</span>
+            </span>
+        </button>
     </nav>
 
     {{-- User Footer (Bento Box inside Sidebar) --}}
@@ -469,7 +489,21 @@
             <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-8 lg:h-9 object-contain opacity-90 drop-shadow-sm" alt="Logo Kolaborasi">
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2.5 shrink-0">
+            {{-- Panduan & Install App Header Buttons --}}
+            <a href="{{ route('panduan') }}" target="_blank"
+               class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 px-3 py-2 rounded-xl transition shadow-sm backdrop-blur-md"
+               title="Buku Panduan Presensi">
+                <i class="fas fa-book-open text-blue-500"></i>
+                <span class="hidden lg:inline">Panduan</span>
+            </a>
+            <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                    class="flex items-center gap-1.5 text-xs font-extrabold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-3 py-2 rounded-xl transition shadow-sm active:scale-95 shrink-0"
+                    title="Pasang Aplikasi (PWA / APK)">
+                <i class="fas fa-download text-[11px] text-yellow-300"></i>
+                <span class="hidden sm:inline">Pasang App</span>
+            </button>
+
             {{-- Mobile Collaboration Logo --}}
             <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain mr-1 md:hidden" alt="Logo Kolaborasi">
 
@@ -596,5 +630,7 @@
     }
 </script>
 @stack('scripts')
+{{-- Universal PWA Modal --}}
+<x-pwa-modal />
 </body>
 </html>

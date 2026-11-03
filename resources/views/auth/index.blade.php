@@ -231,9 +231,46 @@
             </div>
 
         </div>
+
+        {{-- PWA Install Option Banner --}}
+        <div class="mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-400/30 flex items-center justify-between gap-3 transition-all hover:shadow-xl"
+             x-data="{ isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true }"
+             x-show="!isStandalone">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/25 shadow-xs">
+                    <i class="fas fa-mobile-screen-button text-lg text-yellow-300"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-extrabold text-xs tracking-tight text-white">Pasang Aplikasi Presensi</span>
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-400 text-slate-900 uppercase">APK / WebApp</span>
+                    </div>
+                    <p class="text-[11px] text-blue-100 truncate mt-0.5">Akses langsung dari layar HP tanpa buka browser</p>
+                </div>
+            </div>
+            <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                    class="px-3.5 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 active:scale-95 font-black text-xs shadow-md transition shrink-0 flex items-center gap-1.5">
+                <i class="fas fa-download text-[11px]"></i>
+                <span>Pasang</span>
+            </button>
+        </div>
+
+        {{-- Help & Guide Quick Links --}}
+        <div class="mt-4 flex items-center justify-center gap-4 text-xs font-semibold text-slate-600">
+            <a href="{{ route('panduan') }}" class="hover:text-blue-600 flex items-center gap-1.5 transition">
+                <i class="fas fa-book-open text-blue-500"></i>
+                <span>Buku Panduan Guru &amp; Siswa</span>
+            </a>
+            <span class="text-slate-300">•</span>
+            <button type="button" @click="$dispatch('open-pwa-install')" class="hover:text-blue-600 flex items-center gap-1.5 transition">
+                <i class="fas fa-circle-question text-indigo-500"></i>
+                <span>Cara Pasang APK</span>
+            </button>
+        </div>
     </div>
 
-
+    {{-- Universal PWA Modal --}}
+    <x-pwa-modal />
 
     {{-- Footer --}}
     <footer class="mt-4 text-center text-xs text-slate-400 font-medium tracking-wide">

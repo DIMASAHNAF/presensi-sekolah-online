@@ -181,6 +181,34 @@
                         </div>
                     </div>
 
+                    {{-- PWA Install Highlight Banner (Tampil jelas jika belum standalone) --}}
+                    <div x-data="{ isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true, dismissed: false }"
+                         x-show="!isStandalone && !dismissed" x-cloak
+                         class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-3xl p-4 sm:p-5 text-white shadow-lg shadow-blue-500/20 flex items-center justify-between gap-3 border border-blue-400/30">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 border border-white/25 shadow-xs">
+                                <i class="fas fa-mobile-screen-button text-xl text-yellow-300"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-heading font-black text-xs sm:text-sm text-white">Pasang Aplikasi di Layar HP</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-400 text-slate-900 uppercase">APK / PWA</span>
+                                </div>
+                                <p class="text-[11px] text-blue-100 truncate mt-0.5">Lebih cepat &amp; praktis tanpa buka browser setiap hari</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                                    class="bg-white text-blue-700 hover:bg-blue-50 active:scale-95 text-xs font-black px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+                                <i class="fas fa-download text-[11px]"></i>
+                                <span>Pasang</span>
+                            </button>
+                            <button type="button" @click="dismissed = true" class="text-blue-200 hover:text-white text-xs p-1" title="Tutup">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     {{-- SESI PRESENSI AKTIF CARD (PRIORITAS SCAN UTAMA) --}}
                     <div>
                         {{-- Loading State --}}
@@ -491,9 +519,15 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <button @click="installApp()"
-                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition">
-                                Pasang
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+                                <i class="fas fa-download text-[11px]"></i>
+                                <span>Pasang Versi APK</span>
                             </button>
+                            <a href="{{ route('panduan') }}" target="_blank"
+                                class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                                <i class="fas fa-book-open text-blue-500"></i>
+                                <span class="hidden sm:inline">Panduan</span>
+                            </a>
                             <button @click="showInstallPrompt = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs p-1">
                                 <i class="fas fa-times"></i>
                             </button>

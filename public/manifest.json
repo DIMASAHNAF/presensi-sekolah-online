@@ -1,48 +1,63 @@
 {
-  "name": "Presensi Sekolah Face Recognition",
+  "name": "Presensi SMKN 1 Beringin",
   "short_name": "Presensi",
-  "description": "Sistem Presensi Sekolah Modern dengan Pengenalan Wajah dan Geofencing",
-  "start_url": "/",
+  "description": "Sistem Presensi Digital Biometrik Wajah dan Geofencing SMKN 1 Beringin",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "id": "/?source=pwa",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0d9488",
-  "orientation": "portrait-primary",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/images/icons/icon-72x72.webp",
+      "src": "/images/icons/icon-72x72.png",
       "sizes": "72x72",
-      "type": "image/webp"
+      "type": "image/png"
     },
     {
-      "src": "/images/icons/icon-96x96.webp",
+      "src": "/images/icons/icon-96x96.png",
       "sizes": "96x96",
-      "type": "image/webp"
+      "type": "image/png"
     },
     {
-      "src": "/images/icons/icon-128x128.webp",
+      "src": "/images/icons/icon-128x128.png",
       "sizes": "128x128",
-      "type": "image/webp"
+      "type": "image/png"
     },
     {
-      "src": "/images/icons/icon-144x144.webp",
+      "src": "/images/icons/icon-144x144.png",
       "sizes": "144x144",
-      "type": "image/webp"
+      "type": "image/png"
     },
     {
-      "src": "/images/icons/icon-152x152.webp",
+      "src": "/images/icons/icon-152x152.png",
       "sizes": "152x152",
-      "type": "image/webp"
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/images/icons/icon-192x192.webp",
       "sizes": "192x192",
       "type": "image/webp",
       "purpose": "any"
-    },
-    {
-      "src": "/images/icons/icon-384x384.webp",
-      "sizes": "384x384",
-      "type": "image/webp"
     },
     {
       "src": "/images/icons/icon-512x512.webp",

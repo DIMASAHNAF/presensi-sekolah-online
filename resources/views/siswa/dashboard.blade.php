@@ -430,8 +430,19 @@
                             <span class="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain mr-1" alt="Logo Kolaborasi">
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                                class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black flex items-center gap-1 shadow-xs hover:shadow-md transition active:scale-95"
+                                title="Pasang Versi Aplikasi">
+                            <i class="fas fa-download text-[9px] text-yellow-300"></i>
+                            <span>APK</span>
+                        </button>
+                        <a href="{{ route('panduan') }}" target="_blank"
+                           class="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                           title="Buku Panduan">
+                            <i class="fas fa-book-open text-xs"></i>
+                        </a>
+                        <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain mr-0.5" alt="Logo Kolaborasi">
                         <x-sky-toggle size="8px" id="siswa-sky-toggle-mobile" />
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -452,7 +463,17 @@
                         {{ $user->kelas->nama_kelas ?? 'Kelas Siswa' }}
                     </span>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('panduan') }}" target="_blank"
+                       class="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 transition">
+                        <i class="fas fa-book-open text-blue-500"></i>
+                        <span>Buku Panduan</span>
+                    </a>
+                    <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                            class="text-xs font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-xs transition active:scale-95">
+                        <i class="fas fa-download text-[11px] text-yellow-300"></i>
+                        <span>Pasang Aplikasi</span>
+                    </button>
                     <div class="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                     <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-8 object-contain opacity-90" alt="Logo Kolaborasi">
                     <div class="text-right">
@@ -2715,6 +2736,9 @@
             );
         });
     </script>
+
+    {{-- Universal PWA Modal --}}
+    <x-pwa-modal />
 </body>
 
 </html>

@@ -139,6 +139,43 @@
                             </div>
                         @endif
                     </div>
+
+                    {{-- Card Aplikasi & Buku Panduan --}}
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
+                                <i class="fas fa-mobile-screen-button"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">Aplikasi &amp; Buku Panduan</h3>
+                                <p class="text-[11px] text-slate-400">Pasang aplikasi di layar utama dan baca buku panduan presensi.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
+                                    class="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800/80 dark:to-slate-800/40 border border-blue-200/80 dark:border-slate-700 text-left hover:scale-[1.01] active:scale-98 transition flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                                    <i class="fas fa-download text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-xs text-slate-900 dark:text-white">Pasang Aplikasi (PWA / APK)</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Akses cepat dari Home Screen HP</p>
+                                </div>
+                            </button>
+
+                            <a href="{{ route('panduan') }}" target="_blank"
+                               class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800/80 dark:to-slate-800/40 border border-emerald-200/80 dark:border-slate-700 text-left hover:scale-[1.01] active:scale-98 transition flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+                                    <i class="fas fa-book-open text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-xs text-slate-900 dark:text-white">Buku Panduan Presensi</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">SOP verifikasi wajah &amp; solusi kendala</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
             </main>
