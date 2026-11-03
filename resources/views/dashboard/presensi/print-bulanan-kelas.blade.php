@@ -205,7 +205,7 @@
 <body>
 
 <div class="no-print">
-    <button class="btn btn-print" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+    <button class="btn btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
     <a class="btn btn-back" href="javascript:history.back()">← Kembali ke Dashboard</a>
 </div>
 

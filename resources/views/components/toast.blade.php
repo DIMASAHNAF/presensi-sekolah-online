@@ -1,99 +1,102 @@
 {{--
-    TOAST NOTIFICATION SYSTEM
-    Adapted from Ark UI / shadcn toast → Vanilla JS + Alpine.js
+    TOAST NOTIFICATION SYSTEM — Linear / Vercel Aesthetic
+    Border-first, zero AI-slop, clean SVG indicators
     Usage:
-        window.toast.success('Judul', 'Deskripsi opsional')
-        window.toast.error('Judul', 'Deskripsi')
-        window.toast.info('Judul', 'Deskripsi')
-        window.toast.loading('Judul', 'Deskripsi') → returns id
-        window.toast.update(id, { title, description, type })
-        window.toast.dismiss(id)
+        window.toast.success('Presensi Tersimpan', 'Data presensi berhasil dicatat')
+        window.toast.error('Presensi Ditolak', 'Radius di luar jangkauan')
+        window.toast.info('Info', 'Sesi telah dibuka')
+        window.toast.loading('Memproses...')
 --}}
 
 <div id="toast-portal"
      x-data="toastSystem()"
      x-init="init()"
-     class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2.5 items-end"
-     style="min-width: 300px; max-width: 380px;"
+     class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 items-end w-full max-w-sm pointer-events-none px-4"
      aria-live="polite">
 
     <template x-for="toast in toasts" :key="toast.id">
         <div
             x-show="toast.visible"
-            x-transition:enter="transition ease-out duration-250"
+            x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-            x-transition:leave="transition ease-in duration-180"
+            x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-            class="bg-white rounded-xl shadow-lg border w-full relative overflow-hidden flex"
+            class="bg-white dark:bg-zinc-900 border rounded-lg shadow-xs w-full relative overflow-hidden flex pointer-events-auto transition-colors"
             :class="{
-                'border-slate-200': toast.type === 'info' || toast.type === 'loading',
-                'border-emerald-200': toast.type === 'success',
-                'border-red-200': toast.type === 'error',
-                'border-amber-200': toast.type === 'warning',
+                'border-zinc-200 dark:border-zinc-800': toast.type === 'info' || toast.type === 'loading',
+                'border-emerald-500/30 dark:border-emerald-500/20': toast.type === 'success',
+                'border-rose-500/30 dark:border-rose-500/20': toast.type === 'error',
+                'border-amber-500/30 dark:border-amber-500/20': toast.type === 'warning',
             }">
 
-            {{-- Side accent bar --}}
-            <div class="w-1 shrink-0 rounded-l-xl"
+            {{-- Subtle Left Accent Indicator --}}
+            <div class="w-1 shrink-0"
                  :class="{
-                    'bg-blue-600': toast.type === 'info' || toast.type === 'loading',
-                    'bg-emerald-500': toast.type === 'success',
-                    'bg-red-500': toast.type === 'error',
-                    'bg-amber-500': toast.type === 'warning',
+                    'bg-zinc-900 dark:bg-zinc-100': toast.type === 'info',
+                    'bg-emerald-600 dark:bg-emerald-400': toast.type === 'success',
+                    'bg-rose-600 dark:bg-rose-400': toast.type === 'error',
+                    'bg-amber-600 dark:bg-amber-400': toast.type === 'warning',
+                    'bg-blue-600 dark:bg-blue-400': toast.type === 'loading',
                  }"></div>
 
-            <div class="flex items-start gap-3 px-4 py-3.5 flex-1">
-                {{-- Icon --}}
+            <div class="flex items-start gap-3 p-3.5 flex-1 min-w-0">
+                {{-- Clean Lucide-style SVG Icon --}}
                 <div class="shrink-0 mt-0.5">
                     <template x-if="toast.type === 'success'">
-                        <div class="w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        </div>
+                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </template>
                     <template x-if="toast.type === 'error'">
-                        <div class="w-5 h-5 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </div>
+                        <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
                     </template>
-                    
                     <template x-if="toast.type === 'warning'">
-                        <div class="w-5 h-5 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                        </div>
+                        <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
                     </template>
                     <template x-if="toast.type === 'info'">
-                        <div class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
+                        <svg class="w-4 h-4 text-zinc-700 dark:text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
                     </template>
                     <template x-if="toast.type === 'loading'">
-                        <div class="w-5 h-5 text-blue-600">
-                            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </div>
+                        <svg class="w-4 h-4 text-zinc-900 dark:text-zinc-100 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
                     </template>
                 </div>
 
                 {{-- Content --}}
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-slate-900 leading-tight" x-text="toast.title"></p>
-                    <p x-show="toast.description" class="text-xs text-slate-500 mt-0.5 leading-relaxed" x-text="toast.description"></p>
-
-                    {{-- Progress bar for loading --}}
-                    <template x-if="toast.type === 'loading'">
-                        <div class="mt-2 w-full bg-slate-100 rounded-full h-1">
-                            <div class="bg-blue-600 h-1 rounded-full animate-pulse" style="width: 60%"></div>
-                        </div>
-                    </template>
+                    <p class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight"
+                       x-text="toast.title"></p>
+                    <p x-show="toast.description"
+                       class="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 leading-normal"
+                       x-text="toast.description"></p>
                 </div>
 
-                {{-- Close button --}}
-                <button @click="dismiss(toast.id)"
-                        class="shrink-0 w-5 h-5 flex items-center justify-center text-slate-300 hover:text-slate-600 transition rounded-md hover:bg-slate-100 mt-0.5">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                {{-- Dismiss Button --}}
+                <button
+                    x-show="toast.type !== 'loading'"
+                    @click="dismiss(toast.id)"
+                    class="shrink-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-0.5 transition"
+                    aria-label="Tutup notifikasi">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -104,66 +107,53 @@
     function toastSystem() {
         return {
             toasts: [],
-            _counter: 0,
+            counter: 0,
 
             init() {
-                // Expose global API
                 window.toast = {
-                    success: (title, description = '', duration = 4000) => this.create({ title, description, type: 'success', duration }),
-                    error:   (title, description = '', duration = 5000) => this.create({ title, description, type: 'error', duration }),
-                    warning: (title, description = '', duration = 4500) => this.create({ title, description, type: 'warning', duration }),
-                    info:    (title, description = '', duration = 4000) => this.create({ title, description, type: 'info', duration }),
-                    loading: (title, description = '')                  => this.create({ title, description, type: 'loading', duration: Infinity }),
-                    update:  (id, data)                                 => this.update(id, data),
-                    dismiss: (id)                                       => this.dismiss(id),
+                    success: (title, description) => this.add({ title, description, type: 'success' }),
+                    error:   (title, description) => this.add({ title, description, type: 'error' }),
+                    warning: (title, description) => this.add({ title, description, type: 'warning' }),
+                    info:    (title, description) => this.add({ title, description, type: 'info' }),
+                    loading: (title, description) => this.add({ title, description, type: 'loading', duration: 0 }),
+                    update:  (id, options)        => this.update(id, options),
+                    dismiss: (id)                 => this.dismiss(id),
                 };
-
-                // Auto-show flash messages from Laravel session
-                @if(session('success'))
-                    this.$nextTick(() => window.toast?.success(@json(session('success'))));
-                @endif
-                @if(session('error'))
-                    this.$nextTick(() => window.toast?.error(@json(session('error'))));
-                @endif
-                @if(session('info'))
-                    this.$nextTick(() => window.toast?.info(@json(session('info'))));
-                @endif
-                @if(session('warning'))
-                    this.$nextTick(() => window.toast?.warning(@json(session('warning'))));
-                @endif
             },
 
-            create({ title, description = '', type = 'info', duration = 4000 }) {
-                const id = ++this._counter;
-                this.toasts.push({ id, title, description, type, visible: true });
+            add({ title, description = '', type = 'info', duration = 4000 }) {
+                const id = ++this.counter;
+                const toast = { id, title, description, type, visible: true };
+                this.toasts.push(toast);
 
-                if (duration !== Infinity) {
-                    setTimeout(() => this.dismiss(id), duration);
-                }
-                // Max 5 toasts
-                if (this.toasts.length > 5) {
-                    this.dismiss(this.toasts[0].id);
+                if (duration > 0) {
+                    setTimeout(() => {
+                        this.dismiss(id);
+                    }, duration);
                 }
                 return id;
             },
 
-            update(id, data) {
-                const toast = this.toasts.find(t => t.id === id);
-                if (!toast) return;
-                Object.assign(toast, data);
-                if (data.duration && data.duration !== Infinity) {
-                    setTimeout(() => this.dismiss(id), data.duration);
+            update(id, options) {
+                const index = this.toasts.findIndex(t => t.id === id);
+                if (index === -1) return;
+                Object.assign(this.toasts[index], options);
+
+                const duration = options.duration !== undefined ? options.duration : 4000;
+                if (duration > 0) {
+                    setTimeout(() => {
+                        this.dismiss(id);
+                    }, duration);
                 }
             },
 
             dismiss(id) {
                 const toast = this.toasts.find(t => t.id === id);
-                if (toast) {
-                    toast.visible = false;
-                    setTimeout(() => {
-                        this.toasts = this.toasts.filter(t => t.id !== id);
-                    }, 200);
-                }
+                if (!toast) return;
+                toast.visible = false;
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter(t => t.id !== id);
+                }, 150);
             }
         };
     }

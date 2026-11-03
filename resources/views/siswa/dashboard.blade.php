@@ -604,9 +604,15 @@
                                  'anim-ring-emerald bg-emerald-500/25 ring-2 ring-emerald-400': livenessState === 'action_success',
                                  'bg-white/10': livenessState === 'waiting_face'
                              }">
-                            <span class="text-xs select-none" x-show="livenessState === 'waiting_face'">🎯</span>
-                            <span class="text-xs select-none" x-show="livenessState === 'face_aligned' && actionProgress < 85">👤</span>
-                            <span class="text-xs select-none" x-show="actionProgress >= 85">📸</span>
+                            <span class="text-xs select-none inline-flex items-center" x-show="livenessState === 'waiting_face'">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                            </span>
+                            <span class="text-xs select-none inline-flex items-center" x-show="livenessState === 'face_aligned' && actionProgress < 85">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            <span class="text-xs select-none inline-flex items-center" x-show="actionProgress >= 85">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </span>
                         </div>
 
                         {{-- Progress Track --}}
@@ -1571,18 +1577,16 @@
                 challenges: [
                     {
                         type: 'blink',
-                        label: 'Kedipkan Mata Anda 😉',
-                        actionText: 'Kedipkan mata perlahan 😉',
+                        label: 'Kedipkan Mata Anda',
+                        actionText: 'Kedipkan mata perlahan',
                         shortLabel: 'Kedip',
-                        emoji: '😉',
                         hint: 'Kedipkan mata Anda ke arah kamera untuk verifikasi otomatis'
                     },
                     {
                         type: 'smile',
-                        label: 'Silakan Tersenyum 😊',
-                        actionText: 'Tersenyum ke kamera 😊',
+                        label: 'Silakan Tersenyum',
+                        actionText: 'Tersenyum ke kamera',
                         shortLabel: 'Senyum',
-                        emoji: '😊',
                         hint: 'Tersenyumlah ke arah kamera untuk verifikasi otomatis'
                     }
                 ],
@@ -2440,7 +2444,7 @@
                                 audioFx.playSuccess();
                                 this.scanState = 'success';
                                 this.scanSuccess = true;
-                                this.scanMessage = '🎉 Berhasil! Anda tercatat HADIR.';
+                                this.scanMessage = 'Berhasil! Anda tercatat HADIR.';
                                 this.sudahHadir = true;
                                 this.stopCamera();
                                 setTimeout(() => {

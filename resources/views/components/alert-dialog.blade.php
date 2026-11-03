@@ -1,24 +1,6 @@
 {{--
-    SHADCN STYLE CONFIRM ALERT DIALOG
-    Komponen modal konfirmasi modern pengganti browser window.confirm()
-    Didesain persis seperti AlertDialog shadcn/ui.
-
-    Penggunaan:
-    1. Otomatis mencegat form yang memiliki attribute data-confirm="Pesan konfirmasi":
-       <form action="..." method="POST" data-confirm="Hapus akun siswa Budi secara permanen?" data-confirm-title="Hapus Akun Siswa?" data-confirm-type="danger">
-           <button type="submit">Hapus</button>
-       </form>
-
-    2. Programmatic JS:
-       window.shadcnConfirm({
-           title: "Konfirmasi Tindakan",
-           description: "Apakah Anda yakin ingin melanjutkan tindakan ini?",
-           confirmText: "Ya, Lanjutkan",
-           cancelText: "Batal",
-           type: "danger" // "danger" | "warning" | "info"
-       }).then(confirmed => {
-           if (confirmed) { ... }
-       });
+    CONFIRM ALERT DIALOG — Linear / Vercel Aesthetic
+    Border-first, zero AI-slop, clean SVG indicators
 --}}
 
 <div x-data="shadcnConfirmModal()" 
@@ -27,13 +9,13 @@
 
     {{-- Backdrop Overlay --}}
     <div x-show="open" 
-         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter="transition ease-out duration-150"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9998] bg-black/75 backdrop-blur-xs"></div>
+         class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-xs"></div>
 
     {{-- Dialog Container --}}
     <div x-show="open"
@@ -41,65 +23,73 @@
          @click.self="handleCancel()">
 
         <div x-show="open"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-1"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave="transition ease-in duration-100"
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden my-auto"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-1"
+             class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm max-w-md w-full p-6 relative overflow-hidden my-auto"
              role="alertdialog"
-             aria-modal="true"
-             :aria-labelledby="$id('dialog-title')"
-             :aria-describedby="$id('dialog-desc')">
+             aria-modal="true">
 
             {{-- Header with Icon --}}
             <div class="flex items-start gap-3.5">
                 {{-- Dynamic Icon Badge --}}
-                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border"
                      :class="{
-                         'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-400': type === 'danger',
-                         'bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-400': type === 'warning',
-                         'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-400': type === 'info'
+                         'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400': type === 'danger',
+                         'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400': type === 'warning',
+                         'bg-zinc-500/10 border-zinc-500/20 text-zinc-700 dark:text-zinc-300': type === 'info'
                      }">
                     <template x-if="type === 'danger'">
-                        <i class="fas fa-trash-can text-sm"></i>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
                     </template>
                     <template x-if="type === 'warning'">
-                        <i class="fas fa-triangle-exclamation text-sm"></i>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
                     </template>
                     <template x-if="type === 'info'">
-                        <i class="fas fa-circle-question text-sm"></i>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
                     </template>
                 </div>
 
                 {{-- Text Content --}}
-                <div class="space-y-1.5 flex-1 min-w-0">
-                    <h3 class="font-heading font-extrabold text-base text-slate-900 dark:text-white tracking-tight"
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight"
                         x-text="title"></h3>
-                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line"
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed"
                        x-text="description"></p>
                 </div>
             </div>
 
-            {{-- Footer Buttons (Shadcn style) --}}
-            <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-2">
-                <button type="button" 
-                        @click="handleCancel()" 
-                        class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-400/20"
+            {{-- Actions --}}
+            <div class="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <button type="button"
+                        @click="handleCancel()"
+                        class="px-3.5 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 rounded-lg transition"
                         x-text="cancelText">
-                    Batal
                 </button>
-                <button type="button" 
-                        @click="handleConfirm()" 
-                        class="px-4 py-2.5 rounded-xl text-white text-xs sm:text-sm font-bold shadow-xs transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+                <button type="button"
+                        @click="handleConfirm()"
+                        class="px-3.5 py-2 text-xs font-medium rounded-lg text-white transition focus:ring-2 focus:ring-offset-2"
                         :class="{
                             'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500': type === 'danger',
                             'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500': type === 'warning',
-                            'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500': type === 'info'
+                            'bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 focus:ring-zinc-500': type === 'info'
                         }"
                         x-text="confirmText">
-                    Konfirmasi
                 </button>
             </div>
         </div>
@@ -118,7 +108,6 @@
             _resolve: null,
 
             init() {
-                // Register Global Helper
                 window.shadcnConfirm = (options = {}) => {
                     return new Promise((resolve) => {
                         this.title = options.title || 'Konfirmasi Tindakan';
@@ -131,7 +120,6 @@
                     });
                 };
 
-                // 1. Intercept forms with data-confirm automatically
                 document.addEventListener('submit', (e) => {
                     const form = e.target;
                     if (!form || !form.hasAttribute('data-confirm')) return;
@@ -167,10 +155,8 @@
                     });
                 }, true);
 
-                // 2. Intercept any button or link with data-confirm
                 document.addEventListener('click', (e) => {
                     const btn = e.target.closest('[data-confirm]');
-                    // If button is inside form with data-confirm, form handler will handle it
                     if (!btn || btn.tagName === 'FORM') return;
 
                     if (btn._isConfirmed) {

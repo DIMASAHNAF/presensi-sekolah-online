@@ -263,12 +263,12 @@
                 </template>
                 <template x-if="capturedImages.length === 3">
                     <span class="inline-flex items-center gap-1">
-                        😊 Tersenyumlah santai ke kamera
+                        Tersenyumlah santai ke kamera
                     </span>
                 </template>
                 <template x-if="capturedImages.length === 4">
                     <span class="inline-flex items-center gap-1">
-                        🔒 Hadap lurus untuk mengunci data
+                        Hadap lurus ke depan untuk mengunci data
                     </span>
                 </template>
             </div>
@@ -455,19 +455,19 @@
                     appleInstruction: 'Langkah 1: Posisikan wajah Anda di dalam lingkaran, hadap lurus ke depan.'
                 },
                 {
-                    instruction: 'Tolehkan kepala sedikit ke KIRI 👈',
-                    appleInstruction: 'Langkah 2: Tolehkan kepala Anda perlahan sedikit ke KIRI.'
+                    instruction: 'Tolehkan kepala sedikit ke kiri',
+                    appleInstruction: 'Langkah 2: Tolehkan kepala Anda perlahan sedikit ke kiri.'
                 },
                 {
-                    instruction: 'Tolehkan kepala sedikit ke KANAN 👉',
-                    appleInstruction: 'Langkah 3: Tolehkan kepala Anda perlahan sedikit ke KANAN.'
+                    instruction: 'Tolehkan kepala sedikit ke kanan',
+                    appleInstruction: 'Langkah 3: Tolehkan kepala Anda perlahan sedikit ke kanan.'
                 },
                 {
-                    instruction: 'Tersenyumlah santai 😊',
+                    instruction: 'Tersenyumlah santai',
                     appleInstruction: 'Langkah 4: Tersenyumlah santai menghadap kamera.'
                 },
                 {
-                    instruction: 'Hadap lurus kembali 🔒',
+                    instruction: 'Hadap lurus ke depan',
                     appleInstruction: 'Langkah 5: Hadap lurus ke depan sekali lagi untuk menyelesaikan pemindaian.'
                 }
             ],
@@ -482,10 +482,10 @@
                     const step = this.capturedImages.length;
                     const pct = Math.min(100, Math.round(this.holdProgress));
                     if (step === 0) return `Posisikan Wajah... ${pct}%`;
-                    if (step === 1) return `👈 Toleh Kiri... ${pct}%`;
-                    if (step === 2) return `👉 Toleh Kanan... ${pct}%`;
-                    if (step === 3) return `😊 Senyum... ${pct}%`;
-                    if (step === 4) return `🔒 Kunci Face ID... ${pct}%`;
+                    if (step === 1) return `Toleh Kiri... ${pct}%`;
+                    if (step === 2) return `Toleh Kanan... ${pct}%`;
+                    if (step === 3) return `Senyum... ${pct}%`;
+                    if (step === 4) return `Kunci Face ID... ${pct}%`;
                     return `${pct}% Tahan Posisi...`;
                 }
                 if (this.isFaceDetected) {

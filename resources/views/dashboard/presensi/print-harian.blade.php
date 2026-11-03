@@ -33,7 +33,7 @@
 </head>
 <body>
 
-    <button class="btn-print" onclick="window.print()">🖨️ Cetak PDF / Print</button>
+    <button class="btn-print" onclick="window.print()">Cetak PDF / Print</button>
 
     <div class="header">
         <h1>LAPORAN PRESENSI HARIAN KELAS</h1>

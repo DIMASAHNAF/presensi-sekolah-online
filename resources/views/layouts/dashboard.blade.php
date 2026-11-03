@@ -8,27 +8,36 @@
     <meta name="description" content="Sistem Presensi Sekolah SMKN 1 Beringin — Panel Manajemen">
     <link rel="icon" type="image/png" href="{{ asset('images/logo.webp') }}">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#1d4ed8">
+    <meta name="theme-color" content="#18181b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Presensi SMKN 1">
     <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.webp') }}">
 
-    {{-- Google Fonts --}}
+    {{-- Fonts: Inter & JetBrains Mono (Strict PRD Compliance) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    {{-- Font Awesome 6 --}}
+    {{-- Font Awesome 6 Icons --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {{-- AOS --}}
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-    {{-- Tailwind --}}
+    
+    {{-- Tailwind Configuration (Linear / Vercel Aesthetic) --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
         };
     </script>
     {{-- Dark Theme Styles --}}
@@ -45,275 +54,232 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
-        * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
-        h1, h2, h3, .font-heading { font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
 
-        /* ─── Base & Background (Aurora/Mesh Gradient) ─── */
         body {
-            background-color: #f8fafc;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(210, 100%, 95%, 1) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, hsla(160, 100%, 95%, 1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, hsla(280, 100%, 95%, 1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(320, 100%, 95%, 1) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #1e293b;
+            background-color: #fafafa;
+            color: #18181b;
         }
         html.dark body {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(210, 100%, 15%, 1) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, hsla(160, 100%, 12%, 1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, hsla(280, 100%, 15%, 1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(320, 100%, 12%, 1) 0px, transparent 50%);
-            color: #f8fafc;
+            background-color: #09090b;
+            color: #fafafa;
         }
 
-        /* ─── Glassmorphism Utilities ─── */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.05);
-        }
-        html.dark .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
-        }
-
-        /* ─── Sidebar (Glass Bento Style) ─── */
+        /* ─── Sidebar (Border-First) ─── */
         .sidebar-bg {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(24px);
-            border-right: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+            background-color: #ffffff;
+            border-right: 1px solid #e4e4e7;
         }
         html.dark .sidebar-bg {
-            background: rgba(15, 23, 42, 0.75);
-            border-right: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+            background-color: #18181b;
+            border-right: 1px solid #27272a;
         }
-
-        .sidebar-logo-area {
-            background: transparent;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        html.dark .sidebar-logo-area { border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         .sidebar-category {
-            font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: #64748b;
-            padding: 1.2rem 1rem 0.4rem;
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #71717a;
+            padding: 1.1rem 0.85rem 0.35rem;
         }
-        html.dark .sidebar-category { color: #94a3b8; }
+        html.dark .sidebar-category { color: #a1a1aa; }
 
         .nav-link {
             display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.75rem 1rem; margin: 0.2rem 0.6rem;
-            border-radius: 0.75rem;
-            font-size: 0.85rem; font-weight: 600; color: #475569;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0.55rem 0.85rem; margin: 0.15rem 0.4rem;
+            border-radius: 0.5rem;
+            font-size: 0.8125rem; font-weight: 500; color: #52525b;
+            transition: all 0.15s ease;
             border: 1px solid transparent;
         }
-        html.dark .nav-link { color: #cbd5e1; }
+        html.dark .nav-link { color: #a1a1aa; }
         
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.9);
-            color: #0f172a;
-            transform: translateX(4px);
-            border-color: rgba(255,255,255,0.5);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            background-color: #f4f4f5;
+            color: #18181b;
         }
         html.dark .nav-link:hover {
-            background: rgba(30, 41, 59, 0.8);
-            color: #ffffff;
-            border-color: rgba(255,255,255,0.1);
+            background-color: #27272a;
+            color: #fafafa;
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            background-color: #18181b;
+            color: #fafafa;
+            font-weight: 600;
+        }
+        html.dark .nav-link.active {
+            background-color: #f4f4f5;
+            color: #18181b;
         }
         .nav-link .icon {
-            width: 1.2rem; text-align: center; color: #94a3b8; transition: color 0.2s;
+            width: 1.1rem; text-align: center; color: #71717a; transition: color 0.15s;
         }
-        .nav-link.active .icon { color: #ffffff; }
-        .nav-link:hover:not(.active) .icon { color: #3b82f6; }
+        .nav-link.active .icon { color: inherit; }
 
-        /* ─── Stat Cards (Bento Grid Style) ─── */
+        /* ─── Cards (Border-First, Zero Gradients, Zero Heavy Shadows) ─── */
         .stat-card {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            background-color: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: border-color 0.15s ease;
         }
         html.dark .stat-card {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            background-color: #18181b;
+            border-color: #27272a;
         }
         .stat-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            border-color: #a1a1aa;
         }
         html.dark .stat-card:hover {
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-        
-        /* Bento inner glow */
-        .stat-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at top right, var(--card-accent, rgba(255,255,255,0.2)) 0%, transparent 60%);
-            opacity: 0.15; pointer-events: none;
+            border-color: #3f3f46;
         }
 
-        .stat-card.accent-blue   { --card-accent: #3b82f6; }
-        .stat-card.accent-indigo { --card-accent: #6366f1; }
-        .stat-card.accent-slate  { --card-accent: #64748b; }
-        .stat-card.accent-green  { --card-accent: #22c55e; }
-        .stat-card.accent-amber  { --card-accent: #f59e0b; }
-        .stat-card.accent-red    { --card-accent: #ef4444; }
-
-        /* ─── Buttons ─── */
+        /* ─── High-Contrast Action Buttons (PRD 1.2) ─── */
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: #ffffff;
-            border-radius: 0.75rem;
-            padding: 0.6rem 1.25rem;
-            font-size: 0.85rem; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+            background-color: #18181b;
+            color: #fafafa;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8125rem; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
         }
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            background-color: #27272a;
         }
-        .btn-primary:active { transform: scale(0.95); }
+        html.dark .btn-primary {
+            background-color: #f4f4f5;
+            color: #18181b;
+        }
+        html.dark .btn-primary:hover {
+            background-color: #e4e4e7;
+        }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(8px);
-            color: #334155;
-            border-radius: 0.75rem;
-            padding: 0.6rem 1.25rem;
-            font-size: 0.85rem; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
+            background-color: #ffffff;
+            color: #27272a;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8125rem; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            border: 1px solid #e4e4e7;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease;
         }
         html.dark .btn-secondary {
-            background: rgba(30, 41, 59, 0.6);
-            color: #f1f5f9; border-color: rgba(255, 255, 255, 0.1);
+            background-color: #18181b;
+            color: #f4f4f5;
+            border-color: #27272a;
         }
         .btn-secondary:hover {
-            background: #ffffff; transform: translateY(-1px);
+            background-color: #f4f4f5;
         }
-        html.dark .btn-secondary:hover { background: rgba(51, 65, 85, 0.8); }
+        html.dark .btn-secondary:hover {
+            background-color: #27272a;
+        }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background-color: #e11d48;
             color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 0.75rem;
-            padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8125rem; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            transition: all 0.15s ease;
         }
         .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+            background-color: #be123c;
         }
 
-        /* ─── Status Badges ─── */
-        .badge-hadir  { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .badge-izin   { background: rgba(234, 179, 8, 0.15); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.3); }
-        .badge-sakit  { background: rgba(249, 115, 22, 0.15); color: #ea580c; border: 1px solid rgba(249, 115, 22, 0.3); }
-        .badge-alpa   { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
-        html.dark .badge-hadir { color: #4ade80; }
-        html.dark .badge-izin  { color: #facc15; }
-        html.dark .badge-sakit { color: #fb923c; }
-        html.dark .badge-alpa  { color: #f87171; }
-        
+        /* ─── Semantic Status Badges (Strict PRD 1.2) ─── */
+        .badge-hadir {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        html.dark .badge-hadir {
+            color: #34d399;
+        }
+
+        .badge-terlambat {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        html.dark .badge-terlambat {
+            color: #fbbf24;
+        }
+
+        .badge-izin, .badge-sakit, .badge-dispensasi {
+            background-color: rgba(14, 165, 233, 0.1);
+            color: #0284c7;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+        html.dark .badge-izin, html.dark .badge-sakit, html.dark .badge-dispensasi {
+            color: #38bdf8;
+        }
+
+        .badge-alpa, .badge-alfa {
+            background-color: rgba(244, 63, 94, 0.1);
+            color: #e11d48;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+        html.dark .badge-alpa, html.dark .badge-alfa {
+            color: #fb7185;
+        }
+
         .badge {
             display: inline-flex; align-items: center; gap: 0.35rem;
-            padding: 0.25rem 0.75rem; border-radius: 9999px;
-            font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
-            backdrop-filter: blur(4px);
+            padding: 0.15rem 0.5rem; border-radius: 0.375rem;
+            font-size: 0.75rem; font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
         }
 
-        /* ─── Header ─── */
+        /* ─── Main Header ─── */
         .main-header {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255,255,255,0.5);
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e4e4e7;
         }
         html.dark .main-header {
-            background: rgba(15, 23, 42, 0.5);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            background-color: rgba(24, 24, 27, 0.92);
+            border-bottom: 1px solid #27272a;
         }
 
-        /* ─── Card wrapper (Data Tables, dll) ─── */
+        /* ─── Content Card ─── */
         .content-card {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 24px -4px rgba(0,0,0,0.05);
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            border: 1px solid #e4e4e7;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
         html.dark .content-card {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 24px -4px rgba(0,0,0,0.3);
+            background-color: #18181b;
+            border-color: #27272a;
         }
-        
-        .table-row:hover td { background: rgba(241, 245, 249, 0.5); }
-        html.dark .table-row:hover td { background: rgba(30, 41, 59, 0.5); }
 
-        /* ─── Misc ─── */
+        .table-row:hover td { background-color: #f4f4f5; }
+        html.dark .table-row:hover td { background-color: #27272a; }
+
         [x-cloak] { display: none !important; }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
-
-        /* Realtime pulse dot */
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            50% { opacity: 0.8; transform: scale(0.9); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
-        }
-        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
-
-        /* Modal Shake Error Animation */
-        @keyframes shake-modal {
-            0%, 100% { transform: translateX(0); }
-            15%, 45%, 75% { transform: translateX(-8px); }
-            30%, 60%, 90% { transform: translateX(8px); }
-        }
-        .animate-shake {
-            animation: shake-modal 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+        html.dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
     </style>
 
     @stack('styles')
 </head>
 
-<body class="text-slate-800 antialiased" 
+<body class="text-zinc-900 dark:text-zinc-100 antialiased font-sans" 
       x-data="{ sidebarOpen: window.innerWidth >= 1024 }" 
       @resize.window="sidebarOpen = window.innerWidth >= 1024">
 
@@ -322,37 +288,37 @@
 <x-alert-dialog />
 
 {{-- ===== SIDEBAR ===== --}}
-<aside class="sidebar-bg fixed top-0 left-0 h-full z-40 text-white flex flex-col
-              transition-all duration-300 shadow-2xl"
+<aside class="sidebar-bg fixed top-0 left-0 h-full z-40 flex flex-col
+              transition-all duration-200"
        :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full lg:w-0 lg:translate-x-0 overflow-hidden'"
        x-cloak>
 
-    {{-- School Header (Glass Bento Top) --}}
-    <div class="sidebar-logo-area flex items-center gap-3 px-5 py-5 shrink-0">
-        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-[0_4px_12px_rgba(59,130,246,0.3)] p-1">
-            <img src="{{ asset('images/logo.webp') }}" alt="Logo SMKN 1" class="w-full h-full object-contain filter drop-shadow-md">
+    {{-- School Header --}}
+    <div class="flex items-center gap-3 px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div class="w-9 h-9 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center shrink-0 border border-zinc-200 dark:border-zinc-700 p-1">
+            <img src="{{ asset('images/logo.webp') }}" alt="Logo SMKN 1" class="w-full h-full object-contain">
         </div>
         <div class="min-w-0">
-            <p class="font-heading font-extrabold text-[15px] text-slate-800 dark:text-white tracking-tight truncate leading-tight">SMKN 1 BERINGIN</p>
-            <p class="text-blue-600 dark:text-blue-400 text-[10px] font-extrabold tracking-widest mt-0.5 uppercase">Sistem Presensi</p>
+            <p class="font-semibold text-xs text-zinc-900 dark:text-zinc-100 tracking-tight truncate leading-tight">SMKN 1 BERINGIN</p>
+            <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-mono tracking-wider uppercase mt-0.5">Sistem Presensi</p>
         </div>
     </div>
 
     {{-- Academic Tag --}}
-    <div class="px-5 py-2.5 flex items-center justify-between text-[11px] bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/50 dark:border-slate-700/50">
-        <span class="text-slate-600 dark:text-slate-300 font-bold"><i class="fas fa-calendar-check text-blue-500 dark:text-blue-400 mr-1.5"></i>T.A. 2026/2027</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm">GANJIL</span>
+    <div class="px-5 py-2 flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-800/40 border-b border-zinc-200 dark:border-zinc-800 font-mono tabular-nums">
+        <span class="text-zinc-600 dark:text-zinc-400">T.A. 2026/2027</span>
+        <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">GANJIL</span>
     </div>
 
     {{-- Navigation --}}
-    <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto">
+    <nav class="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
 
         <div class="sidebar-category">Menu Utama</div>
 
         <a href="{{ route('dashboard') }}"
            class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="fas fa-gauge-high icon"></i>
-            <span>Overview</span>
+            <span>Ringkasan</span>
         </a>
 
         <a href="{{ route('dashboard.presensi') }}"
@@ -362,11 +328,11 @@
         </a>
 
         <a href="{{ route('kiosk.gerbang') }}" target="_blank"
-           class="nav-link text-blue-600 dark:text-cyan-400 font-bold hover:bg-blue-50 dark:hover:bg-cyan-950/30">
-            <i class="fas fa-tablet-screen-button icon text-blue-600 dark:text-cyan-400"></i>
+           class="nav-link">
+            <i class="fas fa-tablet-screen-button icon"></i>
             <span class="flex items-center justify-between flex-1">
-                <span>Kiosk Gerbang Face ID</span>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 font-mono font-bold tracking-wider">LIVE</span>
+                <span>Kiosk Gerbang</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">LIVE</span>
             </span>
         </a>
 
@@ -397,7 +363,7 @@
                 <span>Data Rombel &amp; Kelas</span>
             </a>
 
-            <div class="sidebar-category mt-2">Sistem &amp; Keamanan</div>
+            <div class="sidebar-category mt-2">Sistem &amp; Pengaturan</div>
 
             <a href="{{ route('dashboard.log') }}"
                class="nav-link {{ request()->routeIs('dashboard.log') ? 'active' : '' }}">
@@ -418,147 +384,100 @@
             </a>
         @endif
 
-        <div class="sidebar-category mt-2">Bantuan &amp; Akses</div>
+        <div class="sidebar-category mt-2">Bantuan</div>
 
         <a href="{{ route('panduan') }}" target="_blank"
-           class="nav-link text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
-            <i class="fas fa-book-open icon text-emerald-600 dark:text-emerald-400"></i>
-            <span class="flex items-center justify-between flex-1">
-                <span>Panduan Penggunaan</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold">SOP</span>
-            </span>
+           class="nav-link">
+            <i class="fas fa-book-open icon"></i>
+            <span>Buku Panduan</span>
         </a>
 
         <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
-           class="w-[calc(100%-1.2rem)] text-left nav-link text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer">
-            <i class="fas fa-mobile-screen-button icon text-blue-600 dark:text-blue-400"></i>
-            <span class="flex items-center justify-between flex-1">
-                <span>Pasang Aplikasi (APK)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 font-bold">PWA</span>
-            </span>
+           class="w-[calc(100%-0.8rem)] text-left nav-link cursor-pointer">
+            <i class="fas fa-download icon"></i>
+            <span>Pasang Aplikasi</span>
         </button>
     </nav>
 
-    {{-- User Footer (Bento Box inside Sidebar) --}}
-    <div class="p-4 shrink-0 mt-auto mb-2">
-        <div class="glass-panel rounded-2xl p-3 flex items-center gap-3 shadow-sm border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-xl flex items-center justify-center text-sm font-extrabold shrink-0 shadow-[0_2px_8px_rgba(79,70,229,0.3)] border border-white/20">
+    {{-- User Footer --}}
+    <div class="p-3 shrink-0 border-t border-zinc-200 dark:border-zinc-800">
+        <div class="rounded-lg p-2.5 flex items-center gap-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/60">
+            <div class="w-8 h-8 bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 rounded-md flex items-center justify-center text-xs font-semibold shrink-0">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-extrabold text-slate-800 dark:text-white truncate leading-tight">{{ auth()->user()->name }}</p>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot block"></span>
-                    <span class="text-slate-500 dark:text-slate-400 text-[9px] font-extrabold uppercase tracking-widest">
-                        {{ auth()->user()->isAdmin() ? 'Administrator' : 'Guru / Wali' }}
-                    </span>
-                </div>
+                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate leading-tight">{{ auth()->user()->name }}</p>
+                <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-mono uppercase tracking-wider mt-0.5 truncate">
+                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Guru / Piket' }}
+                </p>
             </div>
         </div>
     </div>
 </aside>
 
 {{-- ===== MAIN ===== --}}
-<div class="flex flex-col min-h-screen transition-all duration-300"
+<div class="flex flex-col min-h-screen transition-all duration-200"
      :class="sidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'">
 
     {{-- Overlay mobile --}}
     <div x-show="sidebarOpen && window.innerWidth < 1024" 
          @click="sidebarOpen = false" 
          x-cloak 
-         class="fixed inset-0 bg-slate-950/50 z-30 lg:hidden backdrop-blur-sm"></div>
+         class="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-xs"></div>
 
     {{-- Header --}}
-    <header class="main-header px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm gap-2">
+    <header class="main-header px-4 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-30 gap-2">
         <div class="flex items-center gap-3 min-w-0 shrink-0">
             <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-700 transition border border-slate-200/60 dark:border-slate-700/60 shadow-sm shrink-0">
-                <i class="fas fa-bars text-[15px]"></i>
+                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition border border-zinc-200 dark:border-zinc-700 shrink-0"
+                    aria-label="Toggle Sidebar">
+                <i class="fas fa-bars text-xs"></i>
             </button>
             <div class="min-w-0">
-                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                <div class="hidden sm:flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono uppercase tracking-wider">
                     <span>SMKN 1 Beringin</span>
-                    <i class="fas fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
-                    <span class="text-blue-600 dark:text-blue-400">@yield('page-title', 'Dashboard')</span>
+                    <span>/</span>
+                    <span class="text-zinc-900 dark:text-zinc-200">@yield('page-title', 'Dashboard')</span>
                 </div>
-                <h1 class="font-heading text-lg sm:text-xl font-extrabold text-slate-800 dark:text-white leading-tight truncate">@yield('page-title', 'Dashboard')</h1>
+                <h1 class="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 leading-tight truncate tracking-tight">@yield('page-title', 'Dashboard')</h1>
             </div>
         </div>
 
-        <div class="hidden md:flex flex-1 justify-center items-center">
-            <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-8 lg:h-9 object-contain opacity-90 drop-shadow-sm" alt="Logo Kolaborasi">
-        </div>
-
-        <div class="flex items-center gap-2.5 shrink-0">
-            {{-- Panduan & Install App Header Buttons --}}
-            <a href="{{ route('panduan') }}" target="_blank"
-               class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/60 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 px-3 py-2 rounded-xl transition shadow-sm backdrop-blur-md"
-               title="Buku Panduan Presensi">
-                <i class="fas fa-book-open text-blue-500"></i>
-                <span class="hidden lg:inline">Panduan</span>
-            </a>
-            <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
-                    class="flex items-center gap-1.5 text-xs font-extrabold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-3 py-2 rounded-xl transition shadow-sm active:scale-95 shrink-0"
-                    title="Pasang Aplikasi (PWA / APK)">
-                <i class="fas fa-download text-[11px] text-yellow-300"></i>
-                <span class="hidden sm:inline">Pasang App</span>
-            </button>
-
-            {{-- Mobile Collaboration Logo --}}
-            <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain mr-1 md:hidden" alt="Logo Kolaborasi">
-
-            {{-- Realtime Clock (Glass Bento) --}}
-            <div class="hidden md:flex items-center gap-2 bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 px-3.5 py-2 rounded-xl text-xs shadow-sm backdrop-blur-md">
-                <i class="far fa-calendar text-blue-500 dark:text-blue-400 text-sm"></i>
-                <span class="text-slate-700 dark:text-slate-200 font-bold tracking-wide">{{ now()->locale('id')->isoFormat('dddd, D MMM Y') }}</span>
-                <span class="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full mx-1"></span>
-                <span class="font-mono font-extrabold text-blue-700 dark:text-blue-300" id="realtimeClock">--:--:--</span>
+        <div class="flex items-center gap-2 shrink-0">
+            {{-- Realtime Clock (Strict tabular-nums per PRD 1.2) --}}
+            <div class="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 px-2.5 py-1.5 rounded-lg text-xs font-mono tabular-nums">
+                <span class="text-zinc-600 dark:text-zinc-400">{{ now()->locale('id')->isoFormat('D MMM Y') }}</span>
+                <span class="text-zinc-300 dark:text-zinc-600">&bull;</span>
+                <span class="font-medium text-zinc-900 dark:text-zinc-100" id="realtimeClock">--:--:-- WIB</span>
             </div>
 
-            {{-- Theme Switcher (Sky Toggle) --}}
-            <div class="flex items-center bg-white/60 dark:bg-slate-800/60 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm backdrop-blur-md">
-                <x-sky-toggle size="8px" id="admin-sky-toggle" />
+            {{-- Theme Switcher --}}
+            <div class="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                <x-sky-toggle size="7px" id="admin-sky-toggle" />
             </div>
 
             {{-- Logout --}}
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="flex items-center gap-2 text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-white/60 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/60 hover:border-rose-300 dark:hover:border-rose-700 p-2 sm:px-4 sm:py-2.5 rounded-xl transition shadow-sm backdrop-blur-md"
+                        class="flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1.5 rounded-lg transition"
                         title="Keluar">
-                    <i class="fas fa-power-off text-sm"></i>
-                    <span class="hidden sm:inline tracking-wide uppercase">Keluar</span>
+                    <i class="fas fa-arrow-right-from-bracket text-xs"></i>
+                    <span class="hidden sm:inline">Keluar</span>
                 </button>
             </form>
         </div>
     </header>
 
-    {{-- Flash Messages --}}
+    {{-- Flash Messages (Border-First, No AI-Slop) --}}
     @if(session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="mx-6 mt-4 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
-            <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
-                {{ session('success') }}
+             class="mx-6 mt-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-lg px-4 py-2.5 flex items-center justify-between text-xs font-medium">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check text-emerald-600 dark:text-emerald-400"></i>
+                <span>{{ session('success') }}</span>
             </div>
-            <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 ml-4">
-                <i class="fas fa-xmark"></i>
-            </button>
-        </div>
-    @endif
-
-    @if(session('info'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-             x-transition:leave="transition ease-in duration-200"
-             class="mx-6 mt-4 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
-            <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-info text-blue-600 dark:text-blue-400 text-base"></i>
-                {{ session('info') }}
-            </div>
-            <button @click="show = false" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 ml-4">
+            <button @click="show = false" class="text-emerald-600 dark:text-emerald-400 hover:opacity-75">
                 <i class="fas fa-xmark"></i>
             </button>
         </div>
@@ -566,26 +485,21 @@
 
     @if(session('error'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="mx-6 mt-4 bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 rounded-xl px-4 py-3 flex items-center justify-between shadow-xs">
-            <div class="flex items-center gap-2 text-sm font-medium">
-                <i class="fas fa-circle-exclamation text-rose-600 dark:text-rose-400 text-base"></i>
-                {{ session('error') }}
+             class="mx-6 mt-4 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-lg px-4 py-2.5 flex items-center justify-between text-xs font-medium">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-circle-exclamation text-rose-600 dark:text-rose-400"></i>
+                <span>{{ session('error') }}</span>
             </div>
-            <button @click="show = false" class="text-rose-500 hover:text-rose-700 dark:text-rose-400 ml-4">
+            <button @click="show = false" class="text-rose-600 dark:text-rose-400 hover:opacity-75">
                 <i class="fas fa-xmark"></i>
             </button>
         </div>
     @endif
 
     @if ($errors->any())
-        <div class="mx-6 mt-4 bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 rounded-xl px-4 py-3 shadow-xs">
-            <div class="flex items-center gap-2 text-sm font-bold mb-1">
-                <i class="fas fa-triangle-exclamation text-rose-600 dark:text-rose-400"></i> Perhatian:
-            </div>
-            <ul class="list-disc list-inside text-xs space-y-0.5 text-rose-700 dark:text-rose-300">
+        <div class="mx-6 mt-4 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-lg px-4 py-2.5 text-xs">
+            <p class="font-semibold mb-1">Perhatian:</p>
+            <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -600,9 +514,9 @@
         </div>
         
         {{-- Footer --}}
-        <footer class="mt-10 pt-4 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span>Sistem Presensi Biometrik &amp; Geofencing &bull; <strong class="text-slate-500 dark:text-slate-300">SMK Negeri 1 Beringin</strong></span>
-            <span>Versi 2.0 &bull; Tahun Ajaran 2026/2027</span>
+        <footer class="mt-10 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono tabular-nums">
+            <span>Sistem Presensi Biometrik &amp; Geofencing &bull; SMKN 1 Beringin</span>
+            <span>Versi 2.0 &bull; 2026</span>
         </footer>
     </main>
 </div>
@@ -610,9 +524,9 @@
 {{-- AOS --}}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    AOS.init({ once: true, duration: 280, offset: 20 });
+    AOS.init({ once: true, duration: 200, offset: 10 });
     
-    // Realtime Clock
+    // Realtime Clock (Strict WIB tabular-nums)
     function updateClock() {
         const clockElem = document.getElementById('realtimeClock');
         if (clockElem) {

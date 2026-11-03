@@ -89,7 +89,7 @@
                 </div>
 
                 <div class="mb-10 text-center lg:text-left">
-                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang! 👋</h2>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang! </h2>
                     <p class="text-slate-500 mt-2">Silakan masuk ke akun siswa kamu.</p>
                 </div>
 

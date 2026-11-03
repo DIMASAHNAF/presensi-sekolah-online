@@ -1,43 +1,33 @@
 {{--
-    Component: loading-school.blade.php
-    Deskripsi: Kolaborasi LoadingSchoolIcon + Kokonut AI Text Loading untuk Laravel Blade
-    Mendukung transisi teks halus dengan glowing pinging logo sekolah (icon.webp)
+    Component: loading-school.blade.php — Linear / Vercel Aesthetic
+    Minimalist page transition loader, zero gradients, zero AI slop
 --}}
 
 @props([
-    'iconSrc' => asset('icon.webp'),
+    'iconSrc' => asset('images/logo.webp'),
     'texts' => [
-        'Memverifikasi Wajah...',
-        'Menganalisis Biometrik AI...',
-        'Mengecek Koordinat Presensi...',
+        'Memverifikasi...',
         'Menghubungkan ke Server...',
-        'Hampir Selesai...',
+        'Memuat Data...',
     ],
-    'interval' => 1600,
+    'interval' => 1500,
     'id' => 'loading-school-' . uniqid(),
 ])
 
-<div id="{{ $id }}" class="loading-school-box flex flex-col items-center justify-center p-6 space-y-4 select-none">
-    {{-- 1. Glowing Pinging School Logo --}}
+<div id="{{ $id }}" class="flex flex-col items-center justify-center p-6 space-y-3.5 select-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xs max-w-xs w-full mx-4">
     <div class="relative flex items-center justify-center">
-        {{-- Ping Animation --}}
-        <div class="absolute w-[68px] h-[68px] bg-teal-500/25 rounded-full animate-ping pointer-events-none"></div>
-        {{-- Soft Ambient Glow --}}
-        <div class="absolute w-[84px] h-[84px] bg-emerald-400/20 rounded-full blur-md animate-pulse pointer-events-none"></div>
-        {{-- School Icon --}}
-        <img src="{{ $iconSrc }}"
-             alt="School Logo Loading"
-             class="relative z-10 w-[60px] h-[60px] object-contain animate-pulse filter drop-shadow-md">
+        <svg class="w-8 h-8 text-zinc-900 dark:text-zinc-100 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+            <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
     </div>
 
-    {{-- 2. Shimmering Kokonut AI Text Loading --}}
-    <div class="relative w-full max-w-xs text-center px-4 py-2 overflow-hidden min-h-[52px] flex flex-col items-center justify-center">
-        <div class="loading-text-target font-bold text-base sm:text-lg tracking-wide bg-[length:200%_100%] bg-gradient-to-r from-teal-400 via-emerald-200 to-teal-400 bg-clip-text text-transparent animate-[shimmer_2.5s_linear_infinite] drop-shadow-sm transition-all duration-300 transform">
+    <div class="text-center min-h-[36px] flex flex-col items-center justify-center">
+        <p class="loading-text-target text-xs font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight transition-all duration-200">
             {{ $texts[0] ?? 'Memuat...' }}
-        </div>
-
-        <p class="text-[11px] text-slate-400/80 mt-1 font-medium tracking-wider uppercase">
-            Sistem Presensi AI SMKN 1 Beringin
+        </p>
+        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono tabular-nums mt-0.5">
+            SMKN 1 BERINGIN
         </p>
     </div>
 </div>
@@ -55,21 +45,11 @@
         let currentIndex = 0;
         setInterval(() => {
             textEl.style.opacity = '0';
-            textEl.style.transform = 'translateY(-5px)';
-            
             setTimeout(() => {
                 currentIndex = (currentIndex + 1) % texts.length;
                 textEl.textContent = texts[currentIndex];
                 textEl.style.opacity = '1';
-                textEl.style.transform = 'translateY(0)';
-            }, 200);
+            }, 150);
         }, {{ $interval }});
     })();
 </script>
-
-<style>
-    @keyframes shimmer {
-        0%   { background-position: 200% center; }
-        100% { background-position: -200% center; }
-    }
-</style>

@@ -5,220 +5,186 @@
 
     {{-- Backdrop & Modal --}}
     <div x-show="showModal"
-         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter="transition ease-out duration-150"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/70 backdrop-blur-sm">
+         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
 
         {{-- Modal Dialog --}}
         <div x-show="showModal"
              @click.away="closeModal()"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-12 sm:scale-95"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave="transition ease-in duration-100"
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-12 sm:scale-95"
-             class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+             x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+             class="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-xl sm:rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
 
-            {{-- Header --}}
-            <div class="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white p-5 sm:p-6 shrink-0">
-                <button type="button" @click="closeModal()"
-                        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-                        title="Tutup">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-
-                <div class="flex items-center gap-3.5">
-                    <div class="w-13 h-13 sm:w-14 sm:h-14 bg-white/10 rounded-2xl p-2 backdrop-blur-md border border-white/20 shadow-md shrink-0 flex items-center justify-center">
-                        <img src="{{ asset('images/logo.webp') }}" alt="Logo" class="w-10 h-10 object-contain drop-shadow">
+            {{-- Header (Border-First, No Gradient) --}}
+            <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center p-1.5 shadow-xs">
+                        <img src="{{ asset('images/logo.webp') }}" alt="Logo" class="w-full h-full object-contain">
                     </div>
-                    <div class="min-w-0 pr-8">
-                        <div class="flex items-center gap-2">
-                            <h3 class="font-heading font-black text-lg sm:text-xl text-white tracking-tight">Presensi SMKN 1 Beringin</h3>
-                        </div>
-                        <p class="text-xs text-blue-100 font-medium mt-0.5">Versi Aplikasi Mobile (PWA / Seperti APK)</p>
-                        <div class="flex items-center gap-2 mt-2">
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-400 text-slate-900">
-                                <i class="fas fa-bolt text-[9px]"></i> Sangat Cepat &amp; Ringan
-                            </span>
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white">
-                                <i class="fas fa-mobile-screen text-[9px]"></i> Full Screen
-                            </span>
-                        </div>
+                    <div>
+                        <h3 class="font-semibold text-sm text-zinc-900 dark:text-zinc-100 tracking-tight">Pasang Aplikasi Presensi</h3>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Akses cepat melalui layar utama tanpa peramban</p>
                     </div>
                 </div>
+                <button type="button" @click="closeModal()"
+                        class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 p-1 rounded-lg transition"
+                        title="Tutup">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
 
             {{-- Body Content --}}
-            <div class="p-5 sm:p-6 overflow-y-auto space-y-4">
+            <div class="p-5 overflow-y-auto space-y-4">
 
-                {{-- Direct 1-Click Install Button (Shown on Android / Chrome when deferredPrompt is ready) --}}
-                <div x-show="canInstallDirectly && !isStandalone" class="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-center space-y-2.5">
-                    <p class="text-xs font-bold text-blue-900 dark:text-blue-200">
-                        Browser Anda mendukung pemasangan instan 1-klik:
+                {{-- Direct 1-Click Install Button --}}
+                <div x-show="canInstallDirectly && !isStandalone" class="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-center space-y-2.5">
+                    <p class="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
+                        Peramban Anda mendukung pemasangan langsung:
                     </p>
                     <button type="button" @click="triggerInstall()"
-                            class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-sm shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2.5 transition">
-                        <i class="fas fa-download text-base"></i>
-                        <span>PASANG APLIKASI SEKARANG</span>
+                            class="w-full py-2.5 px-4 rounded-lg bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium text-xs transition shadow-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Pasang Aplikasi Sekarang</span>
                     </button>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Aplikasi akan langsung terpasang di menu aplikasi &amp; layar utama HP Anda.
-                    </p>
                 </div>
 
                 {{-- Standalone Status Notification --}}
-                <div x-show="isStandalone" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3 text-emerald-800 dark:text-emerald-200 text-xs">
-                    <i class="fas fa-circle-check text-xl text-emerald-500 shrink-0"></i>
-                    <div>
-                        <p class="font-bold">Aplikasi Sudah Terpasang!</p>
-                        <p class="text-[11px] opacity-90 mt-0.5">Anda saat ini sedang membuka Presensi langsung dari aplikasi di layar utama.</p>
-                    </div>
+                <div x-show="isStandalone" class="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 text-xs">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <p class="font-medium">Aplikasi sudah terpasang dan berjalan dalam mode aplikasi penuh.</p>
                 </div>
 
                 {{-- Platform Instructions Selector --}}
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                        Pilih Jenis Perangkat Anda:
-                    </p>
-                    <div class="grid grid-cols-3 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+                    <div class="grid grid-cols-3 gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                         <button type="button" @click="activeDeviceTab = 'android'"
-                                class="py-2.5 px-2 rounded-xl text-xs font-extrabold flex flex-col items-center gap-1 transition"
-                                :class="activeDeviceTab === 'android' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                            <i class="fab fa-android text-base"></i>
-                            <span>Android</span>
+                                class="py-2 px-2 rounded-md text-xs font-medium transition"
+                                :class="activeDeviceTab === 'android' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'">
+                            Android
                         </button>
                         <button type="button" @click="activeDeviceTab = 'ios'"
-                                class="py-2.5 px-2 rounded-xl text-xs font-extrabold flex flex-col items-center gap-1 transition"
-                                :class="activeDeviceTab === 'ios' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                            <i class="fab fa-apple text-base"></i>
-                            <span>iPhone / iPad</span>
+                                class="py-2 px-2 rounded-md text-xs font-medium transition"
+                                :class="activeDeviceTab === 'ios' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'">
+                            iOS / iPhone
                         </button>
                         <button type="button" @click="activeDeviceTab = 'desktop'"
-                                class="py-2.5 px-2 rounded-xl text-xs font-extrabold flex flex-col items-center gap-1 transition"
-                                :class="activeDeviceTab === 'desktop' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                            <i class="fas fa-laptop text-base"></i>
-                            <span>Laptop / PC</span>
+                                class="py-2 px-2 rounded-md text-xs font-medium transition"
+                                :class="activeDeviceTab === 'desktop' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'">
+                            Laptop / PC
                         </button>
                     </div>
                 </div>
 
                 {{-- TAB: ANDROID --}}
-                <div x-show="activeDeviceTab === 'android'" class="space-y-3 pt-1">
-                    <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div x-show="activeDeviceTab === 'android'" class="space-y-2.5 pt-1">
+                    <div class="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200 dark:border-zinc-800 space-y-2.5 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">1</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Buka di Browser Google Chrome</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pastikan link <span class="font-mono text-blue-600">{{ request()->getHost() }}</span> dibuka di Google Chrome.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Buka di Google Chrome</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Buka alamat <span class="font-mono text-zinc-800 dark:text-zinc-200">{{ request()->getHost() }}</span> di Chrome Android.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">2</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Ketuk Menu Titik Tiga (⋮) di Kanan Atas</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ketuk ikon titik tiga di sudut kanan atas layar Chrome.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Buka Menu Peramban</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Ketuk ikon titik tiga di sudut kanan atas layar.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">3</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Pilih "Instal aplikasi" atau "Tambahkan ke Layar Utama"</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ketuk pilihan tersebut lalu konfirmasi tombol <strong class="text-blue-600 dark:text-blue-400">"Instal"</strong>.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">✓</span>
-                            <div>
-                                <p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Selesai!</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ikon aplikasi Presensi akan muncul di menu HP Anda seperti aplikasi APK biasa.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Pilih Instal Aplikasi</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Pilih opsi "Instal aplikasi" atau "Tambahkan ke Layar Utama".</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- TAB: IPHONE / IPAD --}}
-                <div x-show="activeDeviceTab === 'ios'" class="space-y-3 pt-1">
-                    <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div x-show="activeDeviceTab === 'ios'" class="space-y-2.5 pt-1">
+                    <div class="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200 dark:border-zinc-800 space-y-2.5 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">1</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Buka di Browser Safari Bawaan iPhone</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pemasangan di iOS hanya bisa dilakukan melalui browser <strong>Safari</strong> (bukan Chrome iOS).</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Gunakan Browser Safari</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Buka alamat website menggunakan aplikasi Safari bawaan iPhone.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">2</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Ketuk Tombol Bagikan (Share)</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ikon kotak dengan panah menghadap ke atas (<i class="fas fa-arrow-up-from-bracket text-blue-600"></i>) di bilah bawah Safari.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Ketuk Tombol Bagikan</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Ketuk ikon kotak dengan panah ke atas di bagian bawah Safari.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">3</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Pilih "Tambah ke Layar Utama" (Add to Home Screen)</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Gulir ke bawah pada menu pop-up Safari dan pilih opsi berlambang tambah (<i class="far fa-square-plus text-blue-600"></i>).</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">✓</span>
-                            <div>
-                                <p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Ketuk "Tambah" di Pojok Kanan Atas</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ikon Presensi langsung muncul di Home Screen iPhone tanpa App Store!</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Pilih Tambah ke Layar Utama</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Gulir ke bawah dan ketuk "Add to Home Screen" (Tambah ke Layar Utama).</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- TAB: LAPTOP / PC --}}
-                <div x-show="activeDeviceTab === 'desktop'" class="space-y-3 pt-1">
-                    <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div x-show="activeDeviceTab === 'desktop'" class="space-y-2.5 pt-1">
+                    <div class="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200 dark:border-zinc-800 space-y-2.5 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">1</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Buka di Chrome atau Microsoft Edge</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Gunakan browser modern berbasis Chromium di Windows atau Mac.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Gunakan Chrome atau Edge</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Akses melalui peramban Google Chrome atau Microsoft Edge.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-mono text-[11px] flex items-center justify-center shrink-0">2</span>
                             <div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-white">Klik Ikon Instal di Kolom URL</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Lihat di sebelah kanan kolom alamat web (URL bar), klik ikon komputer dengan tanda panah ke bawah (<i class="fas fa-circle-down text-blue-600"></i>).</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">✓</span>
-                            <div>
-                                <p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Klik "Instal"</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Aplikasi akan terbuka di jendela tersendiri tanpa gangguan tab lain.</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Klik Ikon Instal di Address Bar</p>
+                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Klik ikon komputer kecil di sebelah kanan kolom alamat URL.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Bottom Quick Link to Guides --}}
-                <div class="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 text-xs">
+                {{-- Bottom Actions --}}
+                <div class="pt-2 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 text-xs">
                     <a href="{{ route('panduan') }}" target="_blank"
-                       class="font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1.5">
-                        <i class="fas fa-book-open"></i>
-                        <span>Lihat Buku Panduan Lengkap</span>
+                       class="font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 transition">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                            <path d="M6 6h10"></path>
+                            <path d="M6 10h10"></path>
+                        </svg>
+                        <span>Buku Panduan Penggunaan</span>
                     </a>
                     <button type="button" @click="closeModal()"
-                            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold transition">
+                            class="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
                         Tutup
                     </button>
                 </div>
@@ -238,10 +204,8 @@
             activeDeviceTab: 'android',
 
             init() {
-                // Detect standalone mode
                 this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-                // Detect device
                 const ua = navigator.userAgent || '';
                 if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
                     this.activeDeviceTab = 'ios';
@@ -251,7 +215,6 @@
                     this.activeDeviceTab = 'desktop';
                 }
 
-                // Listen to deferredPrompt if captured globally
                 if (window.deferredPrompt) {
                     this.canInstallDirectly = true;
                 }
@@ -292,7 +255,6 @@
                         window.deferredPrompt = null;
                     });
                 } else {
-                    // Fallback to instruction tab
                     const ua = navigator.userAgent || '';
                     if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
                         this.activeDeviceTab = 'ios';
@@ -304,7 +266,6 @@
         };
     }
 
-    // Global helper for opening PWA install
     window.openPwaInstallPrompt = function() {
         if (window.deferredPrompt) {
             window.deferredPrompt.prompt();

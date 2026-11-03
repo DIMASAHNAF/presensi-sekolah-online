@@ -30,8 +30,8 @@
                         <img src="{{ asset('images/logo-kolaborasi.webp') }}" alt="Logo Kolaborasi" class="w-10 h-10 object-contain">
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-green-700 dark:text-green-400">Halo, {{ auth()->user()->name }} 👋</h1>
-                        <p class="text-gray-500 dark:text-slate-400 text-sm">Selamat datang di dashboard guru SMKN 1 Beringin.</p>
+                        <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{{ auth()->user()->name }}</h1>
+                        <p class="text-zinc-500 dark:text-zinc-400 text-xs font-mono">Panel Guru / Piket &bull; SMKN 1 Beringin</p>
                     </div>
                 </div>
                 <x-sky-toggle size="8px" id="guru-sky-toggle" />
