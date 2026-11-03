@@ -486,7 +486,7 @@
                         <p class="text-xs text-slate-400">Paling umum digunakan siswa &amp; guru</p>
                     </div>
                     <ol class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 list-decimal list-inside leading-relaxed">
-                        <li>Buka tautan <span class="text-blue-600 font-mono">presensi.tiksmkn1beringin.my.id</span> di <strong>Google Chrome</strong>.</li>
+                        <li>Buka tautan <span class="text-blue-600 font-mono">{{ request()->getHost() }}</span> di <strong>Google Chrome</strong>.</li>
                         <li>Jika muncul banner <em>"Pasang Aplikasi Presensi"</em>, langsung ketuk tombol <strong>Pasang</strong>.</li>
                         <li>Jika tidak muncul otomatis: ketuk tombol <strong>titik tiga (⋮)</strong> di pojok kanan atas browser.</li>
                         <li>Pilih menu <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</li>

@@ -5,4 +5,4 @@ Allow: /
 Allow: /login/
 Allow: /register/
 
-Sitemap: https://presensi.tiksmkn1beringin.my.id/sitemap.xml
+Sitemap: https://presensi.smknegeri1beringin.sch.id/sitemap.xml

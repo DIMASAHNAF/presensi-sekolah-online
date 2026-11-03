@@ -7,18 +7,18 @@
     <meta name="description" content="Sistem Presensi Biometrik Siswa, Guru, dan Staf SMKN 1 Beringin. Portal presensi digital berbasis verifikasi wajah dan GPS.">
     <meta name="robots" content="index, follow">
     <meta name="author" content="SMKN 1 Beringin">
-    <link rel="canonical" href="https://presensi.tiksmkn1beringin.my.id/">
+    <link rel="canonical" href="{{ url('/') }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://presensi.tiksmkn1beringin.my.id/">
+    <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:title" content="Masuk — Sistem Presensi SMKN 1 Beringin">
     <meta property="og:description" content="Portal presensi digital biometrik wajah dan geolokasi untuk siswa dan guru SMKN 1 Beringin.">
     <meta property="og:image" content="{{ asset('images/logo.webp') }}">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://presensi.tiksmkn1beringin.my.id/">
+    <meta name="twitter:url" content="{{ url('/') }}">
     <meta name="twitter:title" content="Masuk — Sistem Presensi SMKN 1 Beringin">
     <meta name="twitter:description" content="Portal presensi digital biometrik wajah dan geolokasi SMKN 1 Beringin.">
     <meta name="twitter:image" content="{{ asset('images/logo.webp') }}">

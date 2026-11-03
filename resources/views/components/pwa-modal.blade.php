@@ -114,7 +114,7 @@
                             <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
                             <div>
                                 <p class="text-xs font-bold text-slate-800 dark:text-white">Buka di Browser Google Chrome</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pastikan link <span class="font-mono text-blue-600">presensi.tiksmkn1beringin.my.id</span> dibuka di Google Chrome.</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pastikan link <span class="font-mono text-blue-600">{{ request()->getHost() }}</span> dibuka di Google Chrome.</p>
                             </div>
                         </div>
 
