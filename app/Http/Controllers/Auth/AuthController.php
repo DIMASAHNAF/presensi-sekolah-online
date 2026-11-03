@@ -131,25 +131,31 @@ class AuthController extends Controller
 
     public function loginGuru(Request $request)
     {
+        $inputKey = $request->has('identifier') ? 'identifier' : 'nik';
+
         $request->validate([
-            'nik' => ['required', 'string'],
+            $inputKey => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $identifier = trim($request->nik);
+        $identifier = trim((string) $request->input($inputKey));
 
-        // Accept both guru and admin (support login via NIK or Username)
+        // Accept both guru and admin (support login via NIP, NUPTK, Username, Nama Lengkap, or NIK)
         $user = User::where(function ($q) use ($identifier) {
-                $q->where('nik', $identifier)
-                  ->orWhere('username', $identifier);
+                $q->where('nip', $identifier)
+                  ->orWhere('nuptk', $identifier)
+                  ->orWhere('username', $identifier)
+                  ->orWhere('nik', $identifier)
+                  ->orWhere('name', $identifier)
+                  ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($identifier)]);
             })
             ->whereIn('role', ['guru', 'admin'])
             ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return back()->withErrors([
-                'nik' => 'NIK / Username atau password salah.',
-            ])->onlyInput('nik');
+                $inputKey => 'NIP, NUPTK, Username, atau Password salah.',
+            ])->onlyInput($inputKey);
         }
 
         Auth::login($user, $request->boolean('remember'));

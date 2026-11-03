@@ -1066,7 +1066,10 @@ class DashboardController extends Controller
         if ($request->search) {
             $query->where(fn ($q) => $q
                 ->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('nip', 'like', '%'.$request->search.'%')
+                ->orWhere('nuptk', 'like', '%'.$request->search.'%')
                 ->orWhere('nik', 'like', '%'.$request->search.'%')
+                ->orWhere('username', 'like', '%'.$request->search.'%')
             );
         }
         $guruList = $query->orderBy('name')->paginate(15)->withQueryString();

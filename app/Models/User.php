@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'username', 'email', 'avatar', 'banner', 'bio', 'website',
-        'nisn', 'nik', 'no_hp_ortu', 'nama_ortu', 'password', 'password_changed_at', 'kelas_id',
+        'nisn', 'nik', 'nip', 'nuptk', 'no_hp_ortu', 'nama_ortu', 'password', 'password_changed_at', 'kelas_id',
         'face_descriptor', 'face_enrolled_at',
     ];
 

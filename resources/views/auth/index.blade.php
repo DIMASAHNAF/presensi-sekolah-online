@@ -182,15 +182,18 @@
                     @csrf
 
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">NIK atau Username</label>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">NIP / NUPTK / Username / Nama Guru</label>
                         <div class="relative flex items-center">
                             <span class="absolute left-3.5 text-slate-400">
                                 <i class="fas fa-user-shield text-sm"></i>
                             </span>
-                            <input type="text" name="nik" value="{{ old('nik') }}" required
-                                   placeholder="16 digit NIK atau username"
+                            <input type="text" name="identifier" value="{{ old('identifier', old('nik')) }}" required
+                                   placeholder="NIP (18 digit), NUPTK, Username, atau Nama"
                                    class="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                         </div>
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                            <i class="fas fa-circle-info text-blue-500 mr-1"></i> Guru ASN bisa menggunakan <strong>NIP</strong>, guru honorer dapat menggunakan <strong>NUPTK</strong>, <strong>Username</strong>, atau <strong>Nama Lengkap</strong>.
+                        </p>
                     </div>
 
                     <div class="space-y-1.5">

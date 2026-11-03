@@ -46,7 +46,17 @@
                             </div>
                             <div class="min-w-0">
                                 <h4 class="font-heading font-bold text-sm text-slate-900 truncate">{{ $guru->name }}</h4>
-                                <p class="text-[11px] font-mono text-slate-500 mt-0.5">NIK: {{ $guru->nik ?: '-' }}</p>
+                                <p class="text-[11px] font-mono text-slate-500 mt-0.5">
+                                    @if($guru->nip)
+                                        <span class="text-blue-600 font-bold">NIP: {{ $guru->nip }}</span>
+                                    @elseif($guru->nuptk)
+                                        <span class="text-indigo-600 font-bold">NUPTK: {{ $guru->nuptk }}</span>
+                                    @elseif($guru->nik)
+                                        <span>NIK: {{ $guru->nik }}</span>
+                                    @else
+                                        <span class="text-slate-400">Guru Honorer</span>
+                                    @endif
+                                </p>
                             </div>
                         </div>
 
@@ -74,7 +84,7 @@
 
                     {{-- Action Footer --}}
                     <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                        <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nik: '{{ addslashes($guru->nik) }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email) }}' })" 
+                        <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}' })" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition text-xs font-bold">
                             <i class="fas fa-pen-to-square text-xs"></i>
                             <span>Edit</span>
@@ -108,7 +118,8 @@
                     <tr>
                         <th class="px-4 py-3 rounded-l-xl">No</th>
                         <th class="px-4 py-3">Nama</th>
-                        <th class="px-4 py-3">NIK</th>
+                        <th class="px-4 py-3">NIP (ASN)</th>
+                        <th class="px-4 py-3">NUPTK / NIK</th>
                         <th class="px-4 py-3">Username (Login)</th>
                         <th class="px-4 py-3 text-center rounded-r-xl">Aksi</th>
                     </tr>
@@ -118,11 +129,26 @@
                     <tr class="table-row">
                         <td class="px-4 py-3 text-slate-500">{{ $guruList->firstItem() + $i }}</td>
                         <td class="px-4 py-3 font-semibold text-slate-700">{{ $guru->name }}</td>
-                        <td class="px-4 py-3">{{ $guru->nik }}</td>
-                        <td class="px-4 py-3">{{ $guru->username }}</td>
+                        <td class="px-4 py-3 font-mono text-xs">
+                            @if($guru->nip)
+                                <span class="text-blue-600 font-bold">{{ $guru->nip }}</span>
+                            @else
+                                <span class="text-slate-400">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 font-mono text-xs">
+                            @if($guru->nuptk)
+                                <span class="text-indigo-600 font-semibold">{{ $guru->nuptk }}</span>
+                            @elseif($guru->nik)
+                                <span>{{ $guru->nik }}</span>
+                            @else
+                                <span class="text-slate-400">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 font-mono text-xs text-blue-600 font-semibold">{{ $guru->username }}</td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex justify-center gap-2">
-                                <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nik: '{{ addslashes($guru->nik) }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email) }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
+                                <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST"
@@ -191,21 +217,41 @@
                            required placeholder="Contoh: Budi Santoso, S.Kom">
                     <p x-show="addErrors.name" x-text="addErrors.name ? addErrors.name[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK (16 Digit)</label>
-                    <input type="text" name="nik" x-model="addForm.nik" maxlength="20"
-                           :class="addErrors.nik ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
-                           class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
-                           required placeholder="1201xxxxxxxxxxxx">
-                    <p x-show="addErrors.nik" x-text="addErrors.nik ? addErrors.nik[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIP (18 Digit - ASN)</label>
+                        <input type="text" name="nip" x-model="addForm.nip" maxlength="30"
+                               :class="addErrors.nip ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
+                               placeholder="19xxxxxxxxxxxxxxxx">
+                        <p x-show="addErrors.nip" x-text="addErrors.nip ? addErrors.nip[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NUPTK (16 Digit)</label>
+                        <input type="text" name="nuptk" x-model="addForm.nuptk" maxlength="30"
+                               :class="addErrors.nuptk ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
+                               placeholder="Opsional / Honorer">
+                        <p x-show="addErrors.nuptk" x-text="addErrors.nuptk ? addErrors.nuptk[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
-                    <input type="text" name="username" x-model="addForm.username"
-                           :class="addErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
-                           class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
-                           required placeholder="budi.santoso">
-                    <p x-show="addErrors.username" x-text="addErrors.username ? addErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
+                        <input type="text" name="username" x-model="addForm.username"
+                               :class="addErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
+                               required placeholder="Contoh: budi.santoso">
+                        <p x-show="addErrors.username" x-text="addErrors.username ? addErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK KTP (Opsional)</label>
+                        <input type="text" name="nik" x-model="addForm.nik" maxlength="20"
+                               :class="addErrors.nik ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" 
+                               placeholder="1201xxxxxxxxxxxx">
+                        <p x-show="addErrors.nik" x-text="addErrors.nik ? addErrors.nik[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password Login</label>
@@ -273,19 +319,37 @@
                            class="w-full border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 transition" required>
                     <p x-show="editErrors.name" x-text="editErrors.name ? editErrors.name[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK</label>
-                    <input type="text" name="nik" x-model="editData.nik"
-                           :class="editErrors.nik ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
-                           class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" required>
-                    <p x-show="editErrors.nik" x-text="editErrors.nik ? editErrors.nik[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIP (18 Digit - ASN)</label>
+                        <input type="text" name="nip" x-model="editData.nip" maxlength="30"
+                               :class="editErrors.nip ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" placeholder="19xxxxxxxxxxxxxxxx">
+                        <p x-show="editErrors.nip" x-text="editErrors.nip ? editErrors.nip[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NUPTK (16 Digit)</label>
+                        <input type="text" name="nuptk" x-model="editData.nuptk" maxlength="30"
+                               :class="editErrors.nuptk ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" placeholder="Opsional / Honorer">
+                        <p x-show="editErrors.nuptk" x-text="editErrors.nuptk ? editErrors.nuptk[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
-                    <input type="text" name="username" x-model="editData.username"
-                           :class="editErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
-                           class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" required>
-                    <p x-show="editErrors.username" x-text="editErrors.username ? editErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username Login</label>
+                        <input type="text" name="username" x-model="editData.username"
+                               :class="editErrors.username ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" required>
+                        <p x-show="editErrors.username" x-text="editErrors.username ? editErrors.username[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIK (Opsional)</label>
+                        <input type="text" name="nik" x-model="editData.nik" maxlength="20"
+                               :class="editErrors.nik ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/30' : 'border-slate-300 focus:ring-blue-600 bg-white'"
+                               class="w-full border rounded-lg px-3.5 py-2 text-sm font-mono focus:outline-none focus:ring-2 transition" placeholder="1201xxxxxxxxxxxx">
+                        <p x-show="editErrors.nik" x-text="editErrors.nik ? editErrors.nik[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
+                    </div>
                 </div>
 
                 {{-- Password Reset Input (Opsional) --}}
@@ -329,6 +393,8 @@
             // State Form Tambah
             addForm: {
                 name: '',
+                nip: '',
+                nuptk: '',
                 nik: '',
                 username: '',
                 password: ''
@@ -346,7 +412,7 @@
             editShake: false,
 
             openAddModal() {
-                this.addForm = { name: '', nik: '', username: '', password: '' };
+                this.addForm = { name: '', nip: '', nuptk: '', nik: '', username: '', password: '' };
                 this.addErrors = {};
                 this.addErrorMessage = '';
                 this.addErrorList = [];

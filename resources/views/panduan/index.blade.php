@@ -349,7 +349,7 @@
                         </div>
                     </div>
                     <ol class="space-y-2 text-xs text-slate-600 dark:text-slate-300 list-decimal list-inside leading-relaxed">
-                        <li>Login dengan <strong>NIK (16 digit)</strong> atau <strong>Username Guru</strong>.</li>
+                        <li>Login dengan <strong>NIP (18 digit ASN)</strong>, <strong>NUPTK (16 digit)</strong>, <strong>Username</strong>, atau <strong>Nama Lengkap Guru</strong>.</li>
                         <li>Masuk ke menu <strong>"Kelola Presensi"</strong> di bilah navigasi kiri.</li>
                         <li>Klik tombol biru <strong>"+ Buka Sesi Presensi"</strong>.</li>
                         <li>Pilih <strong>Kelas / Rombel</strong> dan <strong>Mata Pelajaran</strong> yang diajar.</li>
