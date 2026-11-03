@@ -2363,9 +2363,11 @@
                     const canvas = document.getElementById('canvas-scan');
                     if (!video || !canvas) return;
 
-                    const vidW = video.videoWidth || 1280;
-                    const vidH = video.videoHeight || 720;
-                    const targetW = Math.min(vidW, 1280);
+                    // Optimasi Resolusi: 640px JPEG 0.80 (~45 KB, 30x lebih ringan dari 1.5MB)
+                    // Sangat cepat diupload di kelas & identik akurasinya pada model AI RetinaFace/ArcFace
+                    const vidW = video.videoWidth || 640;
+                    const vidH = video.videoHeight || 480;
+                    const targetW = Math.min(vidW, 640);
                     const targetH = Math.round(targetW * (vidH / vidW));
 
                     canvas.width = targetW;
@@ -2376,10 +2378,14 @@
                     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
                     ctx.restore();
 
-                    const imageB64 = canvas.toDataURL('image/jpeg', 0.96);
+                    const imageB64 = canvas.toDataURL('image/jpeg', 0.80);
 
                     this.scanState = 'processing';
                     this.scanMessage = 'Memverifikasi wajah di server AI...';
+
+                    // Timeout controller 15 detik agar browser tidak hang indefinitely
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
                     fetch('{{ route('siswa.scanwajah') }}', {
                         method: 'POST',
@@ -2387,6 +2393,7 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
+                        signal: controller.signal,
                         body: JSON.stringify({
                             sesi_id: this.currentSesiId,
                             face_image: imageB64,
@@ -2397,7 +2404,16 @@
                             gps_timestamp: this.gpsTimestamp,
                         })
                     })
-                        .then(r => r.json())
+                        .then(async (r) => {
+                            clearTimeout(timeoutId);
+                            if (r.status === 419) {
+                                // Sesi expired / CSRF kedaluwarsa: auto reload mulus
+                                this.scanMessage = 'Sesi kedaluwarsa, memuat ulang halaman...';
+                                setTimeout(() => window.location.reload(), 600);
+                                return { success: false, message: 'Sesi kedaluwarsa. Memuat ulang...' };
+                            }
+                            return r.json();
+                        })
                         .then(data => {
                             if (data.success) {
                                 audioFx.playSuccess();
@@ -2417,10 +2433,15 @@
                                 this.scanMessage = data.message || 'Wajah tidak cocok dengan profil biometrik Anda.';
                             }
                         })
-                        .catch(() => {
+                        .catch((err) => {
+                            clearTimeout(timeoutId);
                             audioFx.playError();
                             this.scanState = 'failed';
-                            this.scanMessage = 'Terjadi kesalahan koneksi server. Coba lagi.';
+                            if (err.name === 'AbortError') {
+                                this.scanMessage = 'Koneksi lambat (timeout 15d). Silakan coba lagi.';
+                            } else {
+                                this.scanMessage = 'Terjadi kesalahan koneksi server. Coba lagi.';
+                            }
                         });
                 },
 

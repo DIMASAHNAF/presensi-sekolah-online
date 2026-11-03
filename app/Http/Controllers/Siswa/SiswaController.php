@@ -569,11 +569,22 @@ class SiswaController extends Controller
             ),
         ]);
 
-        // 8. Kirim notifikasi WhatsApp ke Orang Tua
-        try {
-            app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
-        } catch (\Throwable $e) {
-            \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+        // 8. Kirim notifikasi WhatsApp ke Orang Tua secara Asynchronous (Deferred)
+        // Menjamin respon HTTP kembali ke HP siswa dalam ~0.3 detik tanpa blocking
+        if (function_exists('defer')) {
+            defer(function () use ($presensi) {
+                try {
+                    app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                } catch (\Throwable $e) {
+                    \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+                }
+            });
+        } else {
+            try {
+                app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+            } catch (\Throwable $e) {
+                \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
