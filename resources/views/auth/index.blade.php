@@ -116,13 +116,13 @@
                     @csrf
 
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">NISN / Username Siswa</label>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Nama Lengkap / Username / NISN</label>
                         <div class="relative flex items-center">
                             <span class="absolute left-3.5 text-slate-400">
-                                <i class="fas fa-id-card text-sm"></i>
+                                <i class="fas fa-user text-sm"></i>
                             </span>
                             <input type="text" name="identifier" value="{{ old('identifier') }}" required autofocus
-                                   placeholder="Ketik 10 digit NISN Anda"
+                                   placeholder="Ketik Nama Lengkap, Username, atau NISN"
                                    class="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-xs">
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                             </button>
                         </div>
                         <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> Login pertama kali? Cukup ketik <strong>NISN</strong>, kolom password dapat dikosongkan.
+                            <i class="fas fa-circle-info text-blue-500 mr-1"></i> Bisa login menggunakan <strong>Nama Lengkap</strong>, <strong>Username</strong>, atau <strong>NISN</strong>. Login awal? Password dapat dikosongkan.
                         </p>
                     </div>
 

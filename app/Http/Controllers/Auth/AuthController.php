@@ -32,26 +32,59 @@ class AuthController extends Controller
     public function loginSiswa(Request $request)
     {
         $request->validate([
-            'identifier' => ['required', 'string'], // username / email / NISN
+            'identifier' => ['required', 'string'], // nama / username / email / NISN
             'password'   => ['nullable', 'string'],
         ], [
-            'identifier.required' => 'Username, email, atau NISN wajib diisi.',
+            'identifier.required' => 'Nama Lengkap, Username, atau NISN wajib diisi.',
         ]);
 
         $login = trim($request->input('identifier'));
         $password = $request->input('password');
 
-        // Deteksi field berdasarkan format input
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL)
-            ? 'email'
-            : (ctype_digit($login) ? 'nisn' : 'username');
+        $cleanLogin = preg_replace('/\s+/', ' ', $login);
+        $cleanNoSpaces = str_replace(' ', '', strtolower($cleanLogin));
 
-        $user = User::where($field, $login)->where('role', 'siswa')->first();
+        // 1. Cari siswa: dukung NISN, Username, Nama Lengkap (case-insensitive & spasi toleran), atau Email
+        $matchedUsers = User::where('role', 'siswa')
+            ->where(function ($q) use ($login, $cleanLogin, $cleanNoSpaces) {
+                $q->where('nisn', $login)
+                  ->orWhere('username', $login)
+                  ->orWhereRaw('LOWER(TRIM(username)) = ?', [strtolower($cleanLogin)])
+                  ->orWhereRaw('LOWER(TRIM(name)) = ?', [strtolower($cleanLogin)])
+                  ->orWhereRaw('REPLACE(LOWER(name), " ", "") = ?', [$cleanNoSpaces])
+                  ->orWhere('email', $login);
+            })
+            ->get();
 
-        if (! $user) {
+        // 2. Jika belum ditemukan secara eksak, cari berdasarkan awalan nama (prefix LIKE)
+        if ($matchedUsers->isEmpty() && strlen($cleanLogin) >= 3) {
+            $matchedUsers = User::where('role', 'siswa')
+                ->whereRaw('LOWER(name) LIKE ?', [strtolower($cleanLogin) . '%'])
+                ->get();
+        }
+
+        if ($matchedUsers->isEmpty()) {
             return back()->withErrors([
-                'identifier' => 'Akun siswa tidak ditemukan dalam sistem.',
+                'identifier' => 'Akun siswa tidak ditemukan dalam sistem. Pastikan Nama Lengkap, Username, atau NISN sudah benar.',
             ])->onlyInput('identifier');
+        }
+
+        // 3. Jika ada beberapa kandidat (misal nama kembar), gunakan password untuk menentukan akun yang cocok
+        $user = null;
+        if ($matchedUsers->count() > 1) {
+            if (!empty($password)) {
+                foreach ($matchedUsers as $candidate) {
+                    if (Hash::check($password, $candidate->password) || ($candidate->nisn && $password === $candidate->nisn)) {
+                        $user = $candidate;
+                        break;
+                    }
+                }
+            }
+            if (!$user) {
+                $user = $matchedUsers->first();
+            }
+        } else {
+            $user = $matchedUsers->first();
         }
 
         // Cek kecocokan autentikasi:
@@ -67,13 +100,13 @@ class AuthController extends Controller
                 $isAuthorized = Hash::check($password, $user->password) || ($user->nisn && $password === $user->nisn);
             }
         } else {
-            // Jika password kosong, hanya diperbolehkan jika login via NISN DAN belum pernah set password pribadi
+            // Jika password kosong, hanya diperbolehkan jika belum pernah set password pribadi
             if ($hasCustomPassword) {
                 return back()->withErrors([
                     'identifier' => 'Akun Anda sudah diamankan dengan password. Silakan ketik password Anda.',
                 ])->onlyInput('identifier');
             }
-            $isAuthorized = ($field === 'nisn');
+            $isAuthorized = true;
         }
 
         if (! $isAuthorized) {
