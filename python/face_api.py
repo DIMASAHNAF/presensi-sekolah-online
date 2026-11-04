@@ -11,7 +11,7 @@ Fitur Unggulan Enterprise:
 5. High-Throughput Threading: ONNX Runtime dengan ORT_ENABLE_ALL & intra_op multi-threading dioptimalkan untuk Intel Xeon 16-Core.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional, Tuple, Dict, Any
 import base64
@@ -19,7 +19,12 @@ import io
 import os
 import traceback
 import sys
+import threading
 import concurrent.futures
+
+# Mutex re-entrant thread lock untuk menjamin keamanan memori C++ (ONNX Runtime, OpenCV, dlib)
+# saat banyak siswa melakukan scan/enroll secara bersamaan
+_MODEL_LOCK = threading.RLock()
 
 # ── Load Core & AI Libraries ──
 try:
@@ -112,14 +117,13 @@ if OPENCV_AVAILABLE and hasattr(cv2, 'FaceDetectorYN') and os.path.exists(YUNET_
         print(f"⚠️ Gagal load YuNet ONNX: {e}")
 
 if ONNX_AVAILABLE:
-    # Max-out semua 16 core Intel Xeon untuk inferensi ONNX (ArcFace + MiniFASNet)
-    # intra_op = komputasi paralel dalam satu operator (matmul, conv) → pakai semua core
-    # inter_op = paralelisme antar-operator dalam graph → 4 cukup, terlalu tinggi malah overhead
+    # Optimasi inferensi ONNX (ArcFace + MiniFASNet)
+    # Gunakan ORT_SEQUENTIAL untuk kestabilan memory C++ multi-thread (mencegah double-free / segfault)
     session_options = ort.SessionOptions()
-    session_options.intra_op_num_threads = 8    # 2 workers × 8 = 16 core pas (tidak over-subscribe)
-    session_options.inter_op_num_threads  = 2    # pipeline antar-node ringan
+    session_options.intra_op_num_threads = 4    # Paralelisasi komputasi matriks yang stabil
+    session_options.inter_op_num_threads = 1    # 1 pipeline antar-node
     session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    session_options.execution_mode = ort.ExecutionMode.ORT_PARALLEL  # aktifkan mode paralel
+    session_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL  # Mode sekuensial stabil bebas race condition
 
     # 1. Inisialisasi MiniFASNet Anti-Spoofing
     if os.path.exists(MINIFASNET_PATH):
@@ -278,7 +282,8 @@ def check_liveness(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -
         blob = np.transpose(resized, (2, 0, 1)).astype(np.float32)
         blob = np.expand_dims(blob, axis=0)
 
-        out = minifasnet_session.run(None, {'input': blob})[0][0]
+        with _MODEL_LOCK:
+            out = minifasnet_session.run(None, {'input': blob})[0][0]
         exp_out = np.exp(out - np.max(out))
         probs = exp_out / np.sum(exp_out)
         real_score = float(probs[1])
@@ -294,29 +299,40 @@ def check_liveness(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -
         return True, 1.0, None
 
 
-def align_face_5point(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -> Optional[np.ndarray]:
+def align_face_5point(
+    img_array: np.ndarray,
+    face_box: Tuple[int, int, int, int],
+    landmarks: Optional[np.ndarray] = None
+) -> Optional[np.ndarray]:
     """
     Ekstrak 5 titik koordinat kanonikal (mata kiri, mata kanan, hidung, sudut mulut kiri, sudut mulut kanan)
     dan jalankan Affine Similarity Transform ke ruang kanonikal InsightFace 112x112 px.
-    Jika 68 landmarks terhambat (misal oklusi berat), fallback ke padding proporsional.
+    Jika landmarks sudah diberikan (misal dari YuNet), warp langsung tanpa perlu overhead dlib (<1ms).
     """
     try:
-        landmarks_list = face_recognition.face_landmarks(img_array, [face_box])
-        if landmarks_list and len(landmarks_list) > 0:
-            lm = landmarks_list[0]
-            if 'left_eye' in lm and 'right_eye' in lm and 'nose_tip' in lm and 'top_lip' in lm:
-                left_eye = np.mean(lm['left_eye'], axis=0)
-                right_eye = np.mean(lm['right_eye'], axis=0)
-                nose = np.mean(lm['nose_tip'], axis=0)
-                top_lip = lm['top_lip']
-                mouth_left = top_lip[0]
-                mouth_right = top_lip[6] if len(top_lip) > 6 else top_lip[-1]
+        if landmarks is not None:
+            M, _ = cv2.estimateAffinePartial2D(landmarks, ARCFACE_SRC_PTS)
+            if M is not None:
+                aligned = cv2.warpAffine(img_array, M, (112, 112), borderMode=cv2.BORDER_REFLECT_101)
+                return aligned
 
-                dst_pts = np.array([left_eye, right_eye, nose, mouth_left, mouth_right], dtype=np.float32)
-                M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
-                if M is not None:
-                    aligned = cv2.warpAffine(img_array, M, (112, 112), borderValue=0.0)
-                    return aligned
+        with _MODEL_LOCK:
+            landmarks_list = face_recognition.face_landmarks(img_array, [face_box])
+            if landmarks_list and len(landmarks_list) > 0:
+                lm = landmarks_list[0]
+                if 'left_eye' in lm and 'right_eye' in lm and 'nose_tip' in lm and 'top_lip' in lm:
+                    left_eye = np.mean(lm['left_eye'], axis=0)
+                    right_eye = np.mean(lm['right_eye'], axis=0)
+                    nose = np.mean(lm['nose_tip'], axis=0)
+                    top_lip = lm['top_lip']
+                    mouth_left = top_lip[0]
+                    mouth_right = top_lip[6] if len(top_lip) > 6 else top_lip[-1]
+
+                    dst_pts = np.array([left_eye, right_eye, nose, mouth_left, mouth_right], dtype=np.float32)
+                    M, _ = cv2.estimateAffinePartial2D(dst_pts, ARCFACE_SRC_PTS)
+                    if M is not None:
+                        aligned = cv2.warpAffine(img_array, M, (112, 112), borderValue=0.0)
+                        return aligned
     except Exception:
         pass
 
@@ -339,7 +355,11 @@ def align_face_5point(img_array: np.ndarray, face_box: Tuple[int, int, int, int]
         return None
 
 
-def extract_arcface_512(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -> Optional[List[float]]:
+def extract_arcface_512(
+    img_array: np.ndarray,
+    face_box: Tuple[int, int, int, int],
+    landmarks: Optional[np.ndarray] = None
+) -> Optional[List[float]]:
     """
     Ekstrak 512-D face embedding menggunakan InsightFace ArcFace ResNet-50
     dengan 5-point landmark similarity alignment standar industri biometrik.
@@ -349,7 +369,7 @@ def extract_arcface_512(img_array: np.ndarray, face_box: Tuple[int, int, int, in
         return None
 
     try:
-        aligned_rgb = align_face_5point(img_array, face_box)
+        aligned_rgb = align_face_5point(img_array, face_box, landmarks=landmarks)
         if aligned_rgb is None or aligned_rgb.size == 0:
             return None
 
@@ -359,7 +379,8 @@ def extract_arcface_512(img_array: np.ndarray, face_box: Tuple[int, int, int, in
         blob = (blob - 127.5) / 127.5
         blob = np.expand_dims(blob, axis=0)
 
-        out = arcface_session.run(None, {'input.1': blob})[0][0]
+        with _MODEL_LOCK:
+            out = arcface_session.run(None, {'input.1': blob})[0][0]
         # L2 Normalisasi vektor
         norm = float(np.linalg.norm(out))
         if norm > 0:
@@ -368,6 +389,68 @@ def extract_arcface_512(img_array: np.ndarray, face_box: Tuple[int, int, int, in
     except Exception as e:
         print(f"Error ekstraksi ArcFace: {e}")
         return None
+
+
+def detect_face_fast(
+    img_array: np.ndarray
+) -> Tuple[Optional[Tuple[int, int, int, int]], Optional[np.ndarray], Optional[str]]:
+    """
+    Deteksi wajah & 5 landmarks super cepat (<15ms) dengan prioritas YuNet ONNX.
+    Fallback ke dlib HOG jika YuNet tidak mendeteksi wajah.
+    Mengembalikan: (face_box (top, right, bottom, left), landmarks (5x2), error_msg)
+    """
+    h, w, _ = img_array.shape
+
+    # 1. Prioritas Utama: YuNet ONNX Detector (15ms)
+    if yunet_detector is not None:
+        try:
+            bgr_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+            with _MODEL_LOCK:
+                yunet_detector.setInputSize((w, h))
+                yunet_detector.setScoreThreshold(0.45)
+                yunet_detector.setNMSThreshold(0.35)
+                _, raw_faces = yunet_detector.detect(bgr_img)
+
+            if raw_faces is not None and len(raw_faces) > 0:
+                # Ambil wajah terbesar
+                sorted_faces = sorted(raw_faces, key=lambda f: float(f[14]) * (float(f[2]) * float(f[3])), reverse=True)
+                f = sorted_faces[0]
+                x, y, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
+                x = max(0, x)
+                y = max(0, y)
+                fw = min(w - x, fw)
+                fh = min(h - y, fh)
+
+                if fw >= 20 and fh >= 20:
+                    face_box = (y, x + fw, y + fh, x)
+                    landmarks = np.array([
+                        [f[4], f[5]],
+                        [f[6], f[7]],
+                        [f[8], f[9]],
+                        [f[10], f[11]],
+                        [f[12], f[13]]
+                    ], dtype=np.float32)
+                    return face_box, landmarks, None
+        except Exception as e:
+            print(f"Warning YuNet detect: {e}")
+
+    # 2. Fallback: dlib face_locations
+    with _MODEL_LOCK:
+        face_locations = face_recognition.face_locations(img_array, model="hog")
+        if len(face_locations) == 0:
+            face_locations = face_recognition.face_locations(img_array, number_of_times_to_upsample=1, model="hog")
+
+    if len(face_locations) == 0:
+        return None, None, "Tidak ada wajah yang terdeteksi dalam frame. Pastikan wajah tepat di depan kamera."
+
+    if len(face_locations) > 1:
+        face_locations = sorted(
+            face_locations,
+            key=lambda b: (b[2] - b[0]) * (b[1] - b[3]),
+            reverse=True
+        )
+
+    return face_locations[0], None, None
 
 
 def extract_descriptor(
@@ -379,31 +462,32 @@ def extract_descriptor(
     Ekstrak 128-float face descriptor menggunakan High Model 68-point landmarks
     dan kembalikan lokasi kotak wajah (bounding box).
     """
-    face_locations = face_recognition.face_locations(image_array, model="hog")
+    with _MODEL_LOCK:
+        face_locations = face_recognition.face_locations(image_array, model="hog")
 
-    if len(face_locations) == 0 and high_model:
-        face_locations = face_recognition.face_locations(image_array, number_of_times_to_upsample=1, model="hog")
+        if len(face_locations) == 0 and high_model:
+            face_locations = face_recognition.face_locations(image_array, number_of_times_to_upsample=1, model="hog")
 
-    if len(face_locations) == 0:
-        return None, None, "Tidak ada wajah yang terdeteksi dalam frame. Pastikan wajah tepat di depan kamera."
+        if len(face_locations) == 0:
+            return None, None, "Tidak ada wajah yang terdeteksi dalam frame. Pastikan wajah tepat di depan kamera."
 
-    if len(face_locations) > 1:
-        face_locations = sorted(
+        if len(face_locations) > 1:
+            face_locations = sorted(
+                face_locations,
+                key=lambda b: (b[2] - b[0]) * (b[1] - b[3]),
+                reverse=True
+            )
+            face_locations = [face_locations[0]]
+
+        best_box = face_locations[0]
+
+        jitters = num_jitters if high_model else 1
+        encodings = face_recognition.face_encodings(
+            image_array,
             face_locations,
-            key=lambda b: (b[2] - b[0]) * (b[1] - b[3]),
-            reverse=True
+            num_jitters=jitters,
+            model="large"
         )
-        face_locations = [face_locations[0]]
-
-    best_box = face_locations[0]
-
-    jitters = num_jitters if high_model else 1
-    encodings = face_recognition.face_encodings(
-        image_array,
-        face_locations,
-        num_jitters=jitters,
-        model="large"
-    )
 
     if not encodings:
         return None, best_box, "Gagal mengekstrak fitur wajah. Pastikan pencahayaan cukup dan wajah terlihat jelas."
@@ -514,20 +598,21 @@ def mode_extract(payload: ExtractRequest) -> Dict[str, Any]:
 
 
 @app.post("/enroll")
-def mode_enroll(payload: EnrollRequest) -> Dict[str, Any]:
+async def mode_enroll(request: Request, payload: EnrollRequest) -> Dict[str, Any]:
     """
     Endpoint Pendaftaran Wajah Multi-Sudut (Enterprise Biometric Consensus).
     Menggabungkan 5 pose (depan, toleh kiri, toleh kanan, senyum, depan kunci)
-    menggunakan Weighted Centroid Fusion.
+    menggunakan Weighted Centroid Fusion berkecepatan tinggi dengan YuNet + ArcFace 512-D.
     """
+    if await request.is_disconnected():
+        return {"success": False, "error": "Client disconnected"}
+
     try:
         images = payload.images_b64
         if len(images) < 3:
             return {"success": False, "error": "Minimal 3 foto wajah diperlukan untuk enrollment."}
 
-        descriptors_128 = []
         descriptors_512 = []
-        weights_128 = []
         weights_512 = []
         errors = []
 
@@ -535,84 +620,63 @@ def mode_enroll(payload: EnrollRequest) -> Dict[str, Any]:
         angle_weights = [1.3, 0.95, 0.95, 1.1, 1.3]
 
         for i, b64 in enumerate(images):
+            if await request.is_disconnected():
+                return {"success": False, "error": "Client disconnected"}
+
             w = angle_weights[i] if i < len(angle_weights) else 1.0
             try:
-                img_array = decode_image(b64, max_dimension=1024)
-                d128, fbox, err = extract_descriptor(img_array, high_model=True, num_jitters=2)
+                img_array = decode_image(b64, max_dimension=640)
+                fbox, lms, err = detect_face_fast(img_array)
                 if err:
                     errors.append(f"Foto {i+1}: {err}")
                     continue
-                descriptors_128.append(d128)
-                weights_128.append(w)
 
                 if fbox is not None:
-                    d512 = extract_arcface_512(img_array, fbox)
+                    d512 = extract_arcface_512(img_array, fbox, landmarks=lms)
                     if d512:
                         descriptors_512.append(d512)
                         weights_512.append(w)
+                    else:
+                        errors.append(f"Foto {i+1}: Gagal ekstrak ArcFace 512-D")
             except Exception as e:
                 errors.append(f"Foto {i+1}: Gagal decode ({str(e)})")
 
-        if len(descriptors_128) < 3 and len(descriptors_512) < 3:
+        if len(descriptors_512) < 3:
             return {
                 "success": False,
-                "error": f"Hanya {max(len(descriptors_128), len(descriptors_512))}/{len(images)} foto yang memenuhi syarat biometrik. Error: {'; '.join(errors)}"
+                "error": f"Hanya {len(descriptors_512)}/{len(images)} foto yang memenuhi syarat biometrik. Error: {'; '.join(errors)}"
             }
 
         # 1. Hitung Weighted Centroid 512-D ArcFace Aligned
-        avg_descriptor_512 = None
-        if len(descriptors_512) >= 3:
-            d512_arr = np.array(descriptors_512, dtype=np.float32)
-            w512_arr = np.array(weights_512, dtype=np.float32).reshape(-1, 1)
+        d512_arr = np.array(descriptors_512, dtype=np.float32)
+        w512_arr = np.array(weights_512, dtype=np.float32).reshape(-1, 1)
 
-            # Filter outlier jika ada 4-5 foto
-            if len(descriptors_512) >= 4:
-                median_512 = np.median(d512_arr, axis=0)
-                dists_to_med = np.linalg.norm(d512_arr - median_512, axis=1)
-                clean_mask = dists_to_med < 0.45
-                if np.sum(clean_mask) >= 3:
-                    d512_arr = d512_arr[clean_mask]
-                    w512_arr = w512_arr[clean_mask]
+        # Filter outlier jika ada 4-5 foto
+        if len(descriptors_512) >= 4:
+            median_512 = np.median(d512_arr, axis=0)
+            dists_to_med = np.linalg.norm(d512_arr - median_512, axis=1)
+            clean_mask = dists_to_med < 0.45
+            if np.sum(clean_mask) >= 3:
+                d512_arr = d512_arr[clean_mask]
+                w512_arr = w512_arr[clean_mask]
 
-            weighted_sum_512 = np.sum(d512_arr * w512_arr, axis=0)
-            sum_weights_512 = float(np.sum(w512_arr))
-            centroid_512 = weighted_sum_512 / sum_weights_512
-            norm_512 = float(np.linalg.norm(centroid_512))
-            if norm_512 > 0:
-                centroid_512 = centroid_512 / norm_512
-            avg_descriptor_512 = centroid_512.tolist()
-
-        # 2. Hitung Weighted Centroid 128-D dlib
-        avg_descriptor_128 = None
-        if len(descriptors_128) >= 3:
-            d128_arr = np.array(descriptors_128, dtype=np.float32)
-            w128_arr = np.array(weights_128, dtype=np.float32).reshape(-1, 1)
-
-            if len(descriptors_128) >= 4:
-                median_128 = np.median(d128_arr, axis=0)
-                dists_to_med = np.linalg.norm(d128_arr - median_128, axis=1)
-                clean_mask = dists_to_med < 0.40
-                if np.sum(clean_mask) >= 3:
-                    d128_arr = d128_arr[clean_mask]
-                    w128_arr = w128_arr[clean_mask]
-
-            weighted_sum_128 = np.sum(d128_arr * w128_arr, axis=0)
-            sum_weights_128 = float(np.sum(w128_arr))
-            centroid_128 = weighted_sum_128 / sum_weights_128
-            avg_descriptor_128 = centroid_128.tolist()
-
-        # Default descriptor utama adalah ArcFace 512-D Aligned (Enterprise)
-        primary_desc = avg_descriptor_512 if avg_descriptor_512 is not None else avg_descriptor_128
+        weighted_sum_512 = np.sum(d512_arr * w512_arr, axis=0)
+        sum_weights_512 = float(np.sum(w512_arr))
+        centroid_512 = weighted_sum_512 / sum_weights_512
+        norm_512 = float(np.linalg.norm(centroid_512))
+        if norm_512 > 0:
+            centroid_512 = centroid_512 / norm_512
+        avg_descriptor_512 = centroid_512.tolist()
 
         return {
             "success": True,
-            "descriptor": primary_desc,
-            "dimensions": len(primary_desc) if primary_desc else 0,
-            "descriptor_128": avg_descriptor_128,
+            "descriptor": avg_descriptor_512,
+            "dimensions": 512,
+            "descriptor_128": None,
             "descriptor_512": avg_descriptor_512,
-            "processed": max(len(descriptors_128), len(descriptors_512)),
+            "processed": len(descriptors_512),
             "total_submitted": len(images),
-            "model_version": "arcface-512-aligned-enterprise" if avg_descriptor_512 else "dlib-128",
+            "model_version": "arcface-512-aligned-enterprise",
             "errors": errors
         }
     except Exception as e:
@@ -620,11 +684,14 @@ def mode_enroll(payload: EnrollRequest) -> Dict[str, Any]:
 
 
 @app.post("/compare")
-def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
+async def mode_compare(request: Request, payload: CompareRequest) -> Dict[str, Any]:
     """
     Endpoint 1:1 Face Verification dengan integrasi Passive Anti-Spoofing
     dan Dual Engine (128-D & 512-D dengan 5-point alignment).
     """
+    if await request.is_disconnected():
+        return {"success": False, "error": "Client disconnected"}
+
     try:
         stored = payload.stored
         dim = len(stored)
@@ -632,32 +699,35 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
             return {"success": False, "error": f"Stored descriptor harus 128 atau 512 elemen, dapat {dim}."}
 
         img_array = decode_image(payload.image_b64)
-        new_desc_128, face_box, err = extract_descriptor(img_array)
 
-        if err:
-            return {
-                "success": True,
-                "match": False,
-                "distance": None,
-                "reason": err
-            }
-
-        # ── 1. Validasi Passive Anti-Spoofing (Liveness Check) ──
-        if not payload.skip_liveness and face_box is not None:
-            is_real, liveness_score, liveness_err = check_liveness(img_array, face_box)
-            if not is_real:
+        # ── Jalur Cepat 512-D ArcFace (99.9% dari seluruh siswa) ──
+        if dim == 512:
+            face_box, lms, err = detect_face_fast(img_array)
+            if err:
                 return {
                     "success": True,
                     "match": False,
-                    "is_spoof": True,
-                    "liveness_score": round(liveness_score, 4),
                     "distance": None,
-                    "reason": liveness_err or "Presensi ditolak: Terdeteksi foto 2D / layar perangkat."
+                    "reason": err
                 }
 
-        # ── 2. Perbandingan Biometrik Berdasarkan Dimensi Stored ──
-        if dim == 512:
-            new_desc_512 = extract_arcface_512(img_array, face_box) if face_box else None
+            # 1. Validasi Passive Anti-Spoofing (Liveness Check)
+            if not payload.skip_liveness and face_box is not None:
+                is_real, liveness_score, liveness_err = check_liveness(img_array, face_box)
+                if not is_real:
+                    return {
+                        "success": True,
+                        "match": False,
+                        "is_spoof": True,
+                        "liveness_score": round(liveness_score, 4),
+                        "distance": None,
+                        "reason": liveness_err or "Presensi ditolak: Terdeteksi foto 2D / layar perangkat."
+                    }
+
+            if await request.is_disconnected():
+                return {"success": False, "error": "Client disconnected"}
+
+            new_desc_512 = extract_arcface_512(img_array, face_box, landmarks=lms) if face_box else None
             if not new_desc_512:
                 return {
                     "success": True,
@@ -691,37 +761,60 @@ def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
                 "engine": "arcface-512-aligned",
                 "reason": "Wajah dikenali (ArcFace 512-D Aligned)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {thr_512})."
             }
-        else:
-            stored_vec = np.array(stored, dtype=np.float32)
-            new_vec = np.array(new_desc_128, dtype=np.float32)
 
-            stored_norm = float(np.linalg.norm(stored_vec))
-            new_norm = float(np.linalg.norm(new_vec))
-            if 0 < stored_norm < 1.15 and new_norm > 1.30:
-                stored_vec = stored_vec * new_norm
+        # ── Jalur Fallback 128-D (Legacy Siswa Lama) ──
+        new_desc_128, face_box, err = extract_descriptor(img_array)
 
-            distance = float(np.linalg.norm(stored_vec - new_vec))
-            thr_128 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.35) else THRESHOLD_128
-            match = distance < thr_128
-
-            if distance < 0.35:
-                confidence = "very_high"
-            elif distance < 0.45:
-                confidence = "high"
-            elif distance <= thr_128:
-                confidence = "medium"
-            else:
-                confidence = "low"
-
+        if err:
             return {
                 "success": True,
-                "match": match,
-                "distance": round(distance, 4),
-                "threshold": thr_128,
-                "confidence": confidence,
-                "engine": "dlib-128",
-                "reason": "Wajah dikenali (dlib 128-D)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {thr_128})."
+                "match": False,
+                "distance": None,
+                "reason": err
             }
+
+        if not payload.skip_liveness and face_box is not None:
+            is_real, liveness_score, liveness_err = check_liveness(img_array, face_box)
+            if not is_real:
+                return {
+                    "success": True,
+                    "match": False,
+                    "is_spoof": True,
+                    "liveness_score": round(liveness_score, 4),
+                    "distance": None,
+                    "reason": liveness_err or "Presensi ditolak: Terdeteksi foto 2D / layar perangkat."
+                }
+
+        stored_vec = np.array(stored, dtype=np.float32)
+        new_vec = np.array(new_desc_128, dtype=np.float32)
+
+        stored_norm = float(np.linalg.norm(stored_vec))
+        new_norm = float(np.linalg.norm(new_vec))
+        if 0 < stored_norm < 1.15 and new_norm > 1.30:
+            stored_vec = stored_vec * new_norm
+
+        distance = float(np.linalg.norm(stored_vec - new_vec))
+        thr_128 = payload.threshold if (payload.threshold is not None and payload.threshold >= 0.35) else THRESHOLD_128
+        match = distance < thr_128
+
+        if distance < 0.35:
+            confidence = "very_high"
+        elif distance < 0.45:
+            confidence = "high"
+        elif distance <= thr_128:
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        return {
+            "success": True,
+            "match": match,
+            "distance": round(distance, 4),
+            "threshold": thr_128,
+            "confidence": confidence,
+            "engine": "dlib-128",
+            "reason": "Wajah dikenali (dlib 128-D)." if match else f"Wajah tidak cocok (jarak: {distance:.4f}, threshold: {thr_128})."
+        }
     except Exception as e:
         return {"success": False, "error": str(e), "trace": traceback.format_exc()}
 
@@ -987,10 +1080,11 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
 
         # 1. Deteksi Wajah menggunakan YuNet (Score 0.55 optimal untuk deteksi manusia riil tanpa noise furniture)
         if yunet_detector is not None:
-            yunet_detector.setInputSize((w, h))
-            yunet_detector.setScoreThreshold(0.55)
-            yunet_detector.setNMSThreshold(0.35)
-            _, raw_faces = yunet_detector.detect(bgr_img)
+            with _MODEL_LOCK:
+                yunet_detector.setInputSize((w, h))
+                yunet_detector.setScoreThreshold(0.55)
+                yunet_detector.setNMSThreshold(0.35)
+                _, raw_faces = yunet_detector.detect(bgr_img)
             if raw_faces is not None and len(raw_faces) > 0:
                 sorted_faces = sorted(raw_faces, key=lambda f: float(f[14]) * (float(f[2]) * float(f[3])), reverse=True)
                 for f in sorted_faces[:max_faces]:
@@ -1077,7 +1171,8 @@ def mode_identify_multi(payload: IdentifyRequest) -> Dict[str, Any]:
                 blob = np.transpose(aligned, (2, 0, 1)).astype(np.float32)
                 blob = (blob - 127.5) / 127.5
                 blob = np.expand_dims(blob, axis=0)
-                out  = arcface_session.run(None, {'input.1': blob})[0][0]
+                with _MODEL_LOCK:
+                    out = arcface_session.run(None, {'input.1': blob})[0][0]
                 norm = float(np.linalg.norm(out))
                 return (out / norm).tolist() if norm > 0 else None
             except Exception as ex:

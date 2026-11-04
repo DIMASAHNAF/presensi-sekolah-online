@@ -2444,7 +2444,7 @@
                                 audioFx.playSuccess();
                                 this.scanState = 'success';
                                 this.scanSuccess = true;
-                                this.scanMessage = 'Berhasil! Anda tercatat HADIR.';
+                                this.scanMessage = data.message || 'Presensi Berhasil: Anda tercatat HADIR.';
                                 this.sudahHadir = true;
                                 this.stopCamera();
                                 setTimeout(() => {

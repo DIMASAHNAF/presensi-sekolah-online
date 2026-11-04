@@ -203,10 +203,13 @@ class FaceService
         $url = rtrim($this->apiUrl, '/') . '/' . $mode;
 
         try {
+            // Alokasi timeout dinamis yang aman untuk beban puncak (enroll: 45s, compare: 25s, test: 5s)
+            $timeout = ($mode === 'enroll') ? 45 : (($mode === 'test') ? 5 : 25);
+
             if ($mode === 'test') {
-                $response = Http::timeout(5)->get($url);
+                $response = Http::timeout($timeout)->get($url);
             } else {
-                $response = Http::timeout(10)->post($url, $payload);
+                $response = Http::timeout($timeout)->post($url, $payload);
             }
 
             if ($response->successful()) {

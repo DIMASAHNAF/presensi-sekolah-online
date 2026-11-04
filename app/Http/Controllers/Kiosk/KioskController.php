@@ -291,30 +291,32 @@ class KioskController extends Controller
         $fotoPath = null;
 
         if (!$alreadyAttended) {
-            try {
-                if ($rawImg) {
-                    $cleanImg = $rawImg;
-                    if (str_contains($cleanImg, ',')) {
-                        $cleanImg = explode(',', $cleanImg, 2)[1];
-                    }
-                    $decoded = base64_decode($cleanImg);
-                    if ($decoded) {
-                        $folder = 'face_scans/' . date('Y-m-d');
-                        $filename = $folder . '/kiosk_' . $user->id . '_' . time() . '.jpg';
-                        Storage::disk('public')->put($filename, $decoded);
-                        $fotoPath = $filename;
-                    }
-                }
-            } catch (\Throwable $e) {
-                Log::warning('[KioskController] Gagal simpan foto scan: ' . $e->getMessage());
+            $attendanceService = app(\App\Services\AttendanceService::class);
+            $serverNow = now('Asia/Jakarta');
+            $lateCalc = $attendanceService->calculateLate($sesi, $serverNow);
+            $checkInStatus = $lateCalc['check_in_status'];
+            $lateMinutes = $lateCalc['late_minutes'];
+
+            if ($rawImg) {
+                $fotoPath = $attendanceService->compressAndStorePhoto(
+                    $rawImg,
+                    $user->id,
+                    $sesi->id,
+                    'face_scans'
+                );
             }
 
             $statusSebelumnya = $presensi->status;
-            $now = now();
+            $keteranganDetail = "Scan Face ID Kiosk Gerbang [" . ($checkInStatus === 'LATE' ? "Terlambat {$lateMinutes}m" : "Tepat Waktu") . "]"
+                . ($fotoPath ? " (WebP: {$fotoPath})" : '');
+
             $presensi->update([
-                'status'     => 'hadir',
-                'waktu_scan' => $now,
-                'keterangan' => $fotoPath ? "Scan Face ID Kiosk Gerbang (Tersimpan: {$fotoPath})" : 'Scan Face ID Kiosk Gerbang',
+                'status'          => 'hadir',
+                'check_in_status' => $checkInStatus,
+                'late_minutes'    => $lateMinutes,
+                'check_in_photo'  => $fotoPath,
+                'waktu_scan'      => $serverNow,
+                'keterangan'      => $keteranganDetail,
             ]);
 
             // Invalidasi cache hadir count agar polling berikutnya mendapat angka terbaru
@@ -326,7 +328,9 @@ class KioskController extends Controller
                 'status_sebelumnya' => $statusSebelumnya,
                 'status_baru'       => 'hadir',
                 'keterangan'        => sprintf(
-                    'Presensi Face ID Kiosk Gerbang (%s, confidence: %s, distance: %.4f)',
+                    'Presensi Face ID Kiosk Gerbang [%s%s, %s, confidence: %s, distance: %.4f]',
+                    $checkInStatus,
+                    $lateMinutes > 0 ? " ({$lateMinutes}m)" : '',
                     $matchData['engine'] ?? 'ArcFace 512-D YuNet',
                     $matchData['confidence'] ?? 'high',
                     $matchData['distance'] ?? 0

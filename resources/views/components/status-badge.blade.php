@@ -54,3 +54,4 @@
 <span {{ $attributes->merge(['class' => "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium font-mono tabular-nums {$classes}"]) }}>
     {{ $displayText }}
 </span>
+

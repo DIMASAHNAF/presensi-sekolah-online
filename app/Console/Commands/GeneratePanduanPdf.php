@@ -38,3 +38,4 @@ class GeneratePanduanPdf extends Command
         return Command::FAILURE;
     }
 }
+

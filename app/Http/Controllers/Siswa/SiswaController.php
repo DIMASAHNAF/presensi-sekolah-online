@@ -35,18 +35,22 @@ class SiswaController extends Controller
         $riwayatSemuaFormatted = $riwayatSemua->map(function ($item) {
             $sesi = $item->sesiPresensi;
             $tanggalObj = $sesi?->tanggal ?? $item->created_at;
+            $scanTime = $item->waktu_scan ?? $item->created_at;
             return [
-                'id'          => $item->id,
-                'status'      => $item->status,
-                'tanggal'     => $tanggalObj ? $tanggalObj->format('d M Y') : '-',
-                'tanggal_raw' => $tanggalObj ? $tanggalObj->format('Y-m-d') : '',
-                'bulan'       => $tanggalObj ? $tanggalObj->format('Y-m') : '',
-                'jam'         => $item->created_at ? $item->created_at->format('H:i') . ' WIB' : '-',
-                'kelas'       => $sesi?->kelas?->nama_kelas ?? 'Reguler',
-                'mapel'       => $sesi?->mataPelajaran?->nama_mapel ?? 'Presensi Umum',
-                'guru'        => $sesi?->guru?->name ?? 'Wali Kelas',
-                'metode'      => $item->face_matched ? 'Wajah AI' : 'Sistem / Guru',
-                'keterangan'  => $item->keterangan ?? '-',
+                'id'              => $item->id,
+                'status'          => $item->status,
+                'check_in_status' => $item->check_in_status ?? 'ONTIME',
+                'late_minutes'    => (int) ($item->late_minutes ?? 0),
+                'tanggal'         => $tanggalObj ? $tanggalObj->format('d M Y') : '-',
+                'tanggal_raw'     => $tanggalObj ? $tanggalObj->format('Y-m-d') : '',
+                'bulan'           => $tanggalObj ? $tanggalObj->format('Y-m') : '',
+                'jam'             => $scanTime ? $scanTime->format('H:i') . ' WIB' : '-',
+                'kelas'           => $sesi?->kelas?->nama_kelas ?? 'Reguler',
+                'mapel'           => $sesi?->mataPelajaran?->nama_mapel ?? 'Presensi Kelas',
+                'guru'            => $sesi?->guru?->name ?? 'Wali Kelas',
+                'distance'        => $item->check_in_distance,
+                'photo_url'       => $item->photo_url,
+                'keterangan'      => $item->keterangan ?? '-',
             ];
         });
 
@@ -521,26 +525,22 @@ class SiswaController extends Controller
             ]);
         }
 
-        // 6. Update jadi HADIR & Arsipkan foto scan ke storage NFS (/mnt/nfs/data-presensi)
+        // 6. Hitung keterlambatan berdasarkan jam server resmi (WIB) & kompresi foto WebP
         $statusSebelumnya = $presensi->status;
-        $fotoPath = null;
+        $attendanceService = app(\App\Services\AttendanceService::class);
+        $serverNow = now('Asia/Jakarta');
+        $lateCalc = $attendanceService->calculateLate($sesi, $serverNow);
+        $checkInStatus = $lateCalc['check_in_status'];
+        $lateMinutes = $lateCalc['late_minutes'];
 
+        $fotoPath = null;
         if ($request->filled('face_image')) {
-            try {
-                $rawImg = $request->face_image;
-                if (str_contains($rawImg, ',')) {
-                    $rawImg = explode(',', $rawImg, 2)[1];
-                }
-                $decoded = base64_decode($rawImg);
-                if ($decoded) {
-                    $folder = 'face_scans/' . date('Y-m-d');
-                    $filename = $folder . '/' . $user->id . '_' . $sesi->id . '_' . time() . '.jpg';
-                    Storage::disk('public')->put($filename, $decoded);
-                    $fotoPath = $filename;
-                }
-            } catch (\Throwable $e) {
-                \Log::warning('Gagal menyimpan foto scan wajah ke mount /mnt: ' . $e->getMessage());
-            }
+            $fotoPath = $attendanceService->compressAndStorePhoto(
+                $request->face_image,
+                $user->id,
+                $sesi->id,
+                'face_scans'
+            );
         }
 
         $gpsAudit = '';
@@ -548,10 +548,20 @@ class SiswaController extends Controller
             $gpsAudit = sprintf(' • Jarak: %dm (±%dm)', round($distance), round($accuracy ?? 0));
         }
 
+        $keteranganDetail = ($checkInStatus === 'LATE' ? "Terlambat ({$lateMinutes} menit)" : "Tepat Waktu")
+            . ($fotoPath ? " (WebP: {$fotoPath})" : '')
+            . $gpsAudit;
+
         $presensi->update([
-            'status'     => 'hadir',
-            'waktu_scan' => now(),
-            'keterangan' => ($fotoPath ? 'Scan Wajah (Tersimpan: ' . $fotoPath . ')' : 'Scan Wajah (Sistem)') . $gpsAudit,
+            'status'            => 'hadir',
+            'check_in_status'   => $checkInStatus,
+            'late_minutes'      => $lateMinutes,
+            'check_in_lat'      => $userLat ?? null,
+            'check_in_lng'      => $userLng ?? null,
+            'check_in_distance' => $distance !== null ? round($distance, 2) : null,
+            'check_in_photo'    => $fotoPath,
+            'waktu_scan'        => $serverNow,
+            'keterangan'        => $keteranganDetail,
         ]);
 
         // 7. Catat log
@@ -561,7 +571,9 @@ class SiswaController extends Controller
             'status_sebelumnya' => $statusSebelumnya,
             'status_baru'       => 'hadir',
             'keterangan'        => sprintf(
-                'Siswa melakukan scan wajah mandiri (confidence: %s, distance: %.4f)%s [IP: %s]',
+                'Siswa scan wajah mandiri [%s%s, confidence: %s, distance: %.4f]%s [IP: %s]',
+                $checkInStatus,
+                $lateMinutes > 0 ? " ({$lateMinutes}m)" : '',
                 $result['confidence'] ?? 'N/A',
                 $result['distance'] ?? 0,
                 $gpsAudit,
@@ -588,9 +600,17 @@ class SiswaController extends Controller
         }
 
         return response()->json([
-            'success'    => true,
-            'message'    => 'Berhasil! Anda tercatat HADIR hari ini.',
-            'confidence' => $result['confidence'] ?? null,
+            'success'         => true,
+            'message'         => $checkInStatus === 'LATE'
+                ? "Presensi Berhasil — Terlambat {$lateMinutes} menit."
+                : 'Presensi Berhasil: Hadir Tepat Waktu.',
+            'status'          => 'hadir',
+            'check_in_status' => $checkInStatus,
+            'late_minutes'    => $lateMinutes,
+            'waktu_scan'      => $serverNow->format('H:i:s'),
+            'distance'        => $distance !== null ? round($distance) : null,
+            'photo_url'       => $fotoPath ? Storage::url($fotoPath) : null,
+            'confidence'      => $result['confidence'] ?? null,
         ]);
     }
 
