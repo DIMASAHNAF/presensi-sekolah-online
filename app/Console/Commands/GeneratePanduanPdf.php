@@ -25,7 +25,7 @@ class GeneratePanduanPdf extends Command
         $outFile = $outDir . '/Panduan_Penggunaan_Presensi_SMKN1_Beringin.pdf';
 
         $this->info('Compiling PDF via Chromium headless...');
-        $cmd = "chromium --headless --disable-gpu --no-sandbox --print-to-pdf=" . escapeshellarg($outFile) . " " . escapeshellarg($tmpHtml) . " 2>&1";
+        $cmd = "chromium --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf=" . escapeshellarg($outFile) . " " . escapeshellarg($tmpHtml) . " 2>&1";
         exec($cmd, $output, $status);
 
         if ($status === 0 && file_exists($outFile)) {

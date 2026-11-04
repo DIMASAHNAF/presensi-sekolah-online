@@ -59,10 +59,15 @@
                 <span class="opacity-90 hidden sm:inline truncate">SOP &amp; Buku Panduan Operasional Presensi Biometrik Wajah</span>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-                <button type="button" onclick="window.print()" class="hover:text-yellow-300 font-bold flex items-center gap-1 transition">
-                    <i class="fas fa-print text-xs"></i>
-                    <span class="hidden sm:inline">Cetak / Simpan PDF</span>
-                </button>
+                <a href="{{ route('panduan.pdf') }}" target="_blank" class="hover:text-yellow-300 font-bold flex items-center gap-1 transition">
+                    <i class="fas fa-file-pdf text-xs"></i>
+                    <span class="hidden sm:inline">Buku Saku PDF (3 Hal)</span>
+                </a>
+                <span class="opacity-40">|</span>
+                <a href="{{ route('panduan.download') }}" class="hover:text-yellow-300 font-bold flex items-center gap-1 transition">
+                    <i class="fas fa-download text-xs"></i>
+                    <span class="hidden sm:inline">Unduh PDF</span>
+                </a>
                 <span class="opacity-40">|</span>
                 <a href="{{ url('/') }}" class="hover:text-yellow-300 font-bold flex items-center gap-1 transition">
                     <i class="fas fa-arrow-left text-xs"></i>

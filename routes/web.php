@@ -48,6 +48,13 @@ Route::get('/panduan/download', function () {
 })->name('panduan.download');
 
 Route::get('/panduan/pdf', function () {
+    $pdfPath = public_path('docs/Panduan_Penggunaan_Presensi_SMKN1_Beringin.pdf');
+    if (file_exists($pdfPath)) {
+        return response()->file($pdfPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Buku_Saku_Panduan_Presensi_SMKN1_Beringin.pdf"'
+        ]);
+    }
     return redirect()->route('panduan');
 })->name('panduan.pdf');
 
