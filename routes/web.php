@@ -26,11 +26,30 @@ Route::middleware('guest')->group(function () {
 });
 
 // ============================================================
-//  PANDUAN PENGGUNAAN & SOP PRESENSI (PUBLIC)
+//  PANDUAN PENGGUNAAN & SOP PRESENSI (PUBLIC PDF & WEB)
 // ============================================================
 Route::get('/panduan', function () {
+    $pdfPath = public_path('docs/Panduan_Penggunaan_Presensi_SMKN1_Beringin.pdf');
+    if (file_exists($pdfPath) && request('view') !== 'html') {
+        return response()->file($pdfPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Buku_Panduan_Presensi_SMKN1_Beringin.pdf"'
+        ]);
+    }
     return view('panduan.index');
 })->name('panduan');
+
+Route::get('/panduan/download', function () {
+    $pdfPath = public_path('docs/Panduan_Penggunaan_Presensi_SMKN1_Beringin.pdf');
+    if (file_exists($pdfPath)) {
+        return response()->download($pdfPath, 'Buku_Panduan_Presensi_SMKN1_Beringin.pdf');
+    }
+    return redirect()->route('panduan');
+})->name('panduan.download');
+
+Route::get('/panduan/pdf', function () {
+    return redirect()->route('panduan');
+})->name('panduan.pdf');
 
 //  SISWA DASHBOARD (Rate Limited for Heavy Endpoints)
 Route::middleware(['auth', 'role:siswa'])->group(function () {
