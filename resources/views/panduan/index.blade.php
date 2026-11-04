@@ -551,6 +551,33 @@
 
         </div>
 
+        {{-- Kontak Layanan Bantuan / Helpdesk --}}
+        <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm no-print">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-headset text-blue-600"></i>
+                        <span>Pusat Layanan &amp; Bantuan Teknis</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Hubungi tim teknis jika mengalami kendala akun, reset sampel wajah, atau pertanyaan seputar presensi sekolah.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="https://wa.me/6282261168543" target="_blank"
+                       class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-xs">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                        <span class="font-mono">0822-6116-8543</span>
+                    </a>
+                    <a href="mailto:dimasjoki0909@gmail.com"
+                       class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold transition flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+                        <i class="fas fa-envelope text-sm text-blue-600"></i>
+                        <span class="font-mono">dimasjoki0909@gmail.com</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     {{-- Footer --}}

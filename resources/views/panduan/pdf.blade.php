@@ -750,34 +750,47 @@
                 </table>
             </div>
 
-            {{-- Kontak Layanan Bantuan --}}
-            <div class="grid-2" style="margin-top: 4px;">
-                <div class="callout" style="margin-top: 0;">
-                    <div class="callout-title">Layanan Bantuan Teknis (IT Helpdesk)</div>
-                    Jika kendala berlanjut, hubungi Tim IT SMKN 1 Beringin di Ruang Laboratorium Komputer atau Guru Piket di Pos Kehadiran Gerbang Utama.
+            {{-- Modul 03: Pusat Layanan Bantuan & Dukungan Teknis --}}
+            <div class="card" style="margin-top: 6px;">
+                <div class="card-header">
+                    <span class="card-num">03</span>
+                    <span class="card-title">Pusat Layanan &amp; Kontak Bantuan Teknis (Service Desk)</span>
                 </div>
-                <div class="callout" style="margin-top: 0;">
-                    <div class="callout-title">Integritas Data Biometrik</div>
-                    Sistem dilindungi enkripsi satu arah (*one-way mathematical vector*). Foto wajah asli tidak disalahgunakan untuk keperluan di luar absensi sekolah.
+                <div class="grid-2">
+                    <div style="border-right: 1px solid #e4e4e7; padding-right: 8px;">
+                        <div style="font-size: 7.5pt; font-weight: 700; color: #09090b; text-transform: uppercase; margin-bottom: 4px;">
+                            Kontak Layanan Cepat
+                        </div>
+                        <div style="margin-bottom: 5px;">
+                            <span style="font-size: 7pt; color: #71717a;">Hotline / WhatsApp Layanan:</span><br>
+                            <span class="font-mono" style="font-size: 9.5pt; font-weight: 800; color: #09090b;">0822-6116-8543</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 7pt; color: #71717a;">Email Dukungan Administrator:</span><br>
+                            <span class="font-mono" style="font-size: 8.5pt; font-weight: 700; color: #09090b;">dimasjoki0909@gmail.com</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 7.5pt; font-weight: 700; color: #09090b; text-transform: uppercase; margin-bottom: 4px;">
+                            Cakupan Layanan &amp; Jam Operasional
+                        </div>
+                        <div class="step-item" style="font-size: 7.5pt; margin-bottom: 3px;">
+                            <strong>Jam Operasional:</strong> Senin – Jumat pukul 06:30 – 17:00 WIB.
+                        </div>
+                        <div class="step-item" style="font-size: 7.5pt; margin-bottom: 3px;">
+                            <strong>Layanan Siswa:</strong> Reset sampel wajah biometrik, kendala akun login NISN, dan panduan presensi perangkat.
+                        </div>
+                        <div class="step-item" style="font-size: 7.5pt; margin-bottom: 0;">
+                            <strong>Layanan Guru:</strong> Panduan sesi presensi kelas, koreksi override, dan bantuan teknis rekapitulasi data.
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {{-- Lembar Pengesahan --}}
-            <div class="sign-grid">
-                <div>
-                    <div>Mengetahui,</div>
-                    <div style="font-weight: 700; color: #09090b;">Kepala SMK Negeri 1 Beringin</div>
-                    <div class="sign-space"></div>
-                    <div style="font-weight: 700; text-decoration: underline; color: #09090b;">H. ILHAM, M.Pd.</div>
-                    <div style="font-size: 7pt; color: #71717a;">NIP. 19710508 199801 1 002</div>
-                </div>
-                <div>
-                    <div>Beringin, 4 November 2026</div>
-                    <div style="font-weight: 700; color: #09090b;">Tim Pengembang &amp; Administrator IT</div>
-                    <div class="sign-space"></div>
-                    <div style="font-weight: 700; text-decoration: underline; color: #09090b;">TIM TEKNIS PRESENSI SMKN 1</div>
-                    <div style="font-size: 7pt; color: #71717a;">Bidang Keahlian TIK &amp; Manajemen Data</div>
-                </div>
+            {{-- Integritas Data Biometrik --}}
+            <div class="callout" style="margin-top: 4px;">
+                <div class="callout-title">Keamanan &amp; Integritas Data Biometrik</div>
+                Data biometrik siswa disimpan dalam bentuk vektor matematis terenkripsi satu arah (*one-way mathematical vector*), bukan foto polos. Sistem menjamin keamanan data dan seluruh operasional presensi terhubung langsung dengan sistem informasi sekolah.
             </div>
         </div>
 
