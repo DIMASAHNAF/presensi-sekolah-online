@@ -142,68 +142,64 @@
                             </div>
                         </div>
 
-                        {{-- Bottom Action/Notice Bar on Profile Card (Alpine Reactive) --}}
-                        <div x-show="!hasChangedPassword || !isFaceEnrolled" x-cloak
-                             class="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-white border-t border-blue-500/30">
+                        {{-- Bottom Action Bar on Profile Card (Hanya jika belum ubah password) --}}
+                        <div x-show="!hasChangedPassword" x-cloak
+                             class="bg-amber-50 dark:bg-amber-950/40 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-amber-900 dark:text-amber-200 border-t border-amber-200 dark:border-amber-900/50">
                             <div class="flex items-center gap-2.5 text-xs font-bold min-w-0">
-                                <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
-                                    <i class="fas fa-shield-alt text-sm text-white"></i>
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                    <i class="fas fa-key text-xs"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="leading-tight font-extrabold text-white truncate sm:overflow-visible"
-                                       x-text="!hasChangedPassword ? 'Aktivasi Akun & Keamanan Siswa' : 'Biometrik Wajah Belum Terdaftar'"></p>
-                                    <p class="text-[10px] text-blue-100 font-medium hidden sm:block"
-                                       x-text="!hasChangedPassword ? 'Buat password baru dan rekam biometrik presensi' : 'Wajib rekam biometrik wajah untuk verifikasi presensi'"></p>
+                                    <p class="leading-tight font-extrabold text-amber-950 dark:text-amber-100 truncate sm:overflow-visible">Aktivasi Akun &amp; Keamanan Siswa</p>
+                                    <p class="text-[10px] text-amber-700 dark:text-amber-400 font-medium hidden sm:block">Buat password baru untuk mengamankan akun siswa Anda</p>
                                 </div>
                             </div>
-                            <button type="button" @click="showOnboardingModal = true; if(hasChangedPassword) onboardingStep = 2" class="shrink-0 bg-white hover:bg-blue-50 text-blue-900 text-xs font-black px-3.5 py-1.5 rounded-xl transition-all shadow-sm hover:shadow active:scale-95 flex items-center gap-1.5">
-                                <i class="fas fa-arrow-right text-xs text-blue-600"></i>
-                                <span x-text="!hasChangedPassword ? 'Lengkapi Sekarang' : 'Rekam Wajah'"></span>
+                            <button type="button" @click="showOnboardingModal = true; onboardingStep = 1" class="shrink-0 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-2xs flex items-center gap-1.5">
+                                <span>Buat Password</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
                             </button>
                         </div>
-                        <div x-show="hasChangedPassword && isFaceEnrolled" x-cloak>
+                        <div x-show="hasChangedPassword" x-cloak>
                             @if(!$user->bio)
-                                <div class="bg-blue-50/70 dark:bg-blue-950/40 border-t border-blue-100 dark:border-blue-900/50 px-4 sm:px-5 py-2.5 flex items-center justify-between">
-                                    <div class="flex items-center gap-2 text-xs text-blue-800 dark:text-blue-200">
-                                        <i class="fas fa-sparkles text-blue-500"></i>
-                                        <span>Lengkapi bio profil & link sosmed kamu!</span>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 px-4 sm:px-5 py-2 flex items-center justify-between">
+                                    <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                        <i class="fas fa-sparkles text-amber-500 text-xs"></i>
+                                        <span>Lengkapi bio profil &amp; tautan sosial media kamu!</span>
                                     </div>
                                     <button type="button" @click="openEditProfileModal()" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold">
                                         Atur &rarr;
                                     </button>
                                 </div>
-                            @else
-                                <div class="bg-blue-700 dark:bg-blue-950/80 px-4 sm:px-5 py-2 flex items-center gap-2 text-white text-xs font-semibold border-t border-blue-600/40">
-                                    <i class="fas fa-shield-check text-blue-200 text-xs"></i>
-                                    <span class="text-[11px] text-blue-100">Sistem biometrik Face ID aktif & terverifikasi</span>
-                                </div>
                             @endif
                         </div>
                     </div>
 
-                    {{-- PWA Install Highlight Banner (Tampil jelas jika belum standalone) --}}
+                    {{-- PWA Install Banner (Desain Netral / Low-Contrast agar fokus mata tertuju ke Sesi Presensi Utama) --}}
                     <div x-data="{ isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true, dismissed: false }"
                          x-show="!isStandalone && !dismissed" x-cloak
-                         class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-3xl p-4 sm:p-5 text-white shadow-lg shadow-blue-500/20 flex items-center justify-between gap-3 border border-blue-400/30">
+                         class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 text-slate-900 dark:text-white shadow-2xs border border-slate-200/90 dark:border-slate-800 flex items-center justify-between gap-3 transition">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 border border-white/25 shadow-xs">
-                                <i class="fas fa-mobile-screen-button text-xl text-yellow-300"></i>
+                            {{-- Ikon HP dengan aksen warna biru lembut --}}
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center shrink-0">
+                                <i class="fas fa-mobile-screen-button text-lg"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="font-heading font-black text-xs sm:text-sm text-white">Pasang Aplikasi di Layar HP</span>
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-400 text-slate-900 uppercase">APK / PWA</span>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-heading font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">Pasang Aplikasi di Layar HP</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase">APK / PWA</span>
                                 </div>
-                                <p class="text-[11px] text-blue-100 truncate mt-0.5">Lebih cepat &amp; praktis tanpa buka browser setiap hari</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Lebih cepat &amp; praktis tanpa buka browser setiap hari</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
+                            {{-- Tombol Pasang dengan aksen biru --}}
                             <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
-                                    class="bg-white text-blue-700 hover:bg-blue-50 active:scale-95 text-xs font-black px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+                                    class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs transition flex items-center gap-1.5">
                                 <i class="fas fa-download text-[11px]"></i>
                                 <span>Pasang</span>
                             </button>
-                            <button type="button" @click="dismissed = true" class="text-blue-200 hover:text-white text-xs p-1" title="Tutup">
+                            {{-- Tombol Tutup (X) --}}
+                            <button type="button" @click="dismissed = true" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Tutup">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
