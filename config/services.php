@@ -38,7 +38,7 @@ return [
     'fonnte' => [
         'token' => env('FONNTE_TOKEN'),
         'url' => env('FONNTE_URL', 'https://api.fonnte.com/send'),
-        'jam_masuk' => env('JAM_MASUK_SEKOLAH', '07:15'),
+        'jam_masuk' => env('JAM_MASUK_SEKOLAH', '07:30'),
     ],
 
 ];

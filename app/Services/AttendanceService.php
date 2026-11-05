@@ -19,10 +19,10 @@ class AttendanceService
         $now = $now ? $now->copy()->setTimezone('Asia/Jakarta') : Carbon::now('Asia/Jakarta');
         $dayOfWeek = $now->dayOfWeek; // 0 = Sunday, 5 = Friday
 
-        // 1. Tentukan batas jam masuk
-        $thresholdTimeStr = '07:15:00'; // Default Senin - Kamis & Sabtu
-        if ($dayOfWeek === Carbon::FRIDAY) {
-            $thresholdTimeStr = '07:45:00'; // Khusus Jumat
+        // 1. Tentukan batas jam masuk sekolah resmi SMKN 1 Beringin (07:30 WIB)
+        $thresholdTimeStr = config('services.fonnte.jam_masuk', '07:30');
+        if (strlen($thresholdTimeStr) === 5) {
+            $thresholdTimeStr .= ':00';
         }
 
         // Jika sesi memiliki jam pelajaran spesifik (misal sesi mapel di les tertentu)

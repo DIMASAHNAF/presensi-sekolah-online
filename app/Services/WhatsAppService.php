@@ -19,7 +19,7 @@ class WhatsAppService
     {
         $this->token = config('services.fonnte.token');
         $this->apiUrl = config('services.fonnte.url', 'https://api.fonnte.com/send');
-        $this->jamMasuk = config('services.fonnte.jam_masuk', '07:15');
+        $this->jamMasuk = config('services.fonnte.jam_masuk', '07:30');
     }
 
     /**
@@ -83,10 +83,20 @@ class WhatsAppService
             : now('Asia/Jakarta');
         $jamScanStr = $waktuScan->format('H:i');
 
-        // Evaluasi keterlambatan berdasarkan jam masuk sekolah (default: 07:15 WIB)
-        $jamMasukTime = Carbon::parse($waktuScan->format('Y-m-d') . ' ' . $this->jamMasuk, 'Asia/Jakarta');
-        $isLate = $waktuScan->greaterThan($jamMasukTime);
-        $lateMinutes = $isLate ? (int) round(abs($waktuScan->diffInMinutes($jamMasukTime, true))) : 0;
+        // Evaluasi keterlambatan berdasarkan jam masuk sekolah (07:30 WIB)
+        $isLate = ($presensi->check_in_status === 'LATE') || ($presensi->late_minutes > 0);
+        $lateMinutes = (int) ($presensi->late_minutes ?? 0);
+
+        if (!$isLate) {
+            $jamMasukTime = Carbon::parse($waktuScan->format('Y-m-d') . ' ' . $this->jamMasuk, 'Asia/Jakarta');
+            if ($waktuScan->greaterThan($jamMasukTime)) {
+                $diff = (int) round(abs($waktuScan->diffInMinutes($jamMasukTime, true)));
+                if ($diff > 0) {
+                    $isLate = true;
+                    $lateMinutes = $diff;
+                }
+            }
+        }
 
         if ($lateMinutes >= 60) {
             $jam = intdiv($lateMinutes, 60);
@@ -107,8 +117,9 @@ class WhatsAppService
                 . "👤 *{$namaSiswa}*\n"
                 . "🏫 Kelas: *{$namaKelas}*\n"
                 . "🕒 Waktu Tiba: *{$jamScanStr} WIB*\n"
-                . "⚠️ Status: *Hadir (Terlambat {$keteranganTerlambat})*\n\n"
-                . "Ananda telah sampai di *SMKN 1 Beringin* dan tercatat hadir pada sistem presensi biometrik.\n\n"
+                . "⚠️ Status: *Hadir (Terlambat {$keteranganTerlambat})*\n"
+                . "📍 Jam Masuk Sekolah: *07:30 WIB*\n\n"
+                . "Ananda telah sampai di *SMKN 1 Beringin* dan tercatat hadir terlambat pada sistem presensi biometrik.\n\n"
                 . "Mohon bantuan Bapak/Ibu untuk turut mengingatkan ananda agar dapat berangkat lebih awal demi kedisiplinan belajar di sekolah.\n\n"
                 . "_Pesan otomatis resmi dari Sistem Presensi SMKN 1 Beringin_";
         } else {

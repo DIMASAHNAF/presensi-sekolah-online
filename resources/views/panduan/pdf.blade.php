@@ -358,12 +358,12 @@
                 <div class="grid-4" style="text-align: center;">
                     <div style="border-right: 1px solid #e4e4e7; padding-right: 4px;">
                         <span class="badge badge-hadir">Tepat Waktu</span>
-                        <div class="font-mono" style="font-weight: 700; font-size: 8pt; margin-top: 2px;">06:30 – 07:15 WIB</div>
+                        <div class="font-mono" style="font-weight: 700; font-size: 8pt; margin-top: 2px;">06:30 – 07:30 WIB</div>
                         <div style="font-size: 6.5pt; color: #71717a;">Status Hadir Normal</div>
                     </div>
                     <div style="border-right: 1px solid #e4e4e7; padding-right: 4px;">
-                        <span class="badge badge-terlambat">Toleransi / Terlambat</span>
-                        <div class="font-mono" style="font-weight: 700; font-size: 8pt; margin-top: 2px;">07:16 – 07:45 WIB</div>
+                        <span class="badge badge-terlambat">Terlambat</span>
+                        <div class="font-mono" style="font-weight: 700; font-size: 8pt; margin-top: 2px;">07:31 – 08:00 WIB</div>
                         <div style="font-size: 6.5pt; color: #71717a;">Tercatat Menit Keterlambatan</div>
                     </div>
                     <div style="border-right: 1px solid #e4e4e7; padding-right: 4px;">
