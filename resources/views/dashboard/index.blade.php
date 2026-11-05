@@ -508,30 +508,57 @@
             <div class="divide-y divide-slate-100 dark:divide-slate-800">
                 @foreach($recentSesi as $sesi)
                     <a href="{{ route('dashboard.presensi.detail', $sesi) }}"
-                       class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
-                        <div>
-                            <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition flex items-center gap-2">
-                                {{ optional($sesi->kelas)->nama_kelas ?? '-' }}
-                                @if($sesi->mataPelajaran)
-                                    <span class="bg-blue-50 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 text-[10px] font-semibold px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">{{ $sesi->mataPelajaran->nama_mapel }}</span>
-                                @endif
-                                @if($sesi->jam_pelajaran)
-                                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-sans font-medium tabular-nums px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{{ $sesi->jam_pelajaran }}</span>
-                                @endif
-                            </p>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                                <i class="fas fa-calendar-day text-[10px] text-slate-400"></i>
-                                <span>{{ optional($sesi->tanggal)->format('d M Y') ?? '-' }}</span>
-                                <span class="text-slate-300 dark:text-slate-600">•</span>
-                                <span class="font-medium text-slate-600 dark:text-slate-300"><i class="fas fa-chalkboard-user text-[10px] text-slate-400 mr-0.5"></i> {{ $sesi->guru->name ?? '-' }}</span>
-                            </p>
+                       class="flex items-center justify-between gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors group">
+                        <div class="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                            {{-- Badge Kelas di Kiri --}}
+                            <div class="shrink-0">
+                                <span class="inline-flex items-center justify-center min-w-[76px] px-2.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80 tracking-wide">
+                                    {{ optional($sesi->kelas)->nama_kelas ?? '-' }}
+                                </span>
+                            </div>
+
+                            {{-- Info Utama: Mapel, Jam, Guru & Tanggal --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                    <span class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                                        {{ $sesi->formatted_mapel }}
+                                    </span>
+                                    @if($formattedJam = $sesi->formatted_jam)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/70 tabular-nums shrink-0">
+                                            {{ $formattedJam }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span class="inline-flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300 truncate">
+                                        <i class="fas fa-chalkboard-user text-[10px] text-slate-400 dark:text-slate-500 shrink-0"></i>
+                                        <span>{{ $sesi->guru->name ?? '-' }}</span>
+                                    </span>
+                                    <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                                    <span class="inline-flex items-center gap-1 shrink-0">
+                                        <i class="fas fa-calendar-day text-[10px] text-slate-400 dark:text-slate-500"></i>
+                                        <span>{{ optional($sesi->tanggal)->format('d M Y') ?? '-' }}</span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] px-2 py-0.5 rounded font-semibold border
-                                {{ $sesi->is_active ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700' }}">
-                                {{ $sesi->is_active ? 'Aktif' : 'Selesai' }}
-                            </span>
-                            <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+
+                        {{-- Status & Chevron di Kanan --}}
+                        <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                            @if($sesi->is_active)
+                                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <span class="relative flex h-2 w-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    <span>Aktif</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    Selesai
+                                </span>
+                            @endif
+                            <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-xs group-hover:translate-x-0.5 transition-all"></i>
                         </div>
                     </a>
                 @endforeach
