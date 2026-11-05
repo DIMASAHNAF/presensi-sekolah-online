@@ -26,7 +26,7 @@
                         {{ auth()->user()->isAdmin() ? 'Administrator Sekolah' : 'Tenaga Pendidik' }}
                     </span>
                     <span class="text-slate-300 dark:text-slate-600 text-xs">•</span>
-                    <span class="text-slate-400 dark:text-slate-400 text-xs font-mono font-medium">T.A. 2026/2027</span>
+                    <span class="text-slate-400 dark:text-slate-400 text-xs font-sans font-medium tabular-nums">T.A. 2026/2027</span>
                 </div>
                 <h1 class="text-lg sm:text-xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight">
                     Selamat Datang, {{ auth()->user()->name }}
@@ -68,9 +68,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
                     <i class="fas fa-user-graduate text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Siswa</span>
+                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Siswa</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1">{{ $stats['siswa'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['siswa'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Siswa Terdaftar</p>
         </div>
 
@@ -79,9 +79,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center">
                     <i class="fas fa-chalkboard-user text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Guru</span>
+                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Guru</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1">{{ $stats['guru'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['guru'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Dewan Guru</p>
         </div>
 
@@ -90,9 +90,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center">
                     <i class="fas fa-school text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-wider font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Rombel</span>
+                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Rombel</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1">{{ $stats['kelas'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['kelas'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Kelas Aktif</p>
         </div>
 
@@ -103,10 +103,10 @@
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
-                    <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-mono bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">Live</span>
+                    <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-sans bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">Live</span>
                 </div>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1" id="stat-hadir-admin">{{ $stats['hadir_hari_ini'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-hadir-admin">{{ $stats['hadir_hari_ini'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Kehadiran Hari Ini</p>
         </div>
 
@@ -117,9 +117,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
                     <i class="fas fa-calendar-check text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded font-mono">Hari Ini</span>
+                <span class="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded font-sans">Hari Ini</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1" id="stat-sesi-hari-ini">{{ $stats['sesi_hari_ini'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-sesi-hari-ini">{{ $stats['sesi_hari_ini'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Sesi Presensi Dibuat</p>
             <p class="text-[11px] text-blue-600 dark:text-blue-400 mt-2 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 <span>Buka rincian</span> <i class="fas fa-arrow-right text-[9px]"></i>
@@ -133,10 +133,10 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot"></span>
-                    <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded font-mono">Aktif</span>
+                    <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded font-sans">Aktif</span>
                 </div>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1" id="stat-sesi-aktif">{{ $stats['sesi_aktif'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-sesi-aktif">{{ $stats['sesi_aktif'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Sesi Berjalan</p>
             <p class="text-[11px] text-amber-600 dark:text-amber-400 mt-2 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 <span>Periksa sesi aktif</span> <i class="fas fa-arrow-right text-[9px]"></i>
@@ -148,9 +148,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition">
                     <i class="fas fa-check-double text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded font-mono">Hadir</span>
+                <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded font-sans">Hadir</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1" id="stat-hadir-guru">{{ $stats['hadir_hari_ini'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-hadir-guru">{{ $stats['hadir_hari_ini'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Siswa Terverifikasi Hadir</p>
             <p class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 <span>Lihat daftar siswa</span> <i class="fas fa-arrow-right text-[9px]"></i>
@@ -162,9 +162,9 @@
                 <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-red-600 dark:text-rose-400 rounded-lg flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition">
                     <i class="fas fa-user-xmark text-sm"></i>
                 </div>
-                <span class="text-[10px] font-bold text-red-700 dark:text-rose-300 bg-red-50 dark:bg-rose-950/80 border border-red-200 dark:border-rose-800 px-2 py-0.5 rounded font-mono">Alpa</span>
+                <span class="text-[10px] font-semibold text-red-700 dark:text-rose-300 bg-red-50 dark:bg-rose-950/80 border border-red-200 dark:border-rose-800 px-2 py-0.5 rounded font-sans">Alpa</span>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1" id="stat-alpa-guru">{{ $stats['alpa_hari_ini'] }}</p>
+            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-alpa-guru">{{ $stats['alpa_hari_ini'] }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Siswa Belum / Tidak Hadir</p>
             <p class="text-[11px] text-red-600 dark:text-rose-400 mt-2 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 <span>Lihat daftar alpa</span> <i class="fas fa-arrow-right text-[9px]"></i>
@@ -480,7 +480,7 @@
                                     <span class="bg-blue-50 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 text-[10px] font-semibold px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">{{ $sesi->mataPelajaran->nama_mapel }}</span>
                                 @endif
                                 @if($sesi->jam_pelajaran)
-                                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{{ $sesi->jam_pelajaran }}</span>
+                                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-sans font-medium tabular-nums px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{{ $sesi->jam_pelajaran }}</span>
                                 @endif
                             </p>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">

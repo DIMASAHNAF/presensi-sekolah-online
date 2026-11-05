@@ -321,19 +321,19 @@
             </div>
             <div class="min-w-0">
                 <p class="font-semibold text-xs text-zinc-900 dark:text-zinc-100 tracking-tight truncate leading-tight">SMKN 1 BERINGIN</p>
-                <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-mono tracking-wider uppercase mt-0.5">Sistem Presensi</p>
+                <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-sans font-medium tracking-wider uppercase mt-0.5">Sistem Presensi</p>
             </div>
         </div>
 
         {{-- Academic Tag --}}
-        <div class="px-4 py-1.5 flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-800/40 border-b border-zinc-200 dark:border-zinc-800 font-mono tabular-nums">
+        <div class="px-4 py-1.5 flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-800/40 border-b border-zinc-200 dark:border-zinc-800 font-sans font-medium tabular-nums">
             <span class="text-zinc-600 dark:text-zinc-400">T.A. 2026/2027</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">GANJIL</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">GANJIL</span>
         </div>
     </div>
 
-    {{-- Navigation (flex-1 overflow-y-auto py-2) --}}
-    <nav class="flex-1 min-h-0 overflow-y-auto py-2 px-2.5 space-y-0.5">
+    {{-- Navigation (flex-1 overflow-y-auto pt-2 pb-8) --}}
+    <nav class="flex-1 min-h-0 overflow-y-auto pt-2 pb-8 px-2.5 space-y-0.5">
 
         <div class="sidebar-category">Menu Utama</div>
 
@@ -354,7 +354,7 @@
             <i class="fas fa-tablet-screen-button icon"></i>
             <span class="flex items-center justify-between flex-1">
                 <span>Kiosk Gerbang</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">LIVE</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans font-semibold tracking-wider">LIVE</span>
             </span>
         </a>
 
@@ -428,9 +428,10 @@
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate leading-tight">{{ auth()->user()->name }}</p>
-                <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-mono uppercase tracking-wider mt-0.5 truncate">
-                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Guru / Piket' }}
+                <p class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate leading-tight">{{ auth()->user()->name }}</p>
+                <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-sans font-medium mt-0.5 truncate flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span>{{ auth()->user()->isAdmin() ? 'Akses Penuh • Aktif' : 'Tenaga Pendidik • Aktif' }}</span>
                 </p>
             </div>
         </div>
@@ -456,7 +457,7 @@
                 <i class="fas fa-bars text-xs"></i>
             </button>
             <div class="min-w-0">
-                <div class="hidden sm:flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono uppercase tracking-wider">
+                <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 font-sans font-medium uppercase tracking-wider">
                     <span>SMKN 1 Beringin</span>
                     <span>/</span>
                     <span class="text-zinc-900 dark:text-zinc-200">@yield('page-title', 'Dashboard')</span>
@@ -467,10 +468,10 @@
 
         <div class="flex items-center gap-2 shrink-0">
             {{-- Realtime Clock (Strict tabular-nums per PRD 1.2) --}}
-            <div class="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 px-2.5 py-1.5 rounded-lg text-xs font-mono tabular-nums">
-                <span class="text-zinc-600 dark:text-zinc-400">{{ now()->locale('id')->isoFormat('D MMM Y') }}</span>
+            <div class="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 px-2.5 py-1.5 rounded-lg text-xs font-sans tabular-nums">
+                <span class="text-zinc-600 dark:text-zinc-400 font-medium">{{ now()->locale('id')->isoFormat('D MMM Y') }}</span>
                 <span class="text-zinc-300 dark:text-zinc-600">&bull;</span>
-                <span class="font-medium text-zinc-900 dark:text-zinc-100 font-mono tabular-nums text-xs" id="realtimeClock">{{ now()->setTimezone('Asia/Jakarta')->format('H:i:s') }} WIB</span>
+                <span class="font-semibold text-zinc-900 dark:text-zinc-100 font-sans tabular-nums text-xs" id="realtimeClock">{{ now()->setTimezone('Asia/Jakarta')->format('H:i:s') }} WIB</span>
             </div>
 
             {{-- Minimalist Theme Toggle Button --}}
@@ -555,7 +556,7 @@
         </div>
         
         {{-- Footer --}}
-        <footer class="mt-10 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono tabular-nums">
+        <footer class="mt-10 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-2 font-sans tabular-nums">
             <span>Sistem Presensi Biometrik &amp; Geofencing &bull; SMKN 1 Beringin</span>
             <span>Versi 2.0 &bull; 2026</span>
         </footer>
