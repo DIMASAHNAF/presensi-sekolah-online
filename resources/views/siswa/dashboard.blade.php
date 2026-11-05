@@ -331,8 +331,8 @@
                         </template>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">{{ $user->name }}</p>
-                        <p class="text-[10px] font-mono text-slate-400 dark:text-slate-400 truncate">{{ '@' . ($user->username ?? 'siswa') }} &bull; {{ $user->kelas->nama_kelas ?? 'Siswa' }}</p>
+                        <p class="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug break-words group-hover:text-blue-600 dark:group-hover:text-blue-400 transition" title="{{ $user->name }}">{{ $user->name }}</p>
+                        <p class="text-[10px] font-sans font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">{{ '@' . ($user->username ?? 'siswa') }} &bull; {{ $user->kelas->nama_kelas ?? 'Siswa' }}</p>
                     </div>
                 </div>
 
@@ -400,7 +400,7 @@
                     <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
                         <i class="fas fa-circle-half-stroke text-blue-500"></i> Mode Gelap
                     </span>
-                    <x-sky-toggle size="8px" id="siswa-sky-toggle-sidebar" />
+                    <x-sky-toggle size="5.2px" id="siswa-sky-toggle-sidebar" />
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -456,32 +456,38 @@
 
             {{-- Desktop Top Bar (hidden lg:flex) --}}
             <header class="hidden lg:flex items-center justify-between px-8 py-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
-                <div class="flex items-center gap-3">
-                    <h1 class="font-heading font-black text-lg text-slate-900 dark:text-white"
-                        x-text="activeTab === 'beranda' ? 'Beranda & Presensi' : (activeTab === 'kehadiran' ? 'Rekap Kehadiran Siswa' : (activeTab === 'teman' ? 'Direktori Teman Sekelas' : 'Pengaturan Akun & Profil'))"></h1>
-                    <span class="text-xs px-2.5 py-0.5 rounded-full font-mono font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                        {{ $user->kelas->nama_kelas ?? 'Kelas Siswa' }}
-                    </span>
+                <div class="min-w-0 flex items-center gap-3">
+                    <h1 class="font-heading font-black text-lg text-slate-900 dark:text-white whitespace-nowrap shrink-0 tracking-tight"
+                        x-text="activeTab === 'beranda' ? 'Beranda & Presensi' : (activeTab === 'kehadiran' ? 'Rekap Kehadiran Siswa' : (activeTab === 'teman' ? 'Direktori Teman Sekelas' : 'Pengaturan Akun & Profil'))">
+                        Beranda & Presensi
+                    </h1>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 shrink-0">
                     <a href="{{ route('panduan') }}" target="_blank"
-                       class="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 transition">
-                        <i class="fas fa-book-open text-blue-500"></i>
+                       class="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition shadow-2xs"
+                       title="Buka Buku Panduan">
+                        <i class="fas fa-book-open text-xs text-slate-400 dark:text-slate-500"></i>
                         <span>Buku Panduan</span>
                     </a>
-                    <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
-                            class="text-xs font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-xs transition active:scale-95">
-                        <i class="fas fa-download text-[11px] text-yellow-300"></i>
-                        <span>Pasang Aplikasi</span>
-                    </button>
-                    <div class="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
-                    <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-8 object-contain opacity-90" alt="Logo Kolaborasi">
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}</p>
-                        <p id="desktop-clock" class="text-[11px] font-mono text-slate-400 dark:text-slate-400">--:-- WIB</p>
+                    <div class="hidden md:block w-px h-7 bg-slate-200 dark:bg-slate-800"></div>
+                    <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-7 object-contain opacity-90" alt="Logo Kolaborasi">
+                    <div class="text-right shrink-0">
+                        <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 font-sans leading-tight">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}</p>
+                        <p id="desktop-clock" class="text-[11px] font-sans font-medium text-slate-500 dark:text-slate-400 leading-tight">{{ now('Asia/Jakarta')->format('H:i') }} WIB</p>
                     </div>
                 </div>
             </header>
+            <script>
+                (function() {
+                    try {
+                        const now = new Date();
+                        const h = String(now.getHours()).padStart(2, '0');
+                        const m = String(now.getMinutes()).padStart(2, '0');
+                        const dClock = document.getElementById('desktop-clock');
+                        if (dClock) dClock.textContent = `${h}:${m} WIB`;
+                    } catch(e) {}
+                })();
+            </script>
 
             {{-- MAIN TABS CONTENT AREA --}}
             <main class="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 py-5 pb-28 lg:pb-12 space-y-6">
@@ -1384,14 +1390,19 @@
 
         // Realtime clock di profile hero & desktop header
         function updateSiswaClock() {
-            const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' WIB';
-            const el = document.getElementById('siswa-clock');
-            if (el) el.textContent = timeStr;
-            const elDesktop = document.getElementById('desktop-clock');
-            if (elDesktop) elDesktop.textContent = timeStr;
+            try {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const timeStr = `${h}:${m} WIB`;
+                const el = document.getElementById('siswa-clock');
+                if (el) el.textContent = timeStr;
+                const elDesktop = document.getElementById('desktop-clock');
+                if (elDesktop) elDesktop.textContent = timeStr;
+            } catch(e) {}
         }
         updateSiswaClock();
-        setInterval(updateSiswaClock, 60000);
+        setInterval(updateSiswaClock, 1000);
 
 
         // ── Web Audio API Synthesizer (No external MP3 files needed) ──

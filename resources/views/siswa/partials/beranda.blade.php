@@ -25,7 +25,7 @@
                                     <span class="font-semibold text-amber-300">Belum Rekam Wajah</span>
                                 @endif
                                 <span class="text-white/40">&bull;</span>
-                                <span id="siswa-clock" class="font-mono">--:--</span>
+                                <span id="siswa-clock" class="font-sans font-medium">{{ now('Asia/Jakarta')->format('H:i') }} WIB</span>
                             </div>
 
                             {{-- Tombol Edit Profile di Pojok Kanan Banner --}}
