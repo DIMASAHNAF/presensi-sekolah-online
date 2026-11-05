@@ -36,7 +36,7 @@ class WhatsAppService
         $cleanTarget = preg_replace('/[^0-9]/', '', $target);
 
         try {
-            $response = Http::timeout(10)
+            $response = Http::timeout(3)
                 ->withHeaders([
                     'Authorization' => $this->token,
                 ])
@@ -98,6 +98,12 @@ class WhatsAppService
             }
         }
 
+        // HANYA kirim notifikasi WhatsApp ke orang tua jika siswa terlambat
+        // Siswa tepat waktu tidak membebani gateway WhatsApp & langsung selesai instan
+        if (! $isLate) {
+            return false;
+        }
+
         if ($lateMinutes >= 60) {
             $jam = intdiv($lateMinutes, 60);
             $menit = $lateMinutes % 60;
@@ -110,30 +116,17 @@ class WhatsAppService
         $namaKelas = $siswa->kelas?->nama_kelas ?? ($sesi?->kelas?->nama_kelas ?? '-');
         $namaOrtu = $siswa->nama_ortu ?: 'Bapak/Ibu Wali Murid';
 
-        if ($isLate) {
-            $pesan = "Assalamu’alaikum Warahmatullahi Wabarakatuh / Selamat Pagi,\n"
-                . "Yth. {$namaOrtu},\n\n"
-                . "Diberitahukan bahwa ananda:\n"
-                . "👤 *{$namaSiswa}*\n"
-                . "🏫 Kelas: *{$namaKelas}*\n"
-                . "🕒 Waktu Tiba: *{$jamScanStr} WIB*\n"
-                . "⚠️ Status: *Hadir (Terlambat {$keteranganTerlambat})*\n"
-                . "📍 Jam Masuk Sekolah: *07:30 WIB*\n\n"
-                . "Ananda telah sampai di *SMKN 1 Beringin* dan tercatat hadir terlambat pada sistem presensi biometrik.\n\n"
-                . "Mohon bantuan Bapak/Ibu untuk turut mengingatkan ananda agar dapat berangkat lebih awal demi kedisiplinan belajar di sekolah.\n\n"
-                . "_Pesan otomatis resmi dari Sistem Presensi SMKN 1 Beringin_";
-        } else {
-            $pesan = "Assalamu’alaikum Warahmatullahi Wabarakatuh / Selamat Pagi,\n"
-                . "Yth. {$namaOrtu},\n\n"
-                . "Diberitahukan bahwa ananda:\n"
-                . "👤 *{$namaSiswa}*\n"
-                . "🏫 Kelas: *{$namaKelas}*\n"
-                . "🕒 Waktu Tiba: *{$jamScanStr} WIB*\n"
-                . "✅ Status: *Hadir Tepat Waktu*\n\n"
-                . "Ananda telah sampai di *SMKN 1 Beringin* dengan selamat dan tercatat hadir pada sistem presensi biometrik.\n\n"
-                . "Terima kasih atas kerja samanya dalam mendukung kedisiplinan belajar ananda.\n\n"
-                . "_Pesan otomatis resmi dari Sistem Presensi SMKN 1 Beringin_";
-        }
+        $pesan = "Assalamu’alaikum Warahmatullahi Wabarakatuh / Selamat Pagi,\n"
+            . "Yth. {$namaOrtu},\n\n"
+            . "Diberitahukan bahwa ananda:\n"
+            . "👤 *{$namaSiswa}*\n"
+            . "🏫 Kelas: *{$namaKelas}*\n"
+            . "🕒 Waktu Tiba: *{$jamScanStr} WIB*\n"
+            . "⚠️ Status: *Hadir (Terlambat {$keteranganTerlambat})*\n"
+            . "📍 Jam Masuk Sekolah: *07:30 WIB*\n\n"
+            . "Ananda telah sampai di *SMKN 1 Beringin* dan tercatat hadir terlambat pada sistem presensi biometrik.\n\n"
+            . "Mohon bantuan Bapak/Ibu untuk turut mengingatkan ananda agar dapat berangkat lebih awal demi kedisiplinan belajar di sekolah.\n\n"
+            . "_Pesan otomatis resmi dari Sistem Presensi SMKN 1 Beringin_";
 
         $res = $this->send($siswa->no_hp_ortu, $pesan);
 

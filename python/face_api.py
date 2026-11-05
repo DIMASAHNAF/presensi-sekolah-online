@@ -598,15 +598,13 @@ def mode_extract(payload: ExtractRequest) -> Dict[str, Any]:
 
 
 @app.post("/enroll")
-async def mode_enroll(request: Request, payload: EnrollRequest) -> Dict[str, Any]:
+def mode_enroll(payload: EnrollRequest) -> Dict[str, Any]:
     """
     Endpoint Pendaftaran Wajah Multi-Sudut (Enterprise Biometric Consensus).
     Menggabungkan 5 pose (depan, toleh kiri, toleh kanan, senyum, depan kunci)
     menggunakan Weighted Centroid Fusion berkecepatan tinggi dengan YuNet + ArcFace 512-D.
+    Dijalankan di threadpool AnyIO agar tidak memblokir event loop.
     """
-    if await request.is_disconnected():
-        return {"success": False, "error": "Client disconnected"}
-
     try:
         images = payload.images_b64
         if len(images) < 3:
@@ -620,9 +618,6 @@ async def mode_enroll(request: Request, payload: EnrollRequest) -> Dict[str, Any
         angle_weights = [1.3, 0.95, 0.95, 1.1, 1.3]
 
         for i, b64 in enumerate(images):
-            if await request.is_disconnected():
-                return {"success": False, "error": "Client disconnected"}
-
             w = angle_weights[i] if i < len(angle_weights) else 1.0
             try:
                 img_array = decode_image(b64, max_dimension=640)
@@ -684,14 +679,12 @@ async def mode_enroll(request: Request, payload: EnrollRequest) -> Dict[str, Any
 
 
 @app.post("/compare")
-async def mode_compare(request: Request, payload: CompareRequest) -> Dict[str, Any]:
+def mode_compare(payload: CompareRequest) -> Dict[str, Any]:
     """
     Endpoint 1:1 Face Verification dengan integrasi Passive Anti-Spoofing
     dan Dual Engine (128-D & 512-D dengan 5-point alignment).
+    Dijalankan di threadpool AnyIO agar tidak memblokir event loop.
     """
-    if await request.is_disconnected():
-        return {"success": False, "error": "Client disconnected"}
-
     try:
         stored = payload.stored
         dim = len(stored)
@@ -723,9 +716,6 @@ async def mode_compare(request: Request, payload: CompareRequest) -> Dict[str, A
                         "distance": None,
                         "reason": liveness_err or "Presensi ditolak: Terdeteksi foto 2D / layar perangkat."
                     }
-
-            if await request.is_disconnected():
-                return {"success": False, "error": "Client disconnected"}
 
             new_desc_512 = extract_arcface_512(img_array, face_box, landmarks=lms) if face_box else None
             if not new_desc_512:

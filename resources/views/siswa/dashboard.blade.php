@@ -2440,7 +2440,7 @@
                             return r.json();
                         })
                         .then(data => {
-                            if (data.success) {
+                            if (data.success || (data.message && data.message.includes('sudah tercatat HADIR'))) {
                                 audioFx.playSuccess();
                                 this.scanState = 'success';
                                 this.scanSuccess = true;
@@ -2450,7 +2450,7 @@
                                 setTimeout(() => {
                                     this.isScanning = false;
                                     window.location.reload();
-                                }, 1800);
+                                }, 1200);
                             } else {
                                 audioFx.playError();
                                 this.scanState = 'failed';
