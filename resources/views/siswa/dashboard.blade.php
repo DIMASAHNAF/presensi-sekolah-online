@@ -420,33 +420,31 @@
 
             {{-- Mobile Top Navbar (lg:hidden) --}}
             <header class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
-                <div class="px-4 py-2.5 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                <div class="px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
+                    {{-- Logo & Brand Sekolah Berdampingan dengan Logo Kolaborasi --}}
+                    <div class="flex items-center gap-2 min-w-0">
                         <div class="w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 flex items-center justify-center shadow-xs shrink-0">
                             <img src="{{ asset('images/logo.webp') }}" alt="Logo SMKN 1 Beringin" class="w-full h-full object-contain">
                         </div>
-                        <div class="min-w-0">
-                            <span class="font-heading font-extrabold text-[11px] uppercase tracking-wider block text-slate-900 dark:text-white truncate">SMKN 1 BERINGIN</span>
-                            <span class="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold block truncate">Portal Siswa</span>
+                        <div class="min-w-0 shrink-0">
+                            <span class="font-heading font-extrabold text-[11px] uppercase tracking-wider block text-slate-900 dark:text-white whitespace-nowrap">SMKN 1 BERINGIN</span>
+                            <span class="text-[9px] text-blue-600 dark:text-blue-400 font-extrabold block whitespace-nowrap">Portal Siswa</span>
                         </div>
+                        <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0 hidden min-[360px]:block"></div>
+                        <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain opacity-90 shrink-0 hidden min-[360px]:block" alt="Logo Kolaborasi">
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <button type="button" @click="window.openPwaInstallPrompt ? window.openPwaInstallPrompt() : $dispatch('open-pwa-install')"
-                                class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black flex items-center gap-1 shadow-xs hover:shadow-md transition active:scale-95"
-                                title="Pasang Versi Aplikasi">
-                            <i class="fas fa-download text-[9px] text-yellow-300"></i>
-                            <span>APK</span>
-                        </button>
+
+                    {{-- Actions Kanan: Buku Panduan, Toggle Tema, Logout --}}
+                    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         <a href="{{ route('panduan') }}" target="_blank"
-                           class="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                           class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                            title="Buku Panduan">
                             <i class="fas fa-book-open text-xs"></i>
                         </a>
-                        <img src="{{ asset('images/logo-kolaborasi.webp') }}" class="h-6 w-auto object-contain mr-0.5" alt="Logo Kolaborasi">
-                        <x-sky-toggle size="8px" id="siswa-sky-toggle-mobile" />
-                        <form method="POST" action="{{ route('logout') }}">
+                        <x-sky-toggle size="5.8px" id="siswa-sky-toggle-mobile" />
+                        <form method="POST" action="{{ route('logout') }}" class="inline-flex">
                             @csrf
-                            <button type="submit" class="text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Keluar">
+                            <button type="submit" class="w-7 h-7 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Keluar">
                                 <i class="fas fa-arrow-right-from-bracket text-xs"></i>
                             </button>
                         </form>
