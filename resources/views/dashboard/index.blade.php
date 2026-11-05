@@ -62,52 +62,88 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
 
     @if(auth()->user()->isAdmin())
+        @php
+            $totalSiswa = max($stats['siswa'] ?? 0, 1);
+            $hadirHariIni = $stats['hadir_hari_ini'] ?? 0;
+            $persenHadir = round(($hadirHariIni / $totalSiswa) * 100, 1);
+        @endphp
         {{-- ── Admin Stat Cards ── --}}
-        <div class="stat-card accent-blue" data-aos="fade-up" data-aos-delay="0">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-user-graduate text-sm"></i>
+        <div class="stat-card !p-4 flex flex-col justify-between" data-aos="fade-up" data-aos-delay="0">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="w-8 h-8 border border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-xs"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Siswa</span>
                 </div>
-                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Siswa</span>
+                <p class="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-white leading-tight mb-0.5 tabular-nums" id="stat-total-siswa" data-total="{{ $stats['siswa'] }}">{{ $stats['siswa'] }}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Siswa Terdaftar</p>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['siswa'] }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Siswa Terdaftar</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                <span class="w-1 h-1 rounded-full bg-blue-500"></span>
+                <span>Terdata di sistem Dapodik</span>
+            </div>
         </div>
 
-        <div class="stat-card accent-indigo" data-aos="fade-up" data-aos-delay="60">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chalkboard-user text-sm"></i>
+        <div class="stat-card !p-4 flex flex-col justify-between" data-aos="fade-up" data-aos-delay="60">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="w-8 h-8 border border-slate-200 dark:border-slate-700 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chalkboard-user text-xs"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Guru</span>
                 </div>
-                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Guru</span>
+                <p class="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-white leading-tight mb-0.5 tabular-nums">{{ $stats['guru'] }}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Dewan Guru</p>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['guru'] }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Dewan Guru</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                <span class="w-1 h-1 rounded-full bg-indigo-500"></span>
+                <span>Tenaga pendidik aktif</span>
+            </div>
         </div>
 
-        <div class="stat-card accent-slate" data-aos="fade-up" data-aos-delay="120">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-school text-sm"></i>
+        <div class="stat-card !p-4 flex flex-col justify-between" data-aos="fade-up" data-aos-delay="120">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="w-8 h-8 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-school text-xs"></i>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Rombel</span>
                 </div>
-                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">Rombel</span>
+                <p class="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-white leading-tight mb-0.5 tabular-nums">{{ $stats['kelas'] }}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Kelas Aktif</p>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums">{{ $stats['kelas'] }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Total Kelas Aktif</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                <span class="w-1 h-1 rounded-full bg-slate-400"></span>
+                <span>Tingkat X, XI &amp; XII</span>
+            </div>
         </div>
 
-        <div class="stat-card accent-green" data-aos="fade-up" data-aos-delay="180">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-9 h-9 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-user-check text-sm"></i>
+        <div class="stat-card !p-4 flex flex-col justify-between" data-aos="fade-up" data-aos-delay="180">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="w-8 h-8 border border-emerald-200 dark:border-emerald-800/80 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-check text-xs"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-sans bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">Live</span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
-                    <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-sans bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">Live</span>
+                <div class="flex items-baseline justify-between gap-1 mb-0.5">
+                    <p class="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 dark:text-white leading-tight tabular-nums" id="stat-hadir-admin">{{ $hadirHariIni }}</p>
+                    <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800/80 px-2 py-0.5 rounded-md font-sans tabular-nums" id="stat-persen-admin">{{ $persenHadir }}%</span>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>Kehadiran Hari Ini</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">{{ $hadirHariIni }}/{{ $stats['siswa'] }}</span>
                 </div>
             </div>
-            <p class="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 dark:text-white leading-none mb-1 tabular-nums" id="stat-hadir-admin">{{ $stats['hadir_hari_ini'] }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-300 font-medium">Kehadiran Hari Ini</p>
+
+            {{-- Progress Bar Tipis Berwarna Emerald --}}
+            <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-3">
+                <div id="stat-progress-admin" class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" style="width: {{ min($persenHadir, 100) }}%"></div>
+            </div>
         </div>
 
     @else
@@ -438,10 +474,10 @@
             </div>
             <div class="flex items-center gap-3 text-xs">
                 <span class="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
-                    <span class="w-3 h-2.5 rounded bg-blue-600 inline-block"></span> Hadir
+                    <span class="w-3 h-2.5 rounded bg-[#3b82f6] inline-block"></span> Hadir
                 </span>
                 <span class="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
-                    <span class="w-3 h-2.5 rounded bg-red-500 inline-block"></span> Alpa
+                    <span class="w-3 h-2.5 rounded bg-[#f43f5e] inline-block"></span> Alpa
                 </span>
             </div>
         </div>
@@ -520,21 +556,27 @@ window.myAttendanceChart = new Chart(ctx, {
             {
                 label: 'Hadir',
                 data: @json($chartHadir),
-                backgroundColor: '#2563eb',
-                borderRadius: 5,
+                backgroundColor: '#3b82f6',
+                hoverBackgroundColor: '#2563eb',
+                borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
                 borderSkipped: false,
+                maxBarThickness: 30,
             },
             {
                 label: 'Alpa',
                 data: @json($chartAlpa),
-                backgroundColor: '#ef4444',
-                borderRadius: 5,
+                backgroundColor: '#f43f5e',
+                hoverBackgroundColor: '#e11d48',
+                borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
                 borderSkipped: false,
+                maxBarThickness: 30,
             }
         ]
     },
     options: {
         responsive: true,
+        barPercentage: 0.7,
+        categoryPercentage: 0.6,
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -542,7 +584,9 @@ window.myAttendanceChart = new Chart(ctx, {
                 titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
                 bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
                 padding: 10,
-                cornerRadius: 8
+                cornerRadius: 8,
+                boxPadding: 4,
+                usePointStyle: true,
             }
         },
         scales: {
@@ -554,9 +598,13 @@ window.myAttendanceChart = new Chart(ctx, {
                 }
             },
             y: {
-                grid: { color: isCurrentlyDark ? '#1e293b' : '#f1f5f9' },
+                grid: { 
+                    color: isCurrentlyDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9',
+                    borderDash: [4, 4],
+                    drawBorder: false,
+                },
                 ticks: { 
-                    font: { family: 'JetBrains Mono', size: 11 }, 
+                    font: { family: 'Plus Jakarta Sans', size: 11 }, 
                     color: isCurrentlyDark ? '#94a3b8' : '#64748b', 
                     stepSize: 1 
                 },
@@ -569,7 +617,7 @@ window.myAttendanceChart = new Chart(ctx, {
 window.addEventListener('theme-changed', (e) => {
     if (window.myAttendanceChart) {
         const isDark = e.detail.theme === 'dark';
-        window.myAttendanceChart.options.scales.y.grid.color = isDark ? '#1e293b' : '#f1f5f9';
+        window.myAttendanceChart.options.scales.y.grid.color = isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9';
         window.myAttendanceChart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
         window.myAttendanceChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
         window.myAttendanceChart.update();
@@ -600,6 +648,17 @@ window.addEventListener('theme-changed', (e) => {
                 if (!data) return;
                 if (isAdmin) {
                     updateElement('stat-hadir-admin', data.hadir_hari_ini);
+                    const totalSiswaEl = document.getElementById('stat-total-siswa');
+                    const totalSiswa = totalSiswaEl ? parseInt(totalSiswaEl.dataset.total || '1', 10) : 1;
+                    const persenEl = document.getElementById('stat-persen-admin');
+                    const progressEl = document.getElementById('stat-progress-admin');
+                    if (persenEl && totalSiswa > 0) {
+                        const persen = Math.round((data.hadir_hari_ini / totalSiswa) * 1000) / 10;
+                        persenEl.textContent = persen + '%';
+                        if (progressEl) {
+                            progressEl.style.width = Math.min(persen, 100) + '%';
+                        }
+                    }
                 } else {
                     updateElement('stat-sesi-hari-ini', data.sesi_hari_ini);
                     updateElement('stat-sesi-aktif',   data.sesi_aktif);
