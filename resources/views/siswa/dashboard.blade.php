@@ -699,7 +699,9 @@
                     <button type="button" @click="retryScan()"
                         :disabled="scanState === 'processing'"
                         class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
-                        <i class="fas fa-rotate-right text-sm"></i> Coba Pindai Ulang
+                        <i class="fas fa-camera text-sm" x-show="isCameraDenied"></i>
+                        <i class="fas fa-rotate-right text-sm" x-show="!isCameraDenied"></i>
+                        <span x-text="isCameraDenied ? 'Izinkan Kamera Ulang' : 'Coba Pindai Ulang'">Coba Pindai Ulang</span>
                     </button>
                 </div>
             </div>
@@ -1571,6 +1573,7 @@
                 scanState: 'idle', // 'idle' | 'initializing' | 'ready' | 'processing' | 'success' | 'failed'
                 scanMessage: '',
                 scanSuccess: false,
+                isCameraDenied: false,
                 videoStream: null,
 
                 // E-Wallet Randomized Challenge States
@@ -1995,12 +1998,21 @@
                             try {
                                 await video.play();
                             } catch (e) {}
+                            this.isCameraDenied = false;
                             this.armScanner();
                         };
 
                     } catch (err) {
                         audioFx.playError();
-                        this.scanMessage = 'Gagal mengakses kamera: ' + err.message;
+                        const isDenied = err.name === 'NotAllowedError' 
+                            || err.name === 'PermissionDeniedError' 
+                            || (err.message && (err.message.toLowerCase().includes('denied') || err.message.toLowerCase().includes('permission')));
+                        this.isCameraDenied = isDenied;
+                        if (isDenied) {
+                            this.scanMessage = 'Izin kamera ditolak oleh peramban (Permission Denied). Tekan tombol "Izinkan Kamera Ulang" di bawah.';
+                        } else {
+                            this.scanMessage = 'Gagal mengakses kamera: ' + err.message;
+                        }
                         this.scanState = 'failed';
                     }
                 },

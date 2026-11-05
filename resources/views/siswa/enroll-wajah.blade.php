@@ -212,6 +212,15 @@
                 <!-- Shutter Vignette Flash -->
                 <div class="shutter-flash" :class="{ 'active': showFlash }"></div>
 
+                <!-- Camera Denied Viewport Overlay -->
+                <div x-show="isCameraDenied" x-cloak class="absolute inset-0 bg-zinc-950/95 flex flex-col items-center justify-center p-4 text-center z-30">
+                    <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2zM3 3l18 18"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-zinc-200">Izin Kamera Dibutuhkan</span>
+                    <span class="text-[10px] text-zinc-400 mt-0.5">Akses kamera peramban belum aktif</span>
+                </div>
+
                 <!-- Success Overlay with Apple Checkmark -->
                 <div x-show="isSuccess" x-cloak class="absolute inset-0 bg-black/75 backdrop-blur-md flex flex-col items-center justify-center z-40">
                     <svg class="w-20 h-20" viewBox="0 0 52 52">
@@ -301,17 +310,85 @@
             </button>
         </div>
 
-        <!-- Error Alert & Retry Button -->
+        <!-- Error Alert & Action Buttons -->
         <div x-show="!isSuccess && isFailed" x-cloak class="mt-3 w-full max-w-sm px-4">
             <div class="apple-pill border-rose-500/40 text-rose-300 rounded-2xl p-3 text-xs flex items-start gap-2 shadow-lg">
                 <i class="fas fa-triangle-exclamation mt-0.5 text-rose-400 shrink-0"></i>
                 <span x-text="errorMessage || 'Gagal merekam sampel wajah. Pastikan pencahayaan cukup dan wajah terlihat jelas.'"></span>
             </div>
-            <button type="button" @click="restartEnroll()"
-                    class="mt-2 w-full apple-pill hover:bg-white/10 text-white font-semibold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fas fa-rotate-right text-xs"></i>
-                <span>Ulangi Perekaman</span>
-            </button>
+
+            <!-- Tombol Khusus Jika Izin Kamera Ditolak (Permission Denied) -->
+            <template x-if="isCameraDenied">
+                <div class="mt-2.5 flex flex-col gap-2">
+                    <button type="button" @click="startCamera()"
+                            class="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98]">
+                        <svg class="w-4 h-4 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <span>Izinkan Kamera Ulang</span>
+                    </button>
+                    
+                    <button type="button" @click="showPermissionGuide = !showPermissionGuide"
+                            class="w-full apple-pill hover:bg-white/10 text-zinc-300 font-medium py-2 px-3 rounded-xl transition text-[11px] flex items-center justify-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="showPermissionGuide ? 'Sembunyikan Panduan Izin' : 'Cara Mengaktifkan Izin Kamera'"></span>
+                    </button>
+                </div>
+            </template>
+
+            <!-- Tombol Retry Standar Jika Bukan Masalah Izin -->
+            <template x-if="!isCameraDenied">
+                <button type="button" @click="restartEnroll()"
+                        class="mt-2 w-full apple-pill hover:bg-white/10 text-white font-semibold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fas fa-rotate-right text-xs"></i>
+                    <span>Ulangi Perekaman</span>
+                </button>
+            </template>
+        </div>
+
+        <!-- Panduan Langkah Mengaktifkan Kamera di Browser -->
+        <div x-show="!isSuccess && isCameraDenied && showPermissionGuide" x-cloak class="mt-3 w-full max-w-sm px-4">
+            <div class="apple-pill border-zinc-700 bg-zinc-900/95 rounded-2xl p-4 text-xs text-zinc-300 space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                    <span class="font-bold text-white flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        Cara Buka Blokir Kamera
+                    </span>
+                    <button type="button" @click="showPermissionGuide = false" class="text-zinc-500 hover:text-white p-1">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-2.5 text-[11px] leading-relaxed">
+                    <div class="p-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/60">
+                        <p class="font-bold text-zinc-100 flex items-center gap-1.5 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            Google Chrome (Android / PC):
+                        </p>
+                        <ol class="list-decimal list-inside space-y-1 text-zinc-400 pl-1">
+                            <li>Ketuk ikon <b>Gembok / Setelan Situs</b> di kiri bilah URL web.</li>
+                            <li>Pilih <b>Izin (Permissions)</b> ➔ <b>Kamera</b> ➔ Ubah ke <b>Izinkan (Allow)</b>.</li>
+                            <li>Tekan tombol Muat Ulang di bawah.</li>
+                        </ol>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/60">
+                        <p class="font-bold text-zinc-100 flex items-center gap-1.5 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                            Safari (iPhone / iPad):
+                        </p>
+                        <ol class="list-decimal list-inside space-y-1 text-zinc-400 pl-1">
+                            <li>Ketuk tombol <b>aA</b> di sebelah kiri kolom alamat URL web.</li>
+                            <li>Pilih <b>Pengaturan Situs Web</b> ➔ <b>Kamera</b> ➔ <b>Izinkan</b>.</li>
+                            <li>Tekan tombol Muat Ulang di bawah.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <button type="button" onclick="window.location.reload()"
+                        class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 border border-zinc-700 cursor-pointer">
+                    <i class="fas fa-rotate text-xs text-zinc-400"></i>
+                    <span>Muat Ulang Halaman</span>
+                </button>
+            </div>
         </div>
 
     </main>
@@ -424,6 +501,8 @@
             isFailed: false,
             errorMessage: '',
             isCameraReady: false,
+            isCameraDenied: false,
+            showPermissionGuide: false,
             videoStream: null,
             showFlash: false,
 
@@ -527,9 +606,13 @@
             },
 
             async startCamera() {
+                this.isFailed = false;
+                this.errorMessage = '';
+                this.isCameraDenied = false;
+
                 try {
                     if (!navigator.mediaDevices?.getUserMedia) {
-                        throw new Error("Akses kamera tidak didukung pada peramban ini.");
+                        throw new Error("Akses kamera tidak didukung pada peramban ini. Pastikan Anda menggunakan HTTPS.");
                     }
 
                     this.videoStream = await navigator.mediaDevices.getUserMedia({
@@ -549,11 +632,24 @@
                             await video.play();
                         } catch (e) {}
                         this.isCameraReady = true;
+                        this.isCameraDenied = false;
+                        this.isFailed = false;
+                        this.showPermissionGuide = false;
                     };
                 } catch (err) {
                     this.isCameraReady = false;
                     this.isFailed = true;
-                    this.errorMessage = 'Gagal mengakses kamera: ' + err.message;
+
+                    const isDenied = err.name === 'NotAllowedError' 
+                        || err.name === 'PermissionDeniedError' 
+                        || (err.message && (err.message.toLowerCase().includes('denied') || err.message.toLowerCase().includes('permission')));
+                    
+                    this.isCameraDenied = isDenied;
+                    if (isDenied) {
+                        this.errorMessage = 'Izin kamera ditolak oleh peramban (Permission Denied). Tekan tombol "Izinkan Kamera Ulang" di bawah atau aktifkan melalui setelan peramban.';
+                    } else {
+                        this.errorMessage = 'Gagal mengakses kamera: ' + err.message;
+                    }
                 }
             },
 
@@ -903,6 +999,10 @@
                 this.isBaselineCalibrated = false;
                 this.cooldownUntil = performance.now() + 400;
                 this.stepEnteredAt = performance.now() + 400;
+
+                if (!this.isCameraReady || !this.videoStream) {
+                    this.startCamera();
+                }
             },
 
             async submitEnroll() {
