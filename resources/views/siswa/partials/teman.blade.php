@@ -1,19 +1,19 @@
                 <div x-show="activeTab === 'teman'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
                     {{-- Header Teman --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between flex-wrap gap-3">
                         <div>
                             <span class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Komunitas Kelas</span>
                             <h2 class="font-heading font-black text-xl text-slate-900 dark:text-white">Teman Sekelas</h2>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar siswa resmi di kelas {{ $user->kelas->nama_kelas ?? 'Anda' }}</p>
                         </div>
-                        <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-2xl px-4 py-2.5 text-center">
-                            <p class="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Total Siswa</p>
-                            <p class="text-2xl font-black font-heading text-indigo-600 dark:text-indigo-400 leading-none">{{ $temanSekelas->count() }}</p>
+                        <div class="bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-800 rounded-xl px-4 py-2 text-center">
+                            <p class="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase">Total Siswa</p>
+                            <p class="text-2xl font-black font-heading text-blue-600 dark:text-blue-400 leading-none">{{ $temanSekelas->count() }}</p>
                         </div>
                     </div>
 
                     {{-- Search & Classmate Filters --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
                         <div class="relative">
                             <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                             <input type="text" x-model="classmateSearch"
@@ -43,7 +43,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <template x-for="item in filteredClassmates()" :key="item.id">
                             <div @click="openClassmateModal(item)"
-                                 class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer group flex flex-col justify-between">
+                                 class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-sm transition-all hover:scale-[1.01] cursor-pointer group flex flex-col justify-between">
                                 <div>
                                     {{-- Banner Mini --}}
                                     <div class="h-16 bg-slate-800 relative overflow-hidden">
@@ -51,7 +51,7 @@
                                             <img :src="item.banner_url || '/storage/' + item.banner" class="w-full h-full object-cover">
                                         </template>
                                         <template x-if="!item.banner_url && !item.banner">
-                                            <div class="w-full h-full bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
+                                            <div class="w-full h-full bg-slate-800 dark:bg-slate-950 relative">
                                                 <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:12px_12px] opacity-40"></div>
                                             </div>
                                         </template>

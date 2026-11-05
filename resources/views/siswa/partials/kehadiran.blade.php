@@ -1,12 +1,12 @@
                 <div x-show="activeTab === 'kehadiran'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
                     {{-- Header Kehadiran --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between flex-wrap gap-3">
                         <div>
                             <span class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Rekapitulasi Presensi</span>
                             <h2 class="font-heading font-black text-xl text-slate-900 dark:text-white">Kehadiran & Riwayat</h2>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Semester Berjalan &bull; {{ $user->kelas->nama_kelas ?? 'Kelas Siswa' }}</p>
                         </div>
-                        <div class="text-right flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl px-4 py-2.5">
+                        <div class="text-right flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800 rounded-xl px-4 py-2">
                             <div>
                                 <p class="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-300">Persentase</p>
                                 <p class="text-2xl font-black font-heading text-emerald-600 dark:text-emerald-400 leading-none">{{ $persentaseKehadiran }}%</p>
@@ -17,29 +17,29 @@
 
                     {{-- STAT CARDS — Colored Pills --}}
                     <div class="grid grid-cols-4 gap-2.5">
-                        <div class="stat-pill hadir shadow-sm">
-                            <div class="w-8 h-8 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
+                        <div class="stat-pill hadir shadow-xs">
+                            <div class="w-8 h-8 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-xs">
                                 <i class="fas fa-user-check text-xs"></i>
                             </div>
                             <p class="text-xl font-heading font-extrabold text-emerald-800 dark:text-emerald-300 leading-none">{{ $stats['hadir'] }}</p>
                             <p class="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold mt-1">Hadir</p>
                         </div>
-                        <div class="stat-pill izin shadow-sm">
-                            <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
+                        <div class="stat-pill izin shadow-xs">
+                            <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-xs">
                                 <i class="fas fa-envelope-open-text text-xs"></i>
                             </div>
                             <p class="text-xl font-heading font-extrabold text-amber-800 dark:text-amber-300 leading-none">{{ $stats['izin'] }}</p>
                             <p class="text-[10px] text-amber-700 dark:text-amber-300 font-bold mt-1">Izin</p>
                         </div>
-                        <div class="stat-pill sakit shadow-sm">
-                            <div class="w-8 h-8 bg-sky-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
+                        <div class="stat-pill sakit shadow-xs">
+                            <div class="w-8 h-8 bg-sky-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-xs">
                                 <i class="fas fa-hospital-user text-xs"></i>
                             </div>
                             <p class="text-xl font-heading font-extrabold text-sky-800 dark:text-sky-300 leading-none">{{ $stats['sakit'] }}</p>
                             <p class="text-[10px] text-sky-700 dark:text-sky-300 font-bold mt-1">Sakit</p>
                         </div>
-                        <div class="stat-pill alpa shadow-sm">
-                            <div class="w-8 h-8 bg-rose-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-md">
+                        <div class="stat-pill alpa shadow-xs">
+                            <div class="w-8 h-8 bg-rose-500 text-white rounded-xl flex items-center justify-center mx-auto mb-1.5 shadow-xs">
                                 <i class="fas fa-user-xmark text-xs"></i>
                             </div>
                             <p class="text-xl font-heading font-extrabold text-rose-800 dark:text-rose-300 leading-none">{{ $stats['alpa'] }}</p>
@@ -48,7 +48,7 @@
                     </div>
 
                     {{-- Search & Filter Controls --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
                         <div class="relative">
                             <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                             <input type="text" x-model="riwayatSearch"
@@ -86,7 +86,7 @@
                     </div>
 
                     {{-- Riwayat Presensi List --}}
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden">
                         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                             <h3 class="font-heading font-extrabold text-slate-800 dark:text-white text-sm flex items-center gap-2">
                                 <i class="fas fa-list-check text-blue-600 dark:text-blue-400"></i>

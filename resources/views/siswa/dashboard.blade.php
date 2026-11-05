@@ -340,8 +340,8 @@
                 <nav class="mt-6 space-y-1.5">
                     {{-- 1. Beranda --}}
                     <button type="button" @click="switchTab('beranda')"
-                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-extrabold transition-all"
-                        :class="activeTab === 'beranda' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-bold transition-all"
+                        :class="activeTab === 'beranda' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
                         <i class="fas fa-house-chimney text-sm w-5 text-center" :class="activeTab === 'beranda' ? 'text-white' : 'text-blue-600 dark:text-blue-400'"></i>
                         <div class="text-left flex-1">
                             <span class="block leading-tight">Beranda</span>
@@ -351,8 +351,8 @@
 
                     {{-- 2. Kehadiran & Riwayat --}}
                     <button type="button" @click="switchTab('kehadiran')"
-                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-extrabold transition-all"
-                        :class="activeTab === 'kehadiran' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-bold transition-all"
+                        :class="activeTab === 'kehadiran' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
                         <i class="fas fa-chart-pie text-sm w-5 text-center" :class="activeTab === 'kehadiran' ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'"></i>
                         <div class="text-left flex-1">
                             <span class="block leading-tight">Kehadiran</span>
@@ -366,9 +366,9 @@
 
                     {{-- 3. Teman Sekelas --}}
                     <button type="button" @click="switchTab('teman')"
-                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-extrabold transition-all"
-                        :class="activeTab === 'teman' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
-                        <i class="fas fa-user-group text-sm w-5 text-center" :class="activeTab === 'teman' ? 'text-white' : 'text-indigo-600 dark:text-indigo-400'"></i>
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-bold transition-all"
+                        :class="activeTab === 'teman' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
+                        <i class="fas fa-user-group text-sm w-5 text-center" :class="activeTab === 'teman' ? 'text-white' : 'text-blue-600 dark:text-blue-400'"></i>
                         <div class="text-left flex-1">
                             <span class="block leading-tight">Teman Sekelas</span>
                             <span class="text-[10px] block opacity-75 font-normal font-sans">Direktori Siswa</span>
@@ -383,9 +383,9 @@
 
                     {{-- 4. Akun & Profil --}}
                     <button type="button" @click="switchTab('profil')"
-                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-extrabold transition-all"
-                        :class="activeTab === 'profil' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
-                        <i class="fas fa-id-card text-sm w-5 text-center" :class="activeTab === 'profil' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-heading text-xs font-bold transition-all"
+                        :class="activeTab === 'profil' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'">
+                        <i class="fas fa-id-card text-sm w-5 text-center" :class="activeTab === 'profil' ? 'text-white' : 'text-slate-600 dark:text-slate-400'"></i>
                         <div class="text-left flex-1">
                             <span class="block leading-tight">Akun Saya</span>
                             <span class="text-[10px] block opacity-75 font-normal font-sans">Profil & Pengaturan</span>
@@ -419,7 +419,7 @@
         <div class="flex-1 flex flex-col min-w-0 min-h-screen">
 
             {{-- Mobile Top Navbar (lg:hidden) --}}
-            <header class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
+            <header class="lg:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-30 shadow-2xs">
                 <div class="px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
                     {{-- Logo & Brand Sekolah Berdampingan dengan Logo Kolaborasi --}}
                     <div class="flex items-center gap-2 min-w-0">
@@ -453,7 +453,7 @@
             </header>
 
             {{-- Desktop Top Bar (hidden lg:flex) --}}
-            <header class="hidden lg:flex items-center justify-between px-8 py-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
+            <header class="hidden lg:flex items-center justify-between px-8 py-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-20">
                 <div class="min-w-0 flex items-center gap-3">
                     <h1 class="font-heading font-black text-lg text-slate-900 dark:text-white whitespace-nowrap shrink-0 tracking-tight"
                         x-text="activeTab === 'beranda' ? 'Beranda & Presensi' : (activeTab === 'kehadiran' ? 'Rekap Kehadiran Siswa' : (activeTab === 'teman' ? 'Direktori Teman Sekelas' : 'Pengaturan Akun & Profil'))">
@@ -497,9 +497,23 @@
                 @include('siswa.partials.kehadiran')
                 @include('siswa.partials.teman')
                 @include('siswa.partials.profil')
+            </main>
+
+            {{-- ────────────────────────────────────────────── --}}
+            {{-- 3. MOBILE FLOATING BOTTOM BAR (lg:hidden)       --}}
+            {{-- ────────────────────────────────────────────── --}}
+            <nav x-init="initPill()" class="lg:hidden fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 select-none">
+                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm px-2 py-2 flex items-center justify-around relative overflow-hidden">
+                    {{-- Inner Highlight for Glass --}}
+                    <div class="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 rounded-2xl pointer-events-none"></div>
+
+                    {{-- Sliding Pill --}}
+                    <div class="absolute bg-blue-600 shadow-sm rounded-xl transition-all duration-300 ease-out z-0"
+                         :style="`left: ${pillLeft}px; width: ${pillWidth}px; top: ${pillTop}px; height: ${pillHeight}px;`"></div>
+
                     {{-- 1. Beranda --}}
                     <button type="button" x-ref="beranda_btn" @click="switchTab('beranda')"
-                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-300 z-10"
                         :class="activeTab === 'beranda' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-house-chimney text-base"></i>
                         <span x-show="activeTab === 'beranda'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Beranda</span>
@@ -507,7 +521,7 @@
 
                     {{-- 2. Kehadiran --}}
                     <button type="button" x-ref="kehadiran_btn" @click="switchTab('kehadiran')"
-                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-300 z-10"
                         :class="activeTab === 'kehadiran' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-chart-pie text-base"></i>
                         <span x-show="activeTab === 'kehadiran'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Hadir</span>
@@ -515,7 +529,7 @@
 
                     {{-- 3. Teman --}}
                     <button type="button" x-ref="teman_btn" @click="switchTab('teman')"
-                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-300 z-10"
                         :class="activeTab === 'teman' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-user-group text-base"></i>
                         <span x-show="activeTab === 'teman'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Teman</span>
@@ -523,7 +537,7 @@
 
                     {{-- 4. Profil --}}
                     <button type="button" x-ref="profil_btn" @click="switchTab('profil')"
-                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-[20px] transition-all duration-300 z-10"
+                        class="relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-300 z-10"
                         :class="activeTab === 'profil' ? 'text-white scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
                         <i class="fas fa-id-card text-base"></i>
                         <span x-show="activeTab === 'profil'" x-transition:enter="transition ease-out duration-300 delay-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="text-[9px] mt-1 tracking-wider font-bold uppercase">Profil</span>
@@ -622,7 +636,7 @@
                         {{-- Progress Track --}}
                         <div class="flex-1 bg-white/15 rounded-full h-2.5 overflow-hidden relative">
                             <div class="h-full rounded-full transition-all duration-100 ease-out relative"
-                                :class="actionProgress >= 80 ? 'bg-gradient-to-r from-emerald-400 to-teal-300 shadow-sm shadow-emerald-400/50' : 'bg-gradient-to-r from-blue-400 via-sky-400 to-amber-400'"
+                                :class="actionProgress >= 80 ? 'bg-emerald-500 shadow-xs' : 'bg-blue-600'"
                                 :style="'width: ' + actionProgress + '%'">
                                 <div x-show="actionProgress > 5" class="absolute right-0 top-0 bottom-0 w-2 bg-white/80 rounded-full blur-[1px] animate-pulse"></div>
                             </div>
@@ -739,7 +753,7 @@
                         <img :src="editBannerPreview" class="w-full h-full object-cover" alt="Cover Banner">
                     </template>
                     <template x-if="!editBannerPreview">
-                        <div class="w-full h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-90"></div>
+                        <div class="w-full h-full bg-slate-800 dark:bg-slate-950"></div>
                     </template>
                     
                     {{-- Banner Action Buttons --}}
@@ -926,7 +940,7 @@
                          class="w-full h-full object-cover" alt="Classmate Banner">
                 </template>
                 <template x-if="!selectedClassmate?.banner_url && !selectedClassmate?.banner">
-                    <div class="w-full h-full bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 flex items-center justify-center relative">
+                    <div class="w-full h-full bg-slate-800 dark:bg-slate-950 flex items-center justify-center relative">
                         <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
                     </div>
                 </template>
