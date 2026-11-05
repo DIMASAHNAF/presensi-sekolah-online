@@ -70,6 +70,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Format nama lengkap menjadi Title Case yang rapi
+     */
+    public static function formatTitleCase(?string $name): string
+    {
+        if (empty($name)) {
+            return '';
+        }
+        return mb_convert_case(mb_strtolower(trim($name)), MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
      * URL Foto Avatar Pengguna
      */
     public function getAvatarUrlAttribute(): ?string

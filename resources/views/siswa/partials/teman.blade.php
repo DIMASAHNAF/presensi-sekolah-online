@@ -40,59 +40,60 @@
                     </div>
 
                     {{-- Classmate Cards Grid --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <template x-for="item in filteredClassmates()" :key="item.id">
                             <div @click="openClassmateModal(item)"
-                                 class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-sm transition-all hover:scale-[1.01] cursor-pointer group flex flex-col justify-between">
-                                <div>
-                                    {{-- Banner Mini --}}
-                                    <div class="h-16 bg-slate-800 relative overflow-hidden">
-                                        <template x-if="item.banner_url || item.banner">
-                                            <img :src="item.banner_url || '/storage/' + item.banner" class="w-full h-full object-cover">
+                                 class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:scale-[1.01] cursor-pointer group flex items-center justify-between gap-3">
+                                
+                                {{-- Kiri: Avatar (Foto / Inisial Pastel) --}}
+                                <div class="relative shrink-0">
+                                    <div class="w-12 h-12 rounded-full overflow-hidden border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center font-heading font-extrabold text-sm shadow-2xs"
+                                         :class="item.avatar_url || item.avatar ? 'bg-slate-100 dark:bg-slate-800' : getAvatarColor(item.id)">
+                                        <template x-if="item.avatar_url || item.avatar">
+                                            <img :src="item.avatar_url || '/storage/' + item.avatar" class="w-full h-full object-cover" :alt="item.name">
                                         </template>
-                                        <template x-if="!item.banner_url && !item.banner">
-                                            <div class="w-full h-full bg-slate-800 dark:bg-slate-950 relative">
-                                                <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:12px_12px] opacity-40"></div>
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    {{-- Body Card --}}
-                                    <div class="px-4 pb-3 pt-0 relative">
-                                        <div class="flex items-end justify-between -mt-7 mb-2">
-                                            {{-- Avatar --}}
-                                            <div class="relative w-14 h-14 rounded-full border-3 border-white dark:border-slate-900 overflow-hidden shadow-md bg-blue-600 text-white shrink-0">
-                                                <template x-if="item.avatar_url || item.avatar">
-                                                    <img :src="item.avatar_url || '/storage/' + item.avatar" class="w-full h-full object-cover">
-                                                </template>
-                                                <template x-if="!item.avatar_url && !item.avatar">
-                                                    <div class="w-full h-full flex items-center justify-center font-heading font-extrabold text-sm"
-                                                         x-text="item.name.substring(0, 2).toUpperCase()"></div>
-                                                </template>
-                                            </div>
-
-                                            {{-- Status Badge --}}
-                                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold"
-                                                  :class="item.status_hari_ini === 'hadir' ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'">
-                                                <span x-text="item.status_hari_ini === 'hadir' ? 'Hadir' : 'Belum'"></span>
-                                            </span>
-                                        </div>
-
-                                        <h4 class="font-heading font-extrabold text-sm text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition" x-text="item.name"></h4>
-                                        <p class="text-[11px] font-mono text-slate-400" x-text="'@' + (item.username || 'siswa')"></p>
-
-                                        <template x-if="item.bio">
-                                            <p class="text-[11px] text-slate-600 dark:text-slate-300 italic mt-2 line-clamp-2" x-text="'“' + item.bio + '”'"></p>
+                                        <template x-if="!item.avatar_url && !item.avatar">
+                                            <span x-text="item.name ? item.name.substring(0, 2).toUpperCase() : '?'"></span>
                                         </template>
                                     </div>
+                                    {{-- Micro status dot on avatar --}}
+                                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900"
+                                          :class="item.status_hari_ini === 'hadir' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'"></span>
                                 </div>
 
-                                <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-blue-600 dark:text-blue-400 font-bold">
-                                    <span>Lihat Profil Lengkap</span>
-                                    <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                                {{-- Tengah: Nama Siswa & @username --}}
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="font-heading font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition"
+                                        :title="formatTitleCase(item.name)"
+                                        x-text="formatTitleCase(item.name)"></h4>
+                                    <p class="text-[11px] font-sans text-slate-400 dark:text-slate-500 truncate mt-0.5"
+                                       x-text="'@' + (item.username || 'siswa')"></p>
+                                    <template x-if="item.bio">
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-1 italic"
+                                           x-text="'“' + item.bio + '”'"></p>
+                                    </template>
+                                </div>
+
+                                {{-- Kanan Atas: Badge Status ("Hadir" / "Belum") --}}
+                                <div class="shrink-0 self-start pt-0.5">
+                                    <span class="text-[10px] font-sans px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5 shadow-2xs"
+                                          :class="item.status_hari_ini === 'hadir' ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700'">
+                                        <span class="w-1.5 h-1.5 rounded-full"
+                                              :class="item.status_hari_ini === 'hadir' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                                        <span x-text="item.status_hari_ini === 'hadir' ? 'Hadir' : 'Belum'"></span>
+                                    </span>
                                 </div>
                             </div>
                         </template>
+
+                        {{-- Empty State jika tidak ada hasil pencarian / filter --}}
+                        <div x-show="filteredClassmates().length === 0" class="col-span-full py-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
+                            <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2 text-base">
+                                <i class="fas fa-user-slash"></i>
+                            </div>
+                            <p class="font-heading font-extrabold text-sm text-slate-700 dark:text-slate-300">Tidak ada teman sekelas yang cocok</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Coba gunakan kata kunci pencarian atau filter yang berbeda.</p>
+                        </div>
                     </div>
                 </div>
 

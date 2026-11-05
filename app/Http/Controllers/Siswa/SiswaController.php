@@ -91,6 +91,7 @@ class SiswaController extends Controller
                 $absenHariIni = $absenHariIniList->get($teman->id);
                 $teman->status_hari_ini = $absenHariIni ? $absenHariIni->status : 'belum';
                 $teman->jam_absen = ($absenHariIni && $absenHariIni->created_at) ? $absenHariIni->created_at->format('H:i') : null;
+                $teman->name = User::formatTitleCase($teman->name);
                 $teman->makeHidden(['password', 'remember_token', 'face_descriptor', 'nisn', 'nik', 'email']);
                 return $teman;
             });

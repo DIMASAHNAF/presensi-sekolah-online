@@ -957,7 +957,8 @@
                         <img :src="selectedClassmate?.avatar_url || '/storage/' + selectedClassmate?.avatar" class="w-full h-full object-cover" :alt="selectedClassmate.name">
                     </template>
                     <template x-if="!selectedClassmate?.avatar_url && !selectedClassmate?.avatar">
-                        <div class="w-full h-full flex items-center justify-center font-heading font-extrabold text-base bg-blue-600 text-white"
+                        <div class="w-full h-full flex items-center justify-center font-heading font-extrabold text-base"
+                             :class="getAvatarColor(selectedClassmate?.id)"
                              x-text="selectedClassmate ? selectedClassmate.name.substring(0, 2).toUpperCase() : ''"></div>
                     </template>
                 </div>
@@ -975,7 +976,7 @@
             {{-- Info Siswa --}}
             <div class="p-5 pt-3">
                 <h4 class="font-heading font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span x-text="selectedClassmate?.name"></span>
+                    <span x-text="formatTitleCase(selectedClassmate?.name)"></span>
                     <i class="fas fa-circle-check text-blue-500 text-xs"></i>
                 </h4>
                 <div class="flex items-center gap-2 text-xs mt-1">
@@ -2794,6 +2795,26 @@
                         }
                         return true;
                     });
+                },
+
+                formatTitleCase(text) {
+                    if (!text) return '';
+                    return text.toLowerCase().replace(/(?:^|\s|-)\S/g, function(a) {
+                        return a.toUpperCase();
+                    });
+                },
+
+                getAvatarColor(id) {
+                    const palettes = [
+                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
+                        'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
+                        'bg-sky-100/80 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300',
+                        'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300',
+                        'bg-amber-100/80 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300',
+                        'bg-teal-100/80 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300',
+                        'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300',
+                    ];
+                    return palettes[(id || 0) % palettes.length];
                 },
             };
         }
