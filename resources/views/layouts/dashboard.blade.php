@@ -349,6 +349,12 @@
             <span>@if(auth()->user()->isAdmin()) Semua Presensi @else Kelola Presensi @endif</span>
         </a>
 
+        <a href="{{ route('dashboard.izin') }}"
+           class="nav-link py-2 px-3 text-sm font-medium rounded-lg {{ request()->routeIs('dashboard.izin*') ? 'active' : '' }}">
+            <i class="fas fa-envelope-open-text icon"></i>
+            <span>Buku Izin &amp; Sakit</span>
+        </a>
+
         <a href="{{ route('kiosk.gerbang') }}" target="_blank"
            class="nav-link py-2 px-3 text-sm font-medium rounded-lg">
             <i class="fas fa-tablet-screen-button icon"></i>
@@ -431,7 +437,7 @@
                 <p class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate leading-tight">{{ auth()->user()->name }}</p>
                 <p class="text-zinc-500 dark:text-zinc-400 text-[10px] font-sans font-medium mt-0.5 truncate flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span>{{ auth()->user()->isAdmin() ? 'Akses Penuh • Aktif' : 'Tenaga Pendidik • Aktif' }}</span>
+                    <span>{{ auth()->user()->isAdmin() ? 'Akses Penuh • Aktif' : (auth()->user()->isWaliKelas() ? 'Wali Kelas • Aktif' : 'Tenaga Pendidik • Aktif') }}</span>
                 </p>
             </div>
         </div>

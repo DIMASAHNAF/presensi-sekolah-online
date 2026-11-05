@@ -71,11 +71,17 @@
                                 {{ $kelas->jurusan ?: '-' }}
                             </span>
                         </div>
+                        <div class="col-span-2 pt-1 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Wali Kelas:</span>
+                            <span class="text-xs font-semibold text-slate-800">
+                                {{ $kelas->waliKelas ? $kelas->waliKelas->name : 'Belum ditentukan' }}
+                            </span>
+                        </div>
                     </div>
 
                     {{-- Action Footer --}}
                     <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                        <button type="button" @click="openEditModal({ id: {{ $kelas->id }}, nama_kelas: '{{ addslashes($kelas->nama_kelas) }}', tingkat: '{{ $kelas->tingkat }}', jurusan: '{{ addslashes($kelas->jurusan ?? '') }}' })" 
+                        <button type="button" @click="openEditModal({ id: {{ $kelas->id }}, nama_kelas: '{{ addslashes($kelas->nama_kelas) }}', tingkat: '{{ $kelas->tingkat }}', jurusan: '{{ addslashes($kelas->jurusan ?? '') }}', wali_kelas_id: '{{ $kelas->wali_kelas_id ?? '' }}' })" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition text-xs font-bold">
                             <i class="fas fa-pen-to-square text-xs"></i>
                             <span>Edit</span>
@@ -110,6 +116,7 @@
                         <th class="px-4 py-3">Nama Kelas</th>
                         <th class="px-4 py-3">Tingkat</th>
                         <th class="px-4 py-3">Jurusan</th>
+                        <th class="px-4 py-3">Wali Kelas</th>
                         <th class="px-4 py-3">Jml Siswa</th>
                         <th class="px-4 py-3 text-center rounded-r-xl">Aksi</th>
                     </tr>
@@ -121,9 +128,19 @@
                         <td class="px-4 py-3 font-semibold text-slate-700">{{ $kelas->nama_kelas }}</td>
                         <td class="px-4 py-3">{{ $kelas->tingkat }}</td>
                         <td class="px-4 py-3">{{ $kelas->jurusan ?: '-' }}</td>
+                        <td class="px-4 py-3">
+                            @if($kelas->waliKelas)
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
+                                    <i class="fas fa-user-tie text-[10px] text-blue-600"></i>
+                                    <span>{{ $kelas->waliKelas->name }}</span>
+                                </span>
+                            @else
+                                <span class="text-xs text-slate-400 italic">Belum ditentukan</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3">{{ $kelas->siswa_count }} Siswa</td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button" @click="openEditModal({ id: {{ $kelas->id }}, nama_kelas: '{{ addslashes($kelas->nama_kelas) }}', tingkat: '{{ $kelas->tingkat }}', jurusan: '{{ addslashes($kelas->jurusan ?? '') }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded transition">
+                            <button type="button" @click="openEditModal({ id: {{ $kelas->id }}, nama_kelas: '{{ addslashes($kelas->nama_kelas) }}', tingkat: '{{ $kelas->tingkat }}', jurusan: '{{ addslashes($kelas->jurusan ?? '') }}', wali_kelas_id: '{{ $kelas->wali_kelas_id ?? '' }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1 rounded transition">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <form action="{{ route('dashboard.kelas.destroy', $kelas) }}" method="POST" class="inline-block"
@@ -206,6 +223,16 @@
                            class="w-full border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 transition" placeholder="Contoh: TJKT">
                     <p x-show="addErrors.jurusan" x-text="addErrors.jurusan ? addErrors.jurusan[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Wali Kelas (Opsional)</label>
+                    <select name="wali_kelas_id" x-model="addForm.wali_kelas_id"
+                            class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                        <option value="">-- Belum Ditentukan --</option>
+                        @foreach($guruList as $g)
+                            <option value="{{ $g->id }}">{{ $g->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
                     <button type="button" @click="openAdd = false" :disabled="isSubmitting" class="btn-secondary py-2 text-xs">Batal</button>
                     <button type="submit" :disabled="isSubmitting" class="btn-primary py-2 text-xs flex items-center gap-1.5">
@@ -277,6 +304,16 @@
                            class="w-full border rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 transition">
                     <p x-show="editErrors.jurusan" x-text="editErrors.jurusan ? editErrors.jurusan[0] : ''" class="text-[11px] text-rose-600 mt-1 font-medium"></p>
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Wali Kelas</label>
+                    <select name="wali_kelas_id" x-model="editData.wali_kelas_id"
+                            class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                        <option value="">-- Belum Ditentukan --</option>
+                        @foreach($guruList as $g)
+                            <option value="{{ $g->id }}">{{ $g->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
                     <button type="button" @click="openEdit = false" :disabled="isSubmitting" class="btn-secondary py-2 text-xs">Batal</button>
                     <button type="submit" :disabled="isSubmitting" class="btn-primary py-2 text-xs flex items-center gap-1.5">
@@ -300,7 +337,8 @@
             addForm: {
                 nama_kelas: '',
                 tingkat: 'X',
-                jurusan: ''
+                jurusan: '',
+                wali_kelas_id: ''
             },
             addErrors: {},
             addErrorMessage: '',
@@ -315,7 +353,7 @@
             editShake: false,
 
             openAddModal() {
-                this.addForm = { nama_kelas: '', tingkat: 'X', jurusan: '' };
+                this.addForm = { nama_kelas: '', tingkat: 'X', jurusan: '', wali_kelas_id: '' };
                 this.addErrors = {};
                 this.addErrorMessage = '';
                 this.addErrorList = [];

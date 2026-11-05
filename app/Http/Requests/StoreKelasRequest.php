@@ -17,6 +17,7 @@ class StoreKelasRequest extends FormRequest
             'nama_kelas' => 'required|string|max:50|unique:kelas,nama_kelas',
             'tingkat' => 'required|in:X,XI,XII',
             'jurusan' => 'nullable|string|max:50',
+            'wali_kelas_id' => 'nullable|exists:users,id',
         ];
     }
 

@@ -27,6 +27,8 @@ class Presensi extends Model
         'keterangan',
         'override_by',
         'override_note',
+        'surat_file',
+        'izin_siswa_id',
     ];
 
     protected $casts = [
@@ -56,6 +58,23 @@ class Presensi extends Model
     public function overrideBy()
     {
         return $this->belongsTo(User::class, 'override_by');
+    }
+
+    /** Referensi perizinan terdaftar jika ada */
+    public function izinSiswa()
+    {
+        return $this->belongsTo(IzinSiswa::class, 'izin_siswa_id');
+    }
+
+    /** URL Surat izin/sakit (baik dari record langsung atau dari izinSiswa) */
+    public function getSuratUrlAttribute(): ?string
+    {
+        $file = $this->surat_file ?? $this->izinSiswa?->surat_file;
+        if (empty($file)) return null;
+        if (str_starts_with($file, 'http://') || str_starts_with($file, 'https://')) {
+            return $file;
+        }
+        return Storage::url($file);
     }
 
     /** Helper: apakah siswa hadir */

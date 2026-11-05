@@ -20,6 +20,7 @@ class StoreGuruRequest extends FormRequest
             'nip' => 'nullable|string|max:30|unique:users,nip',
             'nuptk' => 'nullable|string|max:30|unique:users,nuptk',
             'nik' => 'nullable|string|max:20|unique:users,nik',
+            'role' => 'nullable|in:guru,walikelas',
             'password' => 'required|string|min:6',
         ];
     }

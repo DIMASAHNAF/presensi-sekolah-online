@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'username', 'email', 'avatar', 'banner', 'bio', 'website',
-        'nisn', 'nik', 'nip', 'nuptk', 'no_hp_ortu', 'nama_ortu', 'password', 'password_changed_at', 'kelas_id',
+        'nisn', 'nik', 'nip', 'nuptk', 'role', 'no_hp_ortu', 'nama_ortu', 'password', 'password_changed_at', 'kelas_id',
         'face_descriptor', 'face_enrolled_at',
     ];
 
@@ -173,15 +173,56 @@ class User extends Authenticatable
         return $this->role === 'guru';
     }
 
+    public function isWaliKelas(): bool
+    {
+        return $this->role === 'walikelas';
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /** Guru mapel atau wali kelas */
+    public function isGuruOrWali(): bool
+    {
+        return in_array($this->role, ['guru', 'walikelas']);
+    }
+
+    /** Guru, wali kelas, atau admin */
+    public function isStaff(): bool
+    {
+        return in_array($this->role, ['admin', 'walikelas', 'guru']);
+    }
+
+    /** Label role yang rapi */
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'admin' => 'Administrator',
+            'walikelas' => 'Wali Kelas',
+            'guru' => 'Guru Pengampu',
+            'siswa' => 'Siswa',
+            default => ucfirst($this->role),
+        };
     }
 
     /** Kelas siswa (hanya untuk role siswa) */
     public function kelas()
     {
         return $this->belongsTo(Kelas::class, 'kelas_id');
+    }
+
+    /** Kelas yang dibina jika user adalah Wali Kelas */
+    public function kelasBinaan()
+    {
+        return $this->hasOne(Kelas::class, 'wali_kelas_id');
+    }
+
+    /** Izin/Sakit yang pernah diajukan oleh user ini */
+    public function perizinanDiajukan()
+    {
+        return $this->hasMany(IzinSiswa::class, 'diajukan_oleh');
     }
 
     /** Sesi presensi yang dibuat guru */

@@ -149,7 +149,7 @@ class AuthController extends Controller
                   ->orWhere('name', $identifier)
                   ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($identifier)]);
             })
-            ->whereIn('role', ['guru', 'admin'])
+            ->whereIn('role', ['guru', 'walikelas', 'admin'])
             ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {

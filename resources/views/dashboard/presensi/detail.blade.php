@@ -372,6 +372,7 @@
                                         'label' => $absen->labelStatus(),
                                         'keterangan' => $absen->keterangan ?: '',
                                         'waktu' => $absen->updated_at ? $absen->updated_at->timezone('Asia/Jakarta')->format('H:i') . ' WIB' : '-',
+                                        'surat_url' => $absen->surat_url,
                                         'update_url' => route('dashboard.presensi.record.update', $absen),
                                         'siswa' => [
                                             'id' => $absen->siswa->id,
@@ -444,11 +445,20 @@
 
                                     {{-- Kolom Keterangan --}}
                                     <td class="px-2.5 py-2.5 text-slate-600 dark:text-slate-300 text-xs">
-                                        <span id="ket-{{ $absen->id }}" class="truncate block max-w-[110px] xl:max-w-[150px]"
-                                            :title="currentKet"
-                                            x-text="currentKet">
-                                            {{ $absen->keterangan ?: '-' }}
-                                        </span>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span id="ket-{{ $absen->id }}" class="truncate block max-w-[110px] xl:max-w-[150px]"
+                                                :title="currentKet"
+                                                x-text="currentKet">
+                                                {{ $absen->keterangan ?: '-' }}
+                                            </span>
+                                            @if($suratUrl = $absen->surat_url)
+                                                <a href="{{ $suratUrl }}" target="_blank"
+                                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded shrink-0 hover:underline"
+                                                    title="Buka lampiran surat">
+                                                    <i class="fas fa-file-invoice text-[9px]"></i> Surat
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
 
                                     {{-- Kolom Waktu Presensi --}}
@@ -580,6 +590,7 @@
                                 'label' => $absen->labelStatus(),
                                 'keterangan' => $absen->keterangan ?: '',
                                 'waktu' => $absen->updated_at ? $absen->updated_at->timezone('Asia/Jakarta')->format('H:i') . ' WIB' : '-',
+                                'surat_url' => $absen->surat_url,
                                 'update_url' => route('dashboard.presensi.record.update', $absen),
                                 'siswa' => [
                                     'id' => $absen->siswa->id,
@@ -653,11 +664,19 @@
                                 </div>
                                 <div>
                                     <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Keterangan</span>
-                                    <span id="ket-m-{{ $absen->id }}" class="text-slate-800 dark:text-slate-200 text-xs truncate block font-medium"
-                                        :title="currentKet"
-                                        x-text="currentKet">
-                                        {{ $absen->keterangan ?: '-' }}
-                                    </span>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span id="ket-m-{{ $absen->id }}" class="text-slate-800 dark:text-slate-200 text-xs truncate block font-medium"
+                                            :title="currentKet"
+                                            x-text="currentKet">
+                                            {{ $absen->keterangan ?: '-' }}
+                                        </span>
+                                        @if($suratUrl = $absen->surat_url)
+                                            <a href="{{ $suratUrl }}" target="_blank"
+                                                class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded shrink-0">
+                                                <i class="fas fa-file-invoice text-[9px]"></i> Surat
+                                            </a>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
 
@@ -876,6 +895,26 @@
                                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 transition">
                         </div>
 
+                        {{-- Upload Berkas Surat jika Sakit / Izin --}}
+                        <div x-show="editStatus === 'sakit' || editStatus === 'izin'" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                                Unggah Surat Bukti (Dokter / Orang Tua)
+                            </label>
+                            <input type="file" id="edit-surat-file" accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                class="w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <template x-if="activeAbsen && activeAbsen.surat_url">
+                                <p class="text-[11px] text-blue-600 dark:text-blue-400 flex items-center gap-1 mt-1 font-semibold">
+                                    <i class="fas fa-file-circle-check"></i>
+                                    <span>Sudah ada surat terlampir:</span>
+                                    <a :href="activeAbsen.surat_url" target="_blank" class="underline hover:text-blue-800">Lihat Berkas</a>
+                                </p>
+                            </template>
+                            <label class="flex items-center gap-2 pt-1 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                                <input type="checkbox" x-model="syncHariIni" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span>Terapkan status &amp; surat ini ke <strong>seluruh sesi presensi hari ini</strong> untuk siswa ini (Auto-Sync)</span>
+                            </label>
+                        </div>
+
                         {{-- Shortcut Master Siswa (Jika Admin) --}}
                         @if(auth()->user()?->isAdmin())
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
@@ -1001,6 +1040,7 @@
                     activeAbsen: null,
                     editStatus: 'hadir',
                     editKeterangan: '',
+                    syncHariIni: false,
                     isSaving: false,
 
                     stats: {
@@ -1036,6 +1076,9 @@
                         this.activeAbsen = absen;
                         this.editStatus = currentStatus || absen.status;
                         this.editKeterangan = (currentKet && currentKet !== '-') ? currentKet : (absen.keterangan || '');
+                        this.syncHariIni = false;
+                        const fileInput = document.getElementById('edit-surat-file');
+                        if (fileInput) fileInput.value = '';
                         this.openEdit = true;
                         this.openLog = false;
                     },
@@ -1113,22 +1156,41 @@
                         const newStatus = this.editStatus;
                         const newKet = this.editKeterangan;
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                        const fileInput = document.getElementById('edit-surat-file');
+
+                        let body;
+                        let headers = {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        };
+
+                        if (fileInput && fileInput.files && fileInput.files[0]) {
+                            body = new FormData();
+                            body.append('_token', csrfToken);
+                            body.append('_method', 'PATCH');
+                            body.append('status', newStatus);
+                            body.append('keterangan', newKet || '');
+                            body.append('surat_file', fileInput.files[0]);
+                            if (this.syncHariIni) {
+                                body.append('sync_hari_ini', '1');
+                            }
+                        } else {
+                            headers['Content-Type'] = 'application/json';
+                            body = JSON.stringify({
+                                _token: csrfToken,
+                                _method: 'PATCH',
+                                status: newStatus,
+                                keterangan: newKet,
+                                sync_hari_ini: this.syncHariIni ? 1 : 0
+                            });
+                        }
 
                         try {
                             const res = await fetch(absen.update_url, {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken,
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                },
-                                body: JSON.stringify({
-                                    _token: csrfToken,
-                                    _method: 'PATCH',
-                                    status: newStatus,
-                                    keterangan: newKet
-                                })
+                                headers: headers,
+                                body: body
                             });
 
                             const data = await res.json();
@@ -1143,6 +1205,9 @@
 
                                 absen.status = newStatus;
                                 absen.keterangan = newKet;
+                                if (data.surat_url) {
+                                    absen.surat_url = data.surat_url;
+                                }
 
                                 this.openEdit = false;
                             } else {
@@ -1150,6 +1215,7 @@
                             }
                         } catch (err) {
                             console.error('Submit edit form error:', err);
+                            alert('Terjadi kesalahan koneksi.');
                         } finally {
                             this.isSaving = false;
                         }

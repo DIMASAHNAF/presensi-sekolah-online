@@ -21,6 +21,7 @@ class UpdateGuruRequest extends FormRequest
             'nip' => 'nullable|string|max:30|unique:users,nip,'.$guru->id,
             'nuptk' => 'nullable|string|max:30|unique:users,nuptk,'.$guru->id,
             'nik' => 'nullable|string|max:20|unique:users,nik,'.$guru->id,
+            'role' => 'nullable|in:guru,walikelas',
             'password' => 'nullable|string|min:6',
         ];
     }

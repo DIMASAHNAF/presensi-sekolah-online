@@ -6,6 +6,7 @@ use App\Models\Kelas;
 use App\Models\JadwalPelajaran;
 use App\Models\SesiPresensi;
 use App\Models\Presensi;
+use App\Models\IzinSiswa;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -116,19 +117,38 @@ class GenerateDailySessions extends Command
                 $sesi = $existingSesi;
             }
 
-            // Otomatis daftarkan seluruh siswa di kelas ini ke dalam sesi presensi (default: alpa)
+            // Otomatis daftarkan seluruh siswa di kelas ini ke dalam sesi presensi (cek izin aktif / default: alpa)
             if ($sesi) {
                 $siswaList = User::where('role', 'siswa')->where('kelas_id', $kelas->id)->get(['id']);
                 foreach ($siswaList as $siswa) {
-                    Presensi::firstOrCreate(
-                        [
-                            'sesi_presensi_id' => $sesi->id,
-                            'siswa_id'         => $siswa->id,
-                        ],
-                        [
-                            'status' => 'alpa',
-                        ]
-                    );
+                    $izinAktif = IzinSiswa::activeOnDate(today())
+                        ->where('siswa_id', $siswa->id)
+                        ->first();
+
+                    if ($izinAktif) {
+                        Presensi::firstOrCreate(
+                            [
+                                'sesi_presensi_id' => $sesi->id,
+                                'siswa_id'         => $siswa->id,
+                            ],
+                            [
+                                'status'        => $izinAktif->jenis,
+                                'keterangan'    => $izinAktif->keterangan ?: "Dispensasi {$izinAktif->jenis} (Surat diverifikasi)",
+                                'surat_file'    => $izinAktif->surat_file,
+                                'izin_siswa_id' => $izinAktif->id,
+                            ]
+                        );
+                    } else {
+                        Presensi::firstOrCreate(
+                            [
+                                'sesi_presensi_id' => $sesi->id,
+                                'siswa_id'         => $siswa->id,
+                            ],
+                            [
+                                'status' => 'alpa',
+                            ]
+                        );
+                    }
                 }
             }
         }

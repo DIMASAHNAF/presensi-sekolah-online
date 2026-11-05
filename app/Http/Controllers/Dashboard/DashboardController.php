@@ -9,6 +9,7 @@ use App\Models\LogPresensi;
 use App\Models\MataPelajaran;
 use App\Models\NilaiSiswa;
 use App\Models\Presensi;
+use App\Models\IzinSiswa;
 use App\Models\SchoolSetting;
 use App\Models\SesiPresensi;
 use App\Models\User;
@@ -270,12 +271,28 @@ class DashboardController extends Controller
 
         foreach ($siswaList as $siswa) {
             $status = 'alpa'; // default
+            $keterangan = null;
+            $suratFile = null;
+            $izinId = null;
 
-            // Jika ada sesi kelas, copy status darinya
-            if ($sesiKelas) {
+            // 1. Cek apakah ada perizinan (sakit/izin) yang sah dan aktif pada tanggal sesi ini
+            $izinAktif = IzinSiswa::activeOnDate($request->tanggal)
+                ->where('siswa_id', $siswa->id)
+                ->first();
+
+            if ($izinAktif) {
+                $status = $izinAktif->jenis;
+                $keterangan = $izinAktif->keterangan ?: "Dispensasi {$izinAktif->jenis} (Surat diverifikasi)";
+                $suratFile = $izinAktif->surat_file;
+                $izinId = $izinAktif->id;
+            } elseif ($sesiKelas) {
+                // 2. Jika ada sesi kelas (pagi), wariskan status jika sakit/izin
                 $absenKelas = $sesiKelas->presensi->where('siswa_id', $siswa->id)->first();
                 if ($absenKelas) {
                     $status = $absenKelas->status;
+                    $keterangan = $absenKelas->keterangan;
+                    $suratFile = $absenKelas->surat_file;
+                    $izinId = $absenKelas->izin_siswa_id;
                 }
             }
 
@@ -285,7 +302,10 @@ class DashboardController extends Controller
                     'siswa_id'         => $siswa->id,
                 ],
                 [
-                    'status' => $status,
+                    'status'        => $status,
+                    'keterangan'    => $keterangan,
+                    'surat_file'    => $suratFile,
+                    'izin_siswa_id' => $izinId,
                 ]
             );
         }
@@ -796,44 +816,82 @@ class DashboardController extends Controller
     public function updateRecord(Request $request, Presensi $presensi)
     {
         $request->validate([
-            'status' => 'required|in:hadir,izin,sakit,alpa',
-            'keterangan' => 'nullable|string|max:255',
+            'status'        => 'required|in:hadir,izin,sakit,alpa',
+            'keterangan'    => 'nullable|string|max:255',
+            'surat_file'    => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'sync_hari_ini' => 'nullable|boolean',
         ]);
 
         $statusSebelumnya = $presensi->status;
         $statusBaru = $request->status;
+        $filePath = $presensi->surat_file;
 
-        // Cek jika ada perubahan
-        if ($statusSebelumnya !== $statusBaru || $presensi->keterangan !== $request->keterangan) {
+        // Upload file jika ada
+        if ($request->hasFile('surat_file')) {
+            $file = $request->file('surat_file');
+            $yearMonth = date('Y-m');
+            $filename = 'surat_' . $presensi->siswa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs("surat_izin/{$yearMonth}", $filename, 'public');
+        }
 
+        // Cek jika ada perubahan status, keterangan, atau upload surat baru
+        if ($statusSebelumnya !== $statusBaru || $presensi->keterangan !== $request->keterangan || $filePath !== $presensi->surat_file) {
             // Catat log
             LogPresensi::create([
-                'presensi_id' => $presensi->id,
-                'guru_id' => auth()->id(),
+                'presensi_id'       => $presensi->id,
+                'guru_id'           => auth()->id(),
                 'status_sebelumnya' => $statusSebelumnya,
-                'status_baru' => $statusBaru,
-                'keterangan' => $request->keterangan,
+                'status_baru'       => $statusBaru,
+                'keterangan'        => $request->keterangan,
             ]);
 
-            // Update presensi
+            // Update presensi saat ini
             $presensi->update([
-                'status' => $statusBaru,
-                'keterangan' => $request->keterangan,
+                'status'        => $statusBaru,
+                'keterangan'    => $request->keterangan,
+                'surat_file'    => $filePath,
+                'override_by'   => auth()->id(),
+                'override_note' => "Diperbarui manual oleh " . auth()->user()->name,
             ]);
+
+            // Opsi Auto-Sync: Jika diminta sinkron ke seluruh sesi hari ini
+            if ($request->boolean('sync_hari_ini') && $presensi->sesiPresensi) {
+                $tanggal = $presensi->sesiPresensi->tanggal;
+                $sesiLain = SesiPresensi::where('kelas_id', $presensi->sesiPresensi->kelas_id)
+                    ->where('tanggal', $tanggal)
+                    ->where('id', '!=', $presensi->sesi_presensi_id)
+                    ->get();
+
+                foreach ($sesiLain as $sLain) {
+                    $pLain = Presensi::firstOrNew([
+                        'sesi_presensi_id' => $sLain->id,
+                        'siswa_id'         => $presensi->siswa_id,
+                    ]);
+                    if ($pLain->status !== 'hadir') {
+                        $pLain->status = $statusBaru;
+                        $pLain->keterangan = $request->keterangan;
+                        $pLain->surat_file = $filePath;
+                        $pLain->override_by = auth()->id();
+                        $pLain->override_note = "Disinkronkan dari sesi " . ($presensi->sesiPresensi->formatted_mapel ?? 'lain');
+                        $pLain->save();
+                    }
+                }
+            }
         }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
-                'message' => 'Status kehadiran diperbarui!',
-                'status' => $statusBaru,
-                'label' => $presensi->labelStatus(),
+                'success'    => true,
+                'message'    => 'Status kehadiran berhasil diperbarui!',
+                'status'     => $statusBaru,
+                'label'      => $presensi->labelStatus(),
                 'keterangan' => $presensi->keterangan ?: '-',
+                'surat_url'  => $presensi->surat_url,
                 'updated_at' => now()->timezone('Asia/Jakarta')->format('H:i') . ' WIB',
             ]);
         }
 
-        return back()->with('success', 'Status kehadiran diperbarui!');
+        return back()->with('success', 'Status kehadiran berhasil diperbarui!');
     }
 
     // =========================================================
@@ -1062,7 +1120,7 @@ class DashboardController extends Controller
     {
         $this->adminOnly();
 
-        $query = User::where('role', 'guru');
+        $query = User::whereIn('role', ['guru', 'walikelas'])->with('kelasBinaan');
         if ($request->search) {
             $query->where(fn ($q) => $q
                 ->where('name', 'like', '%'.$request->search.'%')
@@ -1080,9 +1138,13 @@ class DashboardController extends Controller
     public function storeGuru(StoreGuruRequest $request)
     {
         $v = $request->validated();
+        $role = $request->input('role', 'guru');
+        if (!in_array($role, ['guru', 'walikelas'])) {
+            $role = 'guru';
+        }
 
         User::create(array_merge($v, [
-            'role' => 'guru',
+            'role' => $role,
             'password' => Hash::make($v['password']),
         ]));
 
@@ -1098,7 +1160,7 @@ class DashboardController extends Controller
 
     public function updateGuru(UpdateGuruRequest $request, User $guru)
     {
-        abort_if($guru->role !== 'guru', 403);
+        abort_if(!in_array($guru->role, ['guru', 'walikelas']), 403);
 
         $v = $request->validated();
 
@@ -1106,6 +1168,10 @@ class DashboardController extends Controller
             $v['password'] = Hash::make($request->password);
         } else {
             unset($v['password']);
+        }
+
+        if ($request->filled('role') && in_array($request->role, ['guru', 'walikelas'])) {
+            $v['role'] = $request->role;
         }
 
         $guru->update($v);
@@ -1123,7 +1189,7 @@ class DashboardController extends Controller
     public function destroyGuru(User $guru)
     {
         $this->adminOnly();
-        abort_if($guru->role !== 'guru', 403);
+        abort_if(!in_array($guru->role, ['guru', 'walikelas']), 403);
         $guru->delete();
 
         return redirect()->route('dashboard.guru')->with('success', 'Guru dihapus!');
@@ -1135,16 +1201,21 @@ class DashboardController extends Controller
     public function kelasIndex()
     {
         $this->adminOnly();
-        $kelasList = Kelas::withCount('siswa')->orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $kelasList = Kelas::with(['waliKelas'])->withCount('siswa')->orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $guruList = User::whereIn('role', ['guru', 'walikelas'])->orderBy('name')->get();
 
-        return view('dashboard.kelas', compact('kelasList'));
+        return view('dashboard.kelas', compact('kelasList', 'guruList'));
     }
 
     public function storeKelas(StoreKelasRequest $request)
     {
         $v = $request->validated();
 
-        Kelas::create($v);
+        $kelas = Kelas::create($v);
+
+        if (!empty($v['wali_kelas_id'])) {
+            User::where('id', $v['wali_kelas_id'])->where('role', 'guru')->update(['role' => 'walikelas']);
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -1159,8 +1230,22 @@ class DashboardController extends Controller
     public function updateKelas(UpdateKelasRequest $request, Kelas $kelas)
     {
         $v = $request->validated();
+        $oldWaliId = $kelas->wali_kelas_id;
 
         $kelas->update($v);
+
+        // Update role guru baru jadi walikelas
+        if (!empty($v['wali_kelas_id'])) {
+            User::where('id', $v['wali_kelas_id'])->where('role', 'guru')->update(['role' => 'walikelas']);
+        }
+
+        // Cek apakah wali lama masih membina kelas lain
+        if ($oldWaliId && $oldWaliId != ($v['wali_kelas_id'] ?? null)) {
+            $masihWali = Kelas::where('wali_kelas_id', $oldWaliId)->exists();
+            if (!$masihWali) {
+                User::where('id', $oldWaliId)->where('role', 'walikelas')->update(['role' => 'guru']);
+            }
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

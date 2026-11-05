@@ -45,7 +45,14 @@
                                 {{ strtoupper($initials) }}
                             </div>
                             <div class="min-w-0">
-                                <h4 class="font-heading font-bold text-sm text-slate-900 truncate">{{ $guru->name }}</h4>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h4 class="font-heading font-bold text-sm text-slate-900 truncate">{{ $guru->name }}</h4>
+                                    @if($guru->isWaliKelas())
+                                        <span class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            Wali Kelas {{ $guru->kelasBinaan ? '• ' . $guru->kelasBinaan->nama_kelas : '' }}
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="text-[11px] font-mono text-slate-500 mt-0.5">
                                     @if($guru->nip)
                                         <span class="text-blue-600 font-bold">NIP: {{ $guru->nip }}</span>
@@ -84,7 +91,7 @@
 
                     {{-- Action Footer --}}
                     <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                        <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}' })" 
+                        <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}', role: '{{ $guru->role }}' })" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition text-xs font-bold">
                             <i class="fas fa-pen-to-square text-xs"></i>
                             <span>Edit</span>
@@ -128,7 +135,16 @@
                     @forelse($guruList as $i => $guru)
                     <tr class="table-row">
                         <td class="px-4 py-3 text-slate-500">{{ $guruList->firstItem() + $i }}</td>
-                        <td class="px-4 py-3 font-semibold text-slate-700">{{ $guru->name }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-semibold text-slate-800">{{ $guru->name }}</span>
+                                @if($guru->isWaliKelas())
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="fas fa-user-tie text-[9px]"></i> Wali Kelas {{ $guru->kelasBinaan ? '• ' . $guru->kelasBinaan->nama_kelas : '' }}
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
                         <td class="px-4 py-3 font-mono text-xs">
                             @if($guru->nip)
                                 <span class="text-blue-600 font-bold">{{ $guru->nip }}</span>
@@ -148,7 +164,7 @@
                         <td class="px-4 py-3 font-mono text-xs text-blue-600 font-semibold">{{ $guru->username }}</td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex justify-center gap-2">
-                                <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
+                                <button type="button" @click="openEditModal({ id: {{ $guru->id }}, name: '{{ addslashes($guru->name) }}', nip: '{{ addslashes($guru->nip ?? '') }}', nuptk: '{{ addslashes($guru->nuptk ?? '') }}', nik: '{{ addslashes($guru->nik ?? '') }}', username: '{{ addslashes($guru->username) }}', email: '{{ addslashes($guru->email ?? '') }}', role: '{{ $guru->role }}' })" class="text-blue-500 hover:bg-blue-50 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-100 transition-colors" title="Edit Guru">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form action="{{ route('dashboard.guru.destroy', $guru) }}" method="POST"
@@ -254,6 +270,14 @@
                     </div>
                 </div>
                 <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Penugasan / Peran</label>
+                    <select name="role" x-model="addForm.role"
+                            class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                        <option value="guru">Guru Pengampu</option>
+                        <option value="walikelas">Wali Kelas</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password Login</label>
                     <div class="relative">
                         <input :type="showAddPassword ? 'text' : 'password'" name="password" x-model="addForm.password"
@@ -352,6 +376,15 @@
                     </div>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Penugasan / Peran</label>
+                    <select name="role" x-model="editData.role"
+                            class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                        <option value="guru">Guru Pengampu</option>
+                        <option value="walikelas">Wali Kelas</option>
+                    </select>
+                </div>
+
                 {{-- Password Reset Input (Opsional) --}}
                 <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-900 mb-1">
@@ -397,6 +430,7 @@
                 nuptk: '',
                 nik: '',
                 username: '',
+                role: 'guru',
                 password: ''
             },
             addErrors: {},
@@ -412,7 +446,7 @@
             editShake: false,
 
             openAddModal() {
-                this.addForm = { name: '', nip: '', nuptk: '', nik: '', username: '', password: '' };
+                this.addForm = { name: '', nip: '', nuptk: '', nik: '', username: '', role: 'guru', password: '' };
                 this.addErrors = {};
                 this.addErrorMessage = '';
                 this.addErrorList = [];

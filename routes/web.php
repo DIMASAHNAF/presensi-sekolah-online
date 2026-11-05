@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\IzinSiswaController;
 use App\Http\Controllers\Kiosk\KioskController;
 use App\Http\Controllers\Siswa\SiswaController;
 use Illuminate\Support\Facades\Route;
@@ -71,7 +72,7 @@ Route::middleware(['auth', 'role:siswa'])->group(function () {
 });
 
 //  GURU & ADMIN DASHBOARD
-Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashboard')->group(function () {
+Route::middleware(['auth', 'role:guru,walikelas,admin'])->prefix('dashboard')->name('dashboard')->group(function () {
     // Overview
     Route::get('/', [DashboardController::class, 'index'])->name('');
     Route::get('/stats-json', [DashboardController::class, 'statsJson'])->name('.stats-json');
@@ -94,6 +95,11 @@ Route::middleware(['auth', 'role:guru,admin'])->prefix('dashboard')->name('dashb
     Route::patch('/presensi/{sesiPresensi}/close', [DashboardController::class, 'closeSesi'])->name('.presensi.close');
     Route::post('/presensi/{sesiPresensi}/reset', [DashboardController::class, 'resetAbsenSesi'])->name('.presensi.reset');
     Route::delete('/presensi/delete-all', [DashboardController::class, 'deleteAllSesi'])->name('.presensi.delete-all');
+
+    // Buku Izin & Sakit Siswa (Surat Izin / Sakit)
+    Route::get('/izin', [IzinSiswaController::class, 'index'])->name('.izin');
+    Route::post('/izin', [IzinSiswaController::class, 'store'])->name('.izin.store');
+    Route::delete('/izin/{izin}', [IzinSiswaController::class, 'destroy'])->name('.izin.destroy');
 
     // Rekap & CRUD Nilai Siswa (Dashboard Guru & Admin)
     Route::get('/nilai', [DashboardController::class, 'nilaiIndex'])->name('.nilai');
