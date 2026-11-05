@@ -100,7 +100,7 @@
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-                                        <i class="fas fa-book-open text-emerald-500"></i> {{ $sesiPresensi->mataPelajaran ? $sesiPresensi->mataPelajaran->nama_mapel : 'Sesi Mapel' }}
+                                        <i class="fas fa-book-open text-emerald-500"></i> {{ $sesiPresensi->formatted_mapel }}
                                     </span>
                                 @endif
                             </span>
@@ -108,7 +108,7 @@
                         @if($sesiPresensi->jam_pelajaran)
                         <div class="flex justify-between items-center py-1 border-b border-slate-50 dark:border-slate-800/60">
                             <span class="text-slate-500 dark:text-slate-400">Jam Pelajaran</span>
-                            <span class="font-mono text-slate-700 dark:text-slate-300 font-medium">{{ $sesiPresensi->jam_pelajaran }}</span>
+                            <span class="font-sans tabular-nums text-slate-700 dark:text-slate-300 font-medium">{{ $sesiPresensi->formatted_jam ?: $sesiPresensi->jam_pelajaran }}</span>
                         </div>
                         @endif
                         <div class="flex justify-between items-center py-1 border-b border-slate-50 dark:border-slate-800/60">

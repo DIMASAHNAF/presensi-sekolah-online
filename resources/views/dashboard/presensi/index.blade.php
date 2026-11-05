@@ -457,15 +457,15 @@
                                     </span>
                                 @endif
 
-                                @if($sesi->mataPelajaran)
+                                @if($sesi->formatted_mapel)
                                     <span class="badge bg-slate-100 text-slate-700 border border-slate-200">
-                                        {{ $sesi->mataPelajaran->nama_mapel }}
+                                        {{ $sesi->formatted_mapel }}
                                     </span>
                                 @endif
 
-                                @if($sesi->jam_pelajaran)
-                                    <span class="badge bg-slate-50 text-slate-600 border border-slate-200 font-mono">
-                                        <i class="fas fa-clock text-slate-400"></i> {{ $sesi->jam_pelajaran }}
+                                @if($sesi->formatted_jam)
+                                    <span class="badge bg-slate-50 text-slate-600 border border-slate-200 font-sans tabular-nums">
+                                        <i class="fas fa-clock text-slate-400"></i> {{ $sesi->formatted_jam }}
                                     </span>
                                 @endif
                             </div>

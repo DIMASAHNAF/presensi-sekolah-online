@@ -233,8 +233,8 @@
                                         <div>
                                             <p class="font-bold text-slate-900 dark:text-white text-sm">{{ $sesi->kelas->nama_kelas }}</p>
                                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                                {{ $sesi->mataPelajaran ? $sesi->mataPelajaran->nama_mapel : 'Sesi Kelas (Pagi)' }}
-                                                @if($sesi->jam_pelajaran) • <span class="font-mono">{{ $sesi->jam_pelajaran }}</span>@endif
+                                                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $sesi->formatted_mapel }}</span>
+                                                @if($sesi->formatted_jam) • <span class="font-sans tabular-nums">{{ $sesi->formatted_jam }}</span>@endif
                                             </p>
                                         </div>
                                         @if($sesi->is_active)
@@ -275,8 +275,8 @@
                                             <td class="p-3">
                                                 <p class="font-bold text-slate-900 dark:text-white text-sm">{{ $sesi->kelas->nama_kelas }}</p>
                                                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                                    {{ $sesi->mataPelajaran ? $sesi->mataPelajaran->nama_mapel : 'Sesi Kelas (Pagi)' }}
-                                                    @if($sesi->jam_pelajaran) • <span class="font-mono">{{ $sesi->jam_pelajaran }}</span>@endif
+                                                    <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $sesi->formatted_mapel }}</span>
+                                                    @if($sesi->formatted_jam) • <span class="font-sans tabular-nums">{{ $sesi->formatted_jam }}</span>@endif
                                                 </p>
                                             </td>
                                             <td class="p-3">
