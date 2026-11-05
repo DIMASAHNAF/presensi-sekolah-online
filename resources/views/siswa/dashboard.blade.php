@@ -1878,6 +1878,26 @@
                     return m + ' meter';
                 },
 
+                formatMapelName(name) {
+                    if (!name) return '';
+                    const n = String(name).trim();
+                    if (/^koding\s*(dan|&)\s*ka$/i.test(n)) {
+                        return n.includes('&') ? 'Koding & KA' : 'Koding dan KA';
+                    }
+                    const acronyms = ['KA', 'PPLG', 'TJKT', 'ULP', 'FO', 'MICE', 'PJOK', 'IPA', 'IPS', 'KWU', 'IOT', 'UI/UX', 'OOP', 'K3LH', 'GIM', 'HKL', 'KIN'];
+                    const lowerWords = ['dan', 'atau', 'di', 'ke', 'dari', 'yang', 'untuk', 'pada', 'dengan', '&'];
+                    
+                    return n.split(/(\s+|[-/&])/).map(word => {
+                        const cleanWord = word.trim();
+                        if (!cleanWord) return word;
+                        const upper = cleanWord.toUpperCase();
+                        if (acronyms.includes(upper)) return upper;
+                        const lower = cleanWord.toLowerCase();
+                        if (lowerWords.includes(lower)) return lower;
+                        return cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1).toLowerCase();
+                    }).join('');
+                },
+
                 isPointInPolygon(lat, lng, polygon) {
                     if (!polygon || polygon.length < 3) return false;
                     let inside = false;

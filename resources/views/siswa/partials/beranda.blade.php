@@ -219,19 +219,24 @@
                             class="gsap-stagger-item bg-blue-600 rounded-[24px] shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] border-2 border-blue-400/50 overflow-hidden text-white relative group">
                             <div class="px-5 py-4 flex items-start justify-between">
                                 <div>
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-sans uppercase tracking-wider mb-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
                                         <span>SESI SEDANG BERLANGSUNG</span>
                                     </div>
                                     <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
-                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
-                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-black px-2 py-0.5 rounded-md shadow-xs" x-text="sesiData?.mapel"></span>
-                                        <span class="text-blue-100 text-xs" x-text="'Pengampu: ' + sesiData?.guru"></span>
+                                    <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-sans font-medium"></p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-sans">
+                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-semibold px-2.5 py-0.5 rounded-md shadow-xs font-sans" x-text="formatMapelName(sesiData?.mapel)"></span>
+                                        <span class="text-blue-100 text-xs font-sans font-medium" x-text="'Pengampu: ' + sesiData?.guru"></span>
                                     </div>
+                                    <p x-show="sesiData?.jam && sesiData?.jam !== '-'" class="text-blue-100/90 text-xs font-sans font-medium mt-1 flex items-center gap-1.5">
+                                        <i class="far fa-clock text-[11px] opacity-80"></i>
+                                        <span x-text="sesiData?.jam"></span>
+                                    </p>
                                 </div>
                                 <div class="bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
                                     <i class="fas fa-circle-check text-xl text-emerald-600 dark:text-emerald-400"></i>
-                                    <p class="text-[10px] font-extrabold mt-0.5 font-mono text-emerald-600 dark:text-emerald-400">HADIR</p>
+                                    <p class="text-[10px] font-extrabold mt-0.5 font-sans text-emerald-600 dark:text-emerald-400">HADIR</p>
                                 </div>
                             </div>
                             <div class="bg-emerald-50 dark:bg-emerald-950/70 border-t border-emerald-100 dark:border-emerald-900/60 px-5 py-3 flex items-center gap-2.5 text-emerald-900 dark:text-emerald-200">
@@ -245,24 +250,24 @@
                             class="gsap-stagger-item bg-blue-600 rounded-[24px] shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] border-2 border-blue-400/50 overflow-hidden text-white relative group">
                             <div class="px-5 py-4 flex items-start justify-between">
                                 <div>
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-mono uppercase tracking-wider mb-2">
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold font-sans uppercase tracking-wider mb-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></div>
                                         <span>SESI PRESENSI DIBUKA</span>
                                     </div>
                                     <h2 x-text="sesiData?.kelas" class="font-heading font-black text-xl text-white tracking-tight"></h2>
-                                    <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-mono font-medium"></p>
-                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
-                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-black px-2 py-0.5 rounded-md shadow-xs" x-text="sesiData?.mapel"></span>
-                                        <span class="text-blue-200 text-xs" x-text="'Pengampu: ' + sesiData?.guru"></span>
+                                    <p x-text="sesiData?.tanggal" class="text-blue-100 text-xs mt-0.5 font-sans font-medium"></p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-sans">
+                                        <span x-show="sesiData?.mapel" class="bg-white/20 text-white font-semibold px-2.5 py-0.5 rounded-md shadow-xs font-sans" x-text="formatMapelName(sesiData?.mapel)"></span>
+                                        <span class="text-blue-100 text-xs font-sans font-medium" x-text="'Pengampu: ' + sesiData?.guru"></span>
                                     </div>
-                                    <p x-show="sesiData?.jam && sesiData?.jam !== '-'" class="text-blue-200/90 text-[11px] font-mono mt-1 flex items-center gap-1">
-                                        <i class="far fa-clock text-[10px]"></i>
+                                    <p x-show="sesiData?.jam && sesiData?.jam !== '-'" class="text-blue-100/90 text-xs font-sans font-medium mt-1 flex items-center gap-1.5">
+                                        <i class="far fa-clock text-[11px] opacity-80"></i>
                                         <span x-text="sesiData?.jam"></span>
                                     </p>
                                 </div>
                                 <div class="bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 rounded-xl px-3.5 py-2.5 text-center shadow-sm shrink-0 border border-white/60 dark:border-slate-700">
                                     <i class="far fa-clock text-xl text-amber-500 dark:text-amber-400"></i>
-                                    <p class="text-[10px] font-extrabold mt-0.5 font-mono text-amber-600 dark:text-amber-400">BELUM</p>
+                                    <p class="text-[10px] font-extrabold mt-0.5 font-sans text-amber-600 dark:text-amber-400">BELUM</p>
                                 </div>
                             </div>
 
@@ -318,7 +323,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <span class="px-2 py-0.5 rounded-full bg-emerald-200/80 dark:bg-emerald-800 text-[9px] font-mono font-black uppercase text-emerald-900 dark:text-emerald-100 shrink-0">TERKUNCI</span>
+                                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-200/80 dark:bg-emerald-800/80 text-[10px] font-sans font-extrabold uppercase text-emerald-900 dark:text-emerald-100 shrink-0 tracking-wide">SESUAI LOKASI</span>
                                     </div>
 
                                     {{-- Status 2: Terdeteksi Fake GPS / Mock Location --}}
@@ -402,20 +407,22 @@
                                 </div>
 
                                 {{-- KONDISI 2: Sudah Password, Tapi Belum Wajah --}}
-                                <div x-show="hasChangedPassword && !isFaceEnrolled" x-cloak class="space-y-3">
-                                    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                                        <i class="fas fa-triangle-exclamation text-amber-500 text-base mt-0.5 shrink-0"></i>
-                                        <div>
-                                            <p class="font-extrabold text-amber-900 dark:text-amber-100">Wajib Rekam Wajah Terlebih Dahulu</p>
-                                            <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
-                                                Data biometrik wajah Anda belum terdaftar atau baru saja direset oleh pihak sekolah. Anda wajib merekam foto wajah biometrik terlebih dahulu sebelum dapat presensi.
+                                <div x-show="hasChangedPassword && !isFaceEnrolled" x-cloak class="space-y-2.5">
+                                    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                            <i class="fas fa-triangle-exclamation text-sm"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="font-extrabold text-amber-950 dark:text-amber-100 text-xs font-sans">Wajib Rekam Wajah Terlebih Dahulu</p>
+                                            <p class="text-[11px] text-amber-800 dark:text-amber-300 leading-snug mt-0.5 font-sans">
+                                                Biometrik wajah belum terdaftar. Rekam wajah sekali untuk mulai presensi.
                                             </p>
                                         </div>
                                     </div>
 
                                     <a href="{{ route('siswa.enroll') }}"
-                                        class="magic-btn w-full font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] border border-amber-400 transition-all active:scale-[0.99]">
-                                        <i class="fas fa-camera text-base"></i>
+                                        class="w-full font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white shadow-md shadow-amber-600/25 hover:shadow-lg hover:shadow-amber-600/35 border border-amber-500 transition-all active:scale-[0.99] font-sans">
+                                        <i class="fas fa-camera text-sm"></i>
                                         <span>Rekam Wajah Sekarang &rarr;</span>
                                     </a>
                                 </div>

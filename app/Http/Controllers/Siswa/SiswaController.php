@@ -294,6 +294,14 @@ class SiswaController extends Controller
             $lockReason = 'Wajib merekam biometrik wajah terlebih dahulu.';
         }
 
+        $rawMapel = $sesi->mataPelajaran?->nama_mapel;
+        $formattedMapel = $rawMapel;
+        if ($rawMapel) {
+            if (preg_match('/^koding\s*(dan|&)\s*ka$/i', $rawMapel)) {
+                $formattedMapel = str_contains($rawMapel, '&') ? 'Koding & KA' : 'Koding dan KA';
+            }
+        }
+
         return response()->json([
             'success' => true,
             'sesi'    => [
@@ -302,7 +310,7 @@ class SiswaController extends Controller
                 'guru'       => $sesi->guru->name,
                 'tanggal'    => \Carbon\Carbon::parse($sesi->tanggal)->isoFormat('dddd, D MMMM Y'),
                 'jam'        => $sesi->jam_pelajaran ?? '-',
-                'mapel'      => $sesi->mataPelajaran?->nama_mapel,
+                'mapel'      => $formattedMapel,
                 'created_at' => $sesi->created_at->toISOString(),
             ],
             'sudah_hadir'      => $sudahHadir,
