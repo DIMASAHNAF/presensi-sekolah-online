@@ -475,16 +475,17 @@
                         </div>
 
                         <div class="flex items-center gap-3.5 overflow-x-auto pb-2 pt-1 -mx-1 px-1">
-                            <div @click="openEditProfileModal()" class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start">
+                            <div @click="openEditProfileModal()" class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start w-[76px] sm:w-[84px]" title="Profil Saya">
                                 <div class="w-14 h-14 rounded-full border-2 border-dashed border-blue-400 dark:border-blue-500 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:scale-105 transition-transform bg-blue-50/50 dark:bg-blue-950/40">
                                     <i class="fas fa-plus text-sm"></i>
                                 </div>
-                                <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 truncate max-w-[64px]">Profilku</span>
+                                <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 truncate w-full text-center">Profilku</span>
                             </div>
 
                             @foreach($temanSekelas as $teman)
                             <div @click="openClassmateModal(@js($teman))"
-                                 class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start transition-transform hover:scale-105">
+                                 class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group snap-start transition-transform hover:scale-105 w-[76px] sm:w-[84px]"
+                                 title="{{ $teman->name }}">
                                 <div class="relative w-14 h-14 rounded-full p-0.5 border-2 {{ $teman->status_hari_ini === 'hadir' ? 'border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700' }}">
                                     @if($teman->avatar_url)
                                         <img src="{{ $teman->avatar_url }}" alt="{{ $teman->name }}" class="w-full h-full rounded-full object-cover">
@@ -495,10 +496,10 @@
                                     @endif
                                     <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 {{ $teman->status_hari_ini === 'hadir' ? 'bg-emerald-500' : ($teman->status_hari_ini === 'izin' ? 'bg-amber-500' : ($teman->status_hari_ini === 'sakit' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600')) }}"></span>
                                 </div>
-                                <span class="text-[11px] font-medium text-slate-700 dark:text-slate-200 truncate max-w-[68px] text-center leading-tight">
-                                    {{ explode(' ', trim($teman->name))[0] }}
+                                <span class="text-[11px] font-medium text-slate-700 dark:text-slate-200 truncate w-full text-center leading-tight px-0.5" title="{{ $teman->name }}">
+                                    {{ $teman->short_name }}
                                 </span>
-                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold {{ $teman->status_hari_ini === 'hadir' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60' : 'text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800' }}">
+                                <span class="text-[9px] font-sans px-2 py-0.5 rounded-full font-bold {{ $teman->status_hari_ini === 'hadir' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60' : 'text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800' }}">
                                     {{ $teman->status_hari_ini === 'hadir' ? 'Hadir' : 'Belum' }}
                                 </span>
                             </div>

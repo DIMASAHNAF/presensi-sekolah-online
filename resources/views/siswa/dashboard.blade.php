@@ -1898,6 +1898,30 @@
                     }).join('');
                 },
 
+                formatShortName(fullName) {
+                    if (!fullName) return '';
+                    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+                    if (parts.length === 0) return '';
+
+                    const toTitle = (str) => {
+                        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+                    };
+
+                    const firstRaw = parts[0];
+                    const firstLower = firstRaw.toLowerCase().replace(/\.+$/, '');
+                    const muhammad = ['muhammad', 'muhamad', 'mochammad', 'mohammad', 'moch', 'moh', 'm'];
+                    const common = ['nur', 'dwi', 'tri', 'syifa', 'syifaa', 'siti', 'putri', 'putra', 'ahmad', 'achmad', 'abdul'];
+                    const hasSecond = parts.length > 1 && parts[1].trim() !== '';
+
+                    if (muhammad.includes(firstLower)) {
+                        return hasSecond ? 'M. ' + toTitle(parts[1]) : 'Muhammad';
+                    }
+                    if (common.includes(firstLower)) {
+                        return hasSecond ? toTitle(firstRaw) + ' ' + toTitle(parts[1]) : toTitle(firstRaw);
+                    }
+                    return toTitle(firstRaw);
+                },
+
                 isPointInPolygon(lat, lng, polygon) {
                     if (!polygon || polygon.length < 3) return false;
                     let inside = false;

@@ -25,7 +25,49 @@ class User extends Authenticatable
     protected $appends = [
         'avatar_url',
         'banner_url',
+        'short_name',
     ];
+
+    /**
+     * Nama Pendek / Panggilan Cerdas (Title Case, menangani awalan umum seperti M., Muhammad, Nur, Dwi, dll.)
+     */
+    public function getShortNameAttribute(): string
+    {
+        return self::formatShortName($this->name);
+    }
+
+    public static function formatShortName(?string $fullName): string
+    {
+        if (empty($fullName)) {
+            return '';
+        }
+
+        $parts = array_values(array_filter(preg_split('/\s+/', trim($fullName))));
+        if (empty($parts)) {
+            return '';
+        }
+
+        $toTitle = function ($str) {
+            return mb_convert_case(mb_strtolower($str), MB_CASE_TITLE, 'UTF-8');
+        };
+
+        $firstRaw = $parts[0];
+        $firstLower = strtolower(rtrim($firstRaw, '.'));
+
+        $muhammadVariants = ['muhammad', 'muhamad', 'mochammad', 'mohammad', 'moch', 'moh', 'm'];
+        $commonPrefixes = ['nur', 'dwi', 'tri', 'syifa', 'syifaa', 'siti', 'putri', 'putra', 'ahmad', 'achmad', 'abdul'];
+        $hasSecond = isset($parts[1]) && trim($parts[1]) !== '';
+
+        if (in_array($firstLower, $muhammadVariants)) {
+            return $hasSecond ? 'M. ' . $toTitle($parts[1]) : 'Muhammad';
+        }
+
+        if (in_array($firstLower, $commonPrefixes)) {
+            return $hasSecond ? $toTitle($firstRaw) . ' ' . $toTitle($parts[1]) : $toTitle($firstRaw);
+        }
+
+        return $toTitle($firstRaw);
+    }
 
     /**
      * URL Foto Avatar Pengguna
