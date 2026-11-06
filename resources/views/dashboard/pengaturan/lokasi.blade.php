@@ -13,8 +13,8 @@
         width: 100%;
         border-radius: 1rem;
         z-index: 10;
-        background-color: #1e293b;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-color: #f1f5f9;
+        background-image: radial-gradient(rgba(148, 163, 184, 0.35) 1px, transparent 1px);
         background-size: 20px 20px;
     }
     .leaflet-popup-content-wrapper {
@@ -446,7 +446,7 @@
             </div>
 
             {{-- Container Map with Floating HUD --}}
-            <div class="relative flex-1 min-h-[520px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-900">
+            <div class="relative flex-1 min-h-[520px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 dark:bg-slate-800">
                 <div id="map-preview"></div>
 
                 {{-- Floating Top-Left Mode & Dimension HUD --}}
