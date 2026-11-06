@@ -1,5 +1,5 @@
 // Service Worker for Presensi Sekolah PWA
-const CACHE_NAME = 'presensi-cache-v15';
+const CACHE_NAME = 'presensi-cache-v16';
 const STATIC_ASSETS = [
     '/manifest.json',
     '/images/logo.png',
@@ -39,6 +39,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
     const url = new URL(event.request.url);
+
+    // Jangan cegat aset cross-origin/CDN (Tailwind, CDNJS, Google Fonts, dll)
+    if (url.origin !== self.location.origin) return;
 
     // Dynamic routes: ALWAYS direct network fetch
     if (
