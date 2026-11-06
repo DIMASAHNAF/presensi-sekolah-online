@@ -1803,13 +1803,15 @@
                         this.userAccuracy = Math.round(accuracy);
                         this.gpsTimestamp = pos.timestamp || Date.now();
 
-                        if (accuracy <= 0 || accuracy > 500) {
+                        // Toleransi akurasi: 80 meter untuk satelit GPS, 150m jika terhubung WiFi resmi sekolah
+                        const maxAccuracy = isVerifiedWifi ? 150 : 80;
+                        if (accuracy <= 0 || accuracy > maxAccuracy) {
                             if (isVerifiedWifi) {
                                 this.useSchoolNetwork();
                                 return;
                             }
                             this.geoStatus = 'inaccurate';
-                            this.geoErrorMessage = `Sinyal lokasi kurang akurat (±${this.userAccuracy}m). Sambungkan ke WiFi sekolah atau geser ke area terbuka.`;
+                            this.geoErrorMessage = `Sinyal GPS sedang menstabilkan presisi (±${this.userAccuracy}m, standar presisi ≤${maxAccuracy}m). Silakan tunggu sebentar atau bergeser ke tempat terbuka.`;
                             return;
                         }
 
@@ -1841,12 +1843,11 @@
                         }
                     };
 
-                    // Progressive 2-tier query:
-                    // 1. Coba Network/WiFi positioning (instan < 1 detik)
+                    // Query GPS Satelit Presisi Langsung (maximumAge: 0 mencegah data usang saat refresh)
                     navigator.geolocation.getCurrentPosition(
                         processCoords,
                         (err) => {
-                            console.warn('Network GPS lambat, mencoba GPS satelit...', err);
+                            console.warn('GPS satelit percobaan 1 lambat, mencoba ulang...', err);
                             navigator.geolocation.getCurrentPosition(
                                 processCoords,
                                 (satErr) => {
@@ -1865,10 +1866,10 @@
                                     }
                                     console.warn('Geolocation fallback error:', satErr);
                                 },
-                                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                             );
                         },
-                        { enableHighAccuracy: false, timeout: 4000, maximumAge: 300000 }
+                        { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
                     );
 
                     // Background passive watcher agar begitu GPS satelit lock, akurasi langsung naik otomatis
@@ -1881,7 +1882,7 @@
                                     }
                                 },
                                 () => {},
-                                { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+                                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                             );
                         } catch (e) {}
                     }

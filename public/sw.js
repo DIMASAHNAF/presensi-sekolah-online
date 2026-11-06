@@ -1,5 +1,5 @@
 // Service Worker for Presensi Sekolah PWA
-const CACHE_NAME = 'presensi-cache-v16';
+const CACHE_NAME = 'presensi-cache-v17';
 const STATIC_ASSETS = [
     '/manifest.json',
     '/images/logo.png',

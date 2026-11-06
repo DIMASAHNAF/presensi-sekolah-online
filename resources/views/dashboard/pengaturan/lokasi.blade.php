@@ -634,6 +634,9 @@
                     } else {
                         this.renderPolygon();
                     }
+                    if (this.polygonLayer) {
+                        this.map.fitBounds(this.polygonLayer.getBounds(), { padding: [35, 35], maxZoom: 18 });
+                    }
                 } else {
                     this.circle.addTo(this.map);
                 }
@@ -707,18 +710,15 @@
             },
 
             focusAndAlignToSmkn1() {
-                this.lat = this.SMKN1_CENTER_LAT;
-                this.lng = this.SMKN1_CENTER_LNG;
                 this.setMapTile('satellite');
-                if (this.map) {
-                    this.map.flyTo([this.lat, this.lng], 18, { animate: true, duration: 1.2 });
+                if (this.geofenceMode === 'polygon' && this.polygonLayer) {
+                    this.map.fitBounds(this.polygonLayer.getBounds(), { padding: [35, 35], maxZoom: 18 });
+                } else if (this.map) {
+                    this.map.flyTo([this.lat, this.lng], 18, { animate: true, duration: 1.0 });
                 }
-                this.updateMapFromInputs();
-                this.setGeofenceMode('polygon');
-                this.resetDefaultSmkn1Box();
                 setTimeout(() => {
                     if (this.map) this.map.invalidateSize();
-                }, 400);
+                }, 300);
             },
 
             createBoxAround(cLat, cLng, widthMeters = 220, heightMeters = 180) {
@@ -992,6 +992,16 @@
                 const centerLat = sumLat / this.polygonPoints.length;
                 const centerLng = sumLng / this.polygonPoints.length;
 
+                // Sinkronkan titik pusat sekolah dengan centroid poligon
+                this.lat = parseFloat(centerLat.toFixed(7));
+                this.lng = parseFloat(centerLng.toFixed(7));
+                if (this.marker) {
+                    this.marker.setLatLng([this.lat, this.lng]);
+                }
+                if (this.circle) {
+                    this.circle.setLatLng([this.lat, this.lng]);
+                }
+
                 // TAMPILKAN PIN "GESER AREA" (Bisa dipakai untuk 3, 4, 5, 6, 7+ titik arah)
                 if (this.polygonPoints.length >= 3) {
                     const labelText = this.polygonPoints.length === 4 
@@ -1033,6 +1043,12 @@
                             lat: parseFloat((p.lat + dLat).toFixed(7)),
                             lng: parseFloat((p.lng + dLng).toFixed(7))
                         }));
+
+                        this.lat = parseFloat(cur.lat.toFixed(7));
+                        this.lng = parseFloat(cur.lng.toFixed(7));
+                        if (this.marker) {
+                            this.marker.setLatLng(cur);
+                        }
 
                         if (this.polygonLayer) {
                             this.polygonLayer.setLatLngs(this.polygonPoints.map(p => [p.lat, p.lng]));
