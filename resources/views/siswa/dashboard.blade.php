@@ -695,14 +695,28 @@
 
             {{-- Bottom Action & Controls (Clean & Functional) --}}
             <div class="p-4 sm:p-5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-                <div x-show="scanMessage && scanState !== 'failed'" class="text-xs font-semibold p-2.5 rounded-xl mb-3 text-center transition-all"
-                    :class="scanSuccess ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
+                <div x-show="scanMessage && scanState !== 'failed'" class="text-xs font-semibold p-2.5 rounded-xl mb-3 text-center transition-all flex items-center justify-center gap-2"
+                    :class="{
+                        'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800': scanSuccess,
+                        'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800': scanState === 'processing',
+                        'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800': !scanSuccess && scanState !== 'processing'
+                    }">
+                    <i class="fas fa-circle-notch fa-spin text-blue-500" x-show="scanState === 'processing'"></i>
+                    <i class="fas fa-check-circle text-emerald-500" x-show="scanSuccess"></i>
                     <span x-text="scanMessage"></span>
+                </div>
+
+                <div x-show="scanState === 'processing'">
+                    <button type="button" disabled
+                        class="w-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 text-sm cursor-wait">
+                        <i class="fas fa-circle-notch fa-spin text-sm text-blue-600 dark:text-blue-400"></i>
+                        <span>Memproses Biometrik...</span>
+                    </button>
                 </div>
 
                 <div x-show="scanState === 'ready'">
                     <button type="button" @click="captureAndSend()"
-                        :disabled="scanState === 'processing' || scanState === 'success'"
+                        :disabled="scanState === 'processing' || scanState === 'success' || isSubmitting"
                         class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-sm active:scale-[0.98] cursor-pointer">
                         <i class="fas fa-camera text-sm" x-show="scanState !== 'processing'"></i>
                         <i class="fas fa-circle-notch fa-spin text-sm" x-show="scanState === 'processing'"></i>
@@ -1595,6 +1609,7 @@
 
                 // ── Face scanner state (Server-side AI) ──
                 isScanning: false,
+                isSubmitting: false,
                 scanState: 'idle', // 'idle' | 'initializing' | 'ready' | 'processing' | 'success' | 'failed'
                 scanMessage: '',
                 scanSuccess: false,
@@ -2058,8 +2073,8 @@
                         }
                         this.videoStream = await navigator.mediaDevices.getUserMedia({
                             video: {
-                                width: { ideal: 1280, max: 1920 },
-                                height: { ideal: 720, max: 1080 },
+                                width: { ideal: 640, max: 1280 },
+                                height: { ideal: 480, max: 720 },
                                 facingMode: 'user',
                                 frameRate: { ideal: 30, min: 15 }
                             },
@@ -2068,15 +2083,21 @@
                         const video = document.getElementById('video-scan');
                         video.srcObject = this.videoStream;
 
-                        video.onloadedmetadata = async () => {
-                            video.width = video.videoWidth || 1280;
-                            video.height = video.videoHeight || 720;
+                        const initVideo = async () => {
+                            video.width = video.videoWidth || 640;
+                            video.height = video.videoHeight || 480;
                             try {
                                 await video.play();
                             } catch (e) {}
                             this.isCameraDenied = false;
                             this.armScanner();
                         };
+
+                        if (video.readyState >= 1) {
+                            initVideo();
+                        } else {
+                            video.onloadedmetadata = initVideo;
+                        }
 
                     } catch (err) {
                         audioFx.playError();
@@ -2416,13 +2437,13 @@
                             );
 
                             if (!isFullFace) {
-                                stableFrames = Math.max(0, stableFrames - 2);
+                                stableFrames = Math.max(0, stableFrames - 1);
                                 if (stableFrames === 0) {
                                     if (this.livenessState !== 'waiting_face') {
                                         this.livenessState = 'waiting_face';
                                         this.updateLivenessPrompt();
                                     }
-                                    currentProgressVal = Math.max(0, currentProgressVal - 10);
+                                    currentProgressVal = Math.max(0, currentProgressVal - 8);
                                     this.actionProgress = Math.round(currentProgressVal);
                                 }
                                 this.aiLoopTimer = requestAnimationFrame(processFrame);
@@ -2437,8 +2458,8 @@
                                 this.updateLivenessPrompt();
                             }
 
-                            // Auto-capture mulus: tahan posisi stabil ~12 frame (~0.4 - 0.5 detik)
-                            const AUTO_CAPTURE_FRAMES = 12;
+                            // Auto-capture mulus: tahan posisi stabil ~10 frame (~0.3 detik)
+                            const AUTO_CAPTURE_FRAMES = 10;
                             const targetProgress = Math.min(100, Math.round((stableFrames / AUTO_CAPTURE_FRAMES) * 100));
                             currentProgressVal = (currentProgressVal * 0.6) + (targetProgress * 0.4);
                             this.actionProgress = Math.min(100, Math.round(currentProgressVal));
@@ -2450,7 +2471,7 @@
                                 this.updateLivenessPrompt();
                                 audioFx.playBlink();
                                 this.triggerShutterFlash();
-                                setTimeout(() => { this.captureAndSend(); }, 150);
+                                setTimeout(() => { this.captureAndSend(); }, 120);
                                 return;
                             }
 
@@ -2465,19 +2486,23 @@
                 },
 
                 captureAndSend() {
+                    if (this.isSubmitting || this.scanState === 'processing' || this.scanState === 'success') return;
+                    this.isSubmitting = true;
+
                     if (this.aiLoopTimer) {
                         cancelAnimationFrame(this.aiLoopTimer);
                         clearTimeout(this.aiLoopTimer);
                         this.aiLoopTimer = null;
                     }
-                    if (this.scanState === 'processing' || this.scanState === 'success') return;
 
                     const video = document.getElementById('video-scan');
                     const canvas = document.getElementById('canvas-scan');
-                    if (!video || !canvas) return;
+                    if (!video || !canvas) {
+                        this.isSubmitting = false;
+                        return;
+                    }
 
-                    // Optimasi Resolusi: 640px JPEG 0.80 (~45 KB, 30x lebih ringan dari 1.5MB)
-                    // Sangat cepat diupload di kelas & identik akurasinya pada model AI RetinaFace/ArcFace
+                    // Optimasi Resolusi: 640px JPEG 0.75 (~25-30 KB, 50x lebih ringan dari foto mentah & instan)
                     const vidW = video.videoWidth || 640;
                     const vidH = video.videoHeight || 480;
                     const targetW = Math.min(vidW, 640);
@@ -2491,14 +2516,14 @@
                     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
                     ctx.restore();
 
-                    const imageB64 = canvas.toDataURL('image/jpeg', 0.80);
+                    const imageB64 = canvas.toDataURL('image/jpeg', 0.75);
 
                     this.scanState = 'processing';
                     this.scanMessage = 'Memverifikasi wajah di server AI...';
 
-                    // Timeout controller 15 detik agar browser tidak hang indefinitely
+                    // Timeout controller 10 detik agar HP tidak hang jika sinyal lemah
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
                     fetch('{{ route('siswa.scanwajah') }}', {
                         method: 'POST',
@@ -2520,14 +2545,25 @@
                         .then(async (r) => {
                             clearTimeout(timeoutId);
                             if (r.status === 419) {
-                                // Sesi expired / CSRF kedaluwarsa: auto reload mulus
                                 this.scanMessage = 'Sesi kedaluwarsa, memuat ulang halaman...';
                                 setTimeout(() => window.location.reload(), 600);
                                 return { success: false, message: 'Sesi kedaluwarsa. Memuat ulang...' };
                             }
-                            return r.json();
+                            const resJson = await r.json().catch(() => null);
+                            if (!resJson) {
+                                return { success: false, message: 'Respons server tidak valid (HTTP ' + r.status + ').' };
+                            }
+                            return resJson;
                         })
                         .then(data => {
+                            this.isSubmitting = false;
+                            if (!data) {
+                                this.scanState = 'failed';
+                                this.scanSuccess = false;
+                                this.scanMessage = 'Tidak ada respon dari server AI. Silakan coba lagi.';
+                                return;
+                            }
+
                             if (data.success || (data.message && data.message.includes('sudah tercatat HADIR'))) {
                                 audioFx.playSuccess();
                                 this.scanState = 'success';
@@ -2535,6 +2571,11 @@
                                 this.scanMessage = data.message || 'Presensi Berhasil: Anda tercatat HADIR.';
                                 this.sudahHadir = true;
                                 this.stopCamera();
+
+                                if (this.sesiData) {
+                                    this.sesiData.sudah_hadir = true;
+                                }
+
                                 setTimeout(() => {
                                     this.isScanning = false;
                                     window.location.reload();
@@ -2548,17 +2589,19 @@
                         })
                         .catch((err) => {
                             clearTimeout(timeoutId);
+                            this.isSubmitting = false;
                             audioFx.playError();
                             this.scanState = 'failed';
-                            if (err.name === 'AbortError') {
-                                this.scanMessage = 'Koneksi lambat (timeout 15d). Silakan coba lagi.';
+                            if (err && err.name === 'AbortError') {
+                                this.scanMessage = 'Koneksi lambat (timeout 10d). Silakan coba lagi.';
                             } else {
-                                this.scanMessage = 'Terjadi kesalahan koneksi server. Coba lagi.';
+                                this.scanMessage = (err && err.message) ? err.message : 'Terjadi kesalahan koneksi server. Coba lagi.';
                             }
                         });
                 },
 
                 retryScan() {
+                    this.isSubmitting = false;
                     const video = document.getElementById('video-scan');
                     if (video && this.videoStream) {
                         this.armScanner();
@@ -2568,6 +2611,7 @@
                 },
 
                 closeFaceScanner() {
+                    this.isSubmitting = false;
                     this.isScanning = false;
                     this.stopCamera();
                     if (this.scanSuccess) window.location.reload();

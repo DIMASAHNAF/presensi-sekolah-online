@@ -536,7 +536,7 @@ class SiswaController extends Controller
             ]);
         }
 
-        // 6. Hitung keterlambatan berdasarkan jam server resmi (WIB) & kompresi foto WebP
+        // 6. Hitung keterlambatan berdasarkan jam server resmi (WIB) & catat kehadiran instan
         $statusSebelumnya = $presensi->status;
         $attendanceService = app(\App\Services\AttendanceService::class);
         $serverNow = now('Asia/Jakarta');
@@ -544,23 +544,12 @@ class SiswaController extends Controller
         $checkInStatus = $lateCalc['check_in_status'];
         $lateMinutes = $lateCalc['late_minutes'];
 
-        $fotoPath = null;
-        if ($request->filled('face_image')) {
-            $fotoPath = $attendanceService->compressAndStorePhoto(
-                $request->face_image,
-                $user->id,
-                $sesi->id,
-                'face_scans'
-            );
-        }
-
         $gpsAudit = '';
         if ($distance !== null) {
             $gpsAudit = sprintf(' • Jarak: %dm (±%dm)', round($distance), round($accuracy ?? 0));
         }
 
         $keteranganDetail = ($checkInStatus === 'LATE' ? "Terlambat ({$lateMinutes} menit)" : "Tepat Waktu")
-            . ($fotoPath ? " (WebP: {$fotoPath})" : '')
             . $gpsAudit;
 
         $presensi->update([
@@ -570,7 +559,6 @@ class SiswaController extends Controller
             'check_in_lat'      => $userLat ?? null,
             'check_in_lng'      => $userLng ?? null,
             'check_in_distance' => $distance !== null ? round($distance, 2) : null,
-            'check_in_photo'    => $fotoPath,
             'waktu_scan'        => $serverNow,
             'keterangan'        => $keteranganDetail,
         ]);
@@ -592,23 +580,53 @@ class SiswaController extends Controller
             ),
         ]);
 
-        // 8. Kirim notifikasi WhatsApp ke Orang Tua jika Terlambat secara Asynchronous (Deferred)
-        // Menjamin respon HTTP kembali ke HP siswa dalam ~0.2 detik tanpa blocking
-        if ($checkInStatus === 'LATE') {
-            if (function_exists('defer')) {
-                defer(function () use ($presensi) {
-                    try {
-                        app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
-                    } catch (\Throwable $e) {
-                        \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
-                    }
-                });
-            } else {
+        // 8. Background Deferred Tasks (Kompresi WebP ke NFS + WhatsApp Notifikasi jika Terlambat)
+        // Menjamin respon HTTP kembali ke HP siswa dalam ~0.2 detik tanpa blocking I/O storage & jaringan
+        $faceImage = $request->face_image;
+        $userId = $user->id;
+        $sesiId = $sesi->id;
+
+        if (function_exists('defer')) {
+            defer(function () use ($attendanceService, $presensi, $faceImage, $userId, $sesiId, $checkInStatus) {
                 try {
-                    app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                    if (!empty($faceImage)) {
+                        $fotoPath = $attendanceService->compressAndStorePhoto(
+                            $faceImage,
+                            $userId,
+                            $sesiId,
+                            'face_scans'
+                        );
+                        if ($fotoPath) {
+                            $presensi->update([
+                                'check_in_photo' => $fotoPath,
+                                'keterangan'     => $presensi->keterangan . " (WebP: {$fotoPath})",
+                            ]);
+                        }
+                    }
+
+                    if ($checkInStatus === 'LATE') {
+                        app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                    }
                 } catch (\Throwable $e) {
-                    \Log::warning('[WhatsApp] Gagal kirim notif ortu: ' . $e->getMessage());
+                    \Log::warning('[PresensiDeferred] Gagal proses background: ' . $e->getMessage());
                 }
+            });
+        } else {
+            try {
+                if (!empty($faceImage)) {
+                    $fotoPath = $attendanceService->compressAndStorePhoto($faceImage, $userId, $sesiId, 'face_scans');
+                    if ($fotoPath) {
+                        $presensi->update([
+                            'check_in_photo' => $fotoPath,
+                            'keterangan'     => $presensi->keterangan . " (WebP: {$fotoPath})",
+                        ]);
+                    }
+                }
+                if ($checkInStatus === 'LATE') {
+                    app(\App\Services\WhatsAppService::class)->sendPresensiNotification($presensi);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[PresensiSync] Gagal proses background: ' . $e->getMessage());
             }
         }
 
@@ -622,7 +640,6 @@ class SiswaController extends Controller
             'late_minutes'    => $lateMinutes,
             'waktu_scan'      => $serverNow->format('H:i:s'),
             'distance'        => $distance !== null ? round($distance) : null,
-            'photo_url'       => $fotoPath ? Storage::url($fotoPath) : null,
             'confidence'      => $result['confidence'] ?? null,
         ]);
     }

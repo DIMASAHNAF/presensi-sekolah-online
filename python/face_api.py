@@ -238,13 +238,13 @@ def check_liveness(img_array: np.ndarray, face_box: Tuple[int, int, int, int]) -
         if box_w <= 10 or box_h <= 10:
             return True, 1.0, None
 
-        # Texture analysis: Laplacian variance of cropped face
+        # Texture sanity check: hanya tolak jika gambar benar-benar kosong/blank (noise-less solid color)
         crop_face = img_array[max(0, top):min(h, bottom), max(0, left):min(w, right)]
         if crop_face.size > 0:
             gray_face = cv2.cvtColor(crop_face, cv2.COLOR_RGB2GRAY)
             laplacian_var = float(cv2.Laplacian(gray_face, cv2.CV_64F).var())
-            if laplacian_var < 10.0 and box_w > 120:
-                return False, 0.20, "Presensi ditolak: Tekstur wajah terlalu buram atau terdeteksi cetakan kertas (Anti-Spoofing)."
+            if laplacian_var < 0.8 and box_w > 120:
+                return False, 0.20, "Presensi ditolak: Tekstur gambar tidak valid atau kamera tertutup (Anti-Spoofing)."
 
         # MiniFASNet 2.7x Context Crop
         # Gunakan square crop dengan border reflect padding
@@ -407,7 +407,7 @@ def detect_face_fast(
             bgr_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             with _MODEL_LOCK:
                 yunet_detector.setInputSize((w, h))
-                yunet_detector.setScoreThreshold(0.45)
+                yunet_detector.setScoreThreshold(0.38)
                 yunet_detector.setNMSThreshold(0.35)
                 _, raw_faces = yunet_detector.detect(bgr_img)
 
