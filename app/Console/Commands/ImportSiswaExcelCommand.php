@@ -31,8 +31,9 @@ class ImportSiswaExcelCommand extends Command
     {
         $filePath = $this->option('file') ?: public_path('NAMA SISWA-SISWI SMKN 1 BERINGIN UPDATE.xlsx');
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             $this->error("File Excel tidak ditemukan di: {$filePath}");
+
             return 1;
         }
 
@@ -58,14 +59,15 @@ class ImportSiswaExcelCommand extends Command
         DB::beginTransaction();
         try {
             for ($row = 7; $row <= $highestRow; $row++) {
-                $nama   = trim((string)$sheet->getCell('B' . $row)->getValue());
-                $nisn   = trim((string)$sheet->getCell('E' . $row)->getValue());
-                $nik    = trim((string)$sheet->getCell('H' . $row)->getValue());
-                $email  = trim((string)$sheet->getCell('U' . $row)->getValue());
-                $rombel = trim((string)$sheet->getCell('AQ' . $row)->getValue());
+                $nama = trim((string) $sheet->getCell('B'.$row)->getValue());
+                $nisn = trim((string) $sheet->getCell('E'.$row)->getValue());
+                $nik = trim((string) $sheet->getCell('H'.$row)->getValue());
+                $email = trim((string) $sheet->getCell('U'.$row)->getValue());
+                $rombel = trim((string) $sheet->getCell('AQ'.$row)->getValue());
 
                 if ($nama === '' || $nisn === '') {
                     $skippedCount++;
+
                     continue;
                 }
 
@@ -82,24 +84,24 @@ class ImportSiswaExcelCommand extends Command
                 if (isset($existingUsers[$nisn])) {
                     // Update yang sudah ada tanpa menimpa face biometrics
                     $user = $existingUsers[$nisn];
-                    $user->name     = $nama;
-                    $user->nik      = $cleanNik ?? $user->nik;
+                    $user->name = $nama;
+                    $user->nik = $cleanNik ?? $user->nik;
                     $user->kelas_id = $kelasId ?? $user->kelas_id;
-                    $user->email    = $validEmail ?? $user->email;
+                    $user->email = $validEmail ?? $user->email;
                     $user->save();
                     $updatedCount++;
                 } else {
                     // Buat akun baru, default password = NISN
                     $hash = password_hash($nisn, PASSWORD_BCRYPT, ['cost' => 8]);
                     User::create([
-                        'name'       => $nama,
-                        'username'   => $nisn,
-                        'nisn'       => $nisn,
-                        'nik'        => $cleanNik,
-                        'email'      => $validEmail,
-                        'password'   => $hash,
-                        'role'       => 'siswa',
-                        'kelas_id'   => $kelasId,
+                        'name' => $nama,
+                        'username' => $nisn,
+                        'nisn' => $nisn,
+                        'nik' => $cleanNik,
+                        'email' => $validEmail,
+                        'password' => $hash,
+                        'role' => 'siswa',
+                        'kelas_id' => $kelasId,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -119,17 +121,18 @@ class ImportSiswaExcelCommand extends Command
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            $this->error("Gagal melakukan import: " . $e->getMessage());
+            $this->error('Gagal melakukan import: '.$e->getMessage());
+
             return 1;
         }
 
-        $this->info("==========================================");
-        $this->info("🎉 IMPORT SELESAI DENGAN SUKSES!");
+        $this->info('==========================================');
+        $this->info('🎉 IMPORT SELESAI DENGAN SUKSES!');
         $this->info("- Siswa Baru Dibuat    : {$createdCount}");
         $this->info("- Siswa Diperbarui     : {$updatedCount}");
         $this->info("- Baris Dilewati       : {$skippedCount}");
-        $this->info("- Total Siswa di Sistem: " . User::where('role', 'siswa')->count());
-        $this->info("==========================================");
+        $this->info('- Total Siswa di Sistem: '.User::where('role', 'siswa')->count());
+        $this->info('==========================================');
 
         return 0;
     }

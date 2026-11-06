@@ -200,3 +200,4 @@ class IzinSiswaController extends Controller
             ->with('success', "Data perizinan untuk {$namaSiswa} berhasil dihapus.");
     }
 }
+

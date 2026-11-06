@@ -80,3 +80,4 @@ return new class extends Migration
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('siswa','guru','admin') NOT NULL DEFAULT 'siswa'");
     }
 };
+

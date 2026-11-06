@@ -96,3 +96,4 @@ class IzinSiswa extends Model
         return $ext === 'pdf';
     }
 }
+
