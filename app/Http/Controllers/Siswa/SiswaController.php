@@ -284,6 +284,7 @@ class SiswaController extends Controller
         $schoolSetting = SchoolSetting::getSettings();
         $clientIp = SchoolSetting::getClientIp(request());
         $isIpAllowed = $schoolSetting->isIpAllowed($clientIp);
+        $isWifiVerified = $schoolSetting->isSchoolWifiVerified($clientIp);
 
         $hasSetPassword = $user->hasChangedPassword();
         $isFaceEnrolled = $user->isFaceEnrolled();
@@ -329,9 +330,10 @@ class SiswaController extends Controller
                 'polygon'       => $schoolSetting->polygon_coordinates,
             ],
             'network'       => [
-                'active'     => $schoolSetting->is_ip_whitelist_active,
-                'client_ip'  => $clientIp,
-                'is_allowed' => $isIpAllowed,
+                'active'           => $schoolSetting->is_ip_whitelist_active,
+                'client_ip'        => $clientIp,
+                'is_allowed'       => $isIpAllowed,
+                'is_wifi_verified' => $isWifiVerified,
             ],
         ]);
     }
@@ -382,7 +384,7 @@ class SiswaController extends Controller
 
             if (!$request->filled('latitude') || !$request->filled('longitude')) {
                 // Jika membuka dari Laptop atau ruang kelas kedap sinyal tetapi terhubung ke WiFi / Jaringan Resmi SMKN 1 Beringin:
-                if ($schoolSetting->is_ip_whitelist_active && $schoolSetting->isIpAllowed($clientIp)) {
+                if ($schoolSetting->isSchoolWifiVerified($clientIp)) {
                     $userLat = (float) $schoolSetting->latitude;
                     $userLng = (float) $schoolSetting->longitude;
                     $distance = 0;
@@ -401,7 +403,7 @@ class SiswaController extends Controller
             // Validasi akurasi sinyal satelit / WiFi GPS (toleransi diperketat menjadi 80m untuk GPS satelit)
             if ($request->filled('accuracy')) {
                 $accuracy = (float) $request->accuracy;
-                $maxTolerance = ($schoolSetting->is_ip_whitelist_active && $schoolSetting->isIpAllowed($clientIp)) ? 150 : 80;
+                $maxTolerance = $schoolSetting->isSchoolWifiVerified($clientIp) ? 150 : 80;
                 if ($accuracy <= 0 || $accuracy > $maxTolerance) {
                     return response()->json([
                         'success' => false,

@@ -279,16 +279,16 @@
                                             <i class="fas fa-wifi text-blue-600 dark:text-blue-400"></i> WiFi Sekolah:
                                         </span>
                                         <span class="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
-                                              :class="isIpAllowed ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
+                                              :class="isWifiVerified ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
                                             IP: <span x-text="clientIp"></span>
                                         </span>
                                     </div>
-                                    <div x-show="isIpAllowed"
+                                    <div x-show="isWifiVerified"
                                         class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/80 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
                                         <i class="fas fa-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
                                         <span>Terhubung ke WiFi Resmi SMKN 1 Beringin.</span>
                                     </div>
-                                    <div x-show="!isIpAllowed"
+                                    <div x-show="!isWifiVerified"
                                         class="bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800/80 rounded-xl px-3.5 py-2.5 text-xs text-rose-800 dark:text-rose-200 space-y-1">
                                         <div class="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-100">
                                             <i class="fas fa-triangle-exclamation text-rose-500"></i>
@@ -379,7 +379,7 @@
                                             <span class="truncate" x-text="geoErrorMessage || 'Gagal mendeteksi lokasi GPS.'"></span>
                                             <button type="button" @click="checkLocation(true)" class="text-blue-600 dark:text-blue-400 font-bold shrink-0">Coba Lagi</button>
                                         </div>
-                                        <div x-show="isIpAllowed" class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                                        <div x-show="ipWhitelistActive && isWifiVerified" class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
                                             <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Terhubung ke jaringan sekolah</span>
                                             <button type="button" @click="useSchoolNetwork()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg">Verifikasi via WiFi Sekolah</button>
                                         </div>
@@ -430,11 +430,11 @@
                                 {{-- KONDISI 3: Siap Presensi Face ID --}}
                                 <div x-show="hasChangedPassword && isFaceEnrolled" x-cloak>
                                     <button @click="openFaceScanner()"
-                                        :disabled="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed)"
-                                        :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'magic-btn bg-blue-600 hover:bg-blue-700 text-white shadow-xs border border-blue-500 active:scale-[0.99]'"
+                                        :disabled="(geofencingActive && !(ipWhitelistActive && isWifiVerified) && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate' || geoStatus === 'error' || geoStatus === 'checking')) || (ipWhitelistActive && !isWifiVerified)"
+                                        :class="(geofencingActive && !(ipWhitelistActive && isWifiVerified) && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate' || geoStatus === 'error' || geoStatus === 'checking')) || (ipWhitelistActive && !isWifiVerified) ? 'opacity-70 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700' : 'magic-btn bg-blue-600 hover:bg-blue-700 text-white shadow-xs border border-blue-500 active:scale-[0.99]'"
                                         class="w-full font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 text-sm transition-all">
-                                        <i class="fas text-base" :class="(geofencingActive && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate')) || (ipWhitelistActive && !isIpAllowed) ? 'fa-lock' : 'fa-camera'"></i>
-                                        <span x-text="geoStatus === 'spoofed' ? 'Terkunci: Fake GPS Terdeteksi' : (ipWhitelistActive && !isIpAllowed ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && geoStatus === 'outside' ? 'Terkunci: Di Luar Sekolah' : (geofencingActive && geoStatus === 'inaccurate' ? 'Terkunci: Sinyal GPS Lemah' : 'Mulai Verifikasi Wajah Face ID')))"></span>
+                                        <i class="fas text-base" :class="(geofencingActive && !(ipWhitelistActive && isWifiVerified) && (geoStatus === 'outside' || geoStatus === 'spoofed' || geoStatus === 'inaccurate' || geoStatus === 'error' || geoStatus === 'checking')) || (ipWhitelistActive && !isWifiVerified) ? 'fa-lock' : 'fa-camera'"></i>
+                                        <span x-text="geoStatus === 'spoofed' ? 'Terkunci: Fake GPS Terdeteksi' : (ipWhitelistActive && !isWifiVerified ? 'Terkunci: Harus Pakai WiFi Sekolah' : (geofencingActive && !(ipWhitelistActive && isWifiVerified) && geoStatus === 'outside' ? ('Terkunci: Di Luar Sekolah (' + formatDistance(geoDistance) + ')') : (geofencingActive && !(ipWhitelistActive && isWifiVerified) && geoStatus === 'inaccurate' ? 'Terkunci: Sinyal GPS Lemah' : (geofencingActive && !(ipWhitelistActive && isWifiVerified) && geoStatus === 'checking' ? 'Mendeteksi Lokasi GPS...' : (geofencingActive && !(ipWhitelistActive && isWifiVerified) && geoStatus === 'error' ? 'Terkunci: GPS Belum Aktif' : 'Mulai Verifikasi Wajah Face ID')))))"></span>
                                     </button>
                                 </div>
                             </div>

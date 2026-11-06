@@ -13,7 +13,9 @@
         width: 100%;
         border-radius: 1rem;
         z-index: 10;
-        background-color: #0f172a;
+        background-color: #1e293b;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 20px 20px;
     }
     .leaflet-popup-content-wrapper {
         border-radius: 1rem;
@@ -413,19 +415,25 @@
                         <span>Arahkan ke SMKN 1</span>
                     </button>
 
-                    {{-- Switcher Tipe Peta: Satelit vs Jalan --}}
+                    {{-- Switcher Tipe Peta: Satelit (Esri/Google) vs Jalan (CartoDB) --}}
                     <div class="inline-flex rounded-xl p-0.5 bg-slate-100 border border-slate-200 text-xs font-semibold">
                         <button type="button" @click="setMapTile('satellite')"
                                 :class="currentTile === 'satellite' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
                                 class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
                             <i class="fas fa-satellite text-teal-600"></i>
-                            <span>Satelit</span>
+                            <span>Satelit (Esri HD)</span>
+                        </button>
+                        <button type="button" @click="setMapTile('google')"
+                                :class="currentTile === 'google' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                            <i class="fab fa-google text-teal-600"></i>
+                            <span>Google Satelit</span>
                         </button>
                         <button type="button" @click="setMapTile('osm')"
                                 :class="currentTile === 'osm' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
                                 class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
                             <i class="fas fa-map"></i>
-                            <span>Jalan</span>
+                            <span>Peta Jalan</span>
                         </button>
                     </div>
 
@@ -512,9 +520,11 @@
             polygonLayer: null,
             polygonMarkers: [],
             boxCenterMarker: null,
-            currentTile: 'satellite', // Default satelit agar bangunan sekolah terlihat jelas
+            currentTile: 'satellite', // Default satelit Esri World Imagery (resolusi tinggi & anti-blokir)
             osmLayer: null,
-            satelliteLayer: null,
+            esriSatelliteLayer: null,
+            googleSatelliteLayer: null,
+            _hasSwitchedToEsri: false,
             boxDimensions: '4 Sudut Presisi',
             boxAreaText: '~3.96 Hektar',
 
@@ -557,22 +567,39 @@
                     attributionControl: true
                 }).setView([this.lat, this.lng], 18);
 
-                // Layer 1: OpenStreetMap (Peta Jalan)
-                this.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // Layer 1: Esri World Imagery (Foto Satelit Resolusi Tinggi - Terbuka, Handal, Bebas Blokir ISP)
+                this.esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                     maxZoom: 19,
-                    attribution: '© OpenStreetMap'
+                    attribution: 'Tiles &copy; Esri &mdash; SMKN 1 Beringin'
                 });
 
-                // Layer 2: Google Maps Satellite Hybrid (Foto Satelit dengan Label Jalan & Gedung)
-                this.satelliteLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                // Layer 2: Google Maps Satellite Hybrid (dengan auto-fallback ke Esri jika diblokir)
+                this.googleSatelliteLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
                     subdomains: ['0', '1', '2', '3'],
                     maxZoom: 20,
-                    attribution: '© Google Maps Satellite'
+                    attribution: '&copy; Google Maps Hybrid'
+                });
+
+                this.googleSatelliteLayer.on('tileerror', () => {
+                    if (this.currentTile === 'google' && !this._hasSwitchedToEsri) {
+                        this._hasSwitchedToEsri = true;
+                        console.warn('Google Maps tiles tidak dapat dimuat, beralih ke Esri World Imagery...');
+                        this.setMapTile('satellite');
+                    }
+                });
+
+                // Layer 3: CartoDB Voyager (Peta Jalan Modern via CDN Global Cepat, Bebas Blokir OSM)
+                this.osmLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
                 });
 
                 // Pasang layer default
                 if (this.currentTile === 'satellite') {
-                    this.satelliteLayer.addTo(this.map);
+                    this.esriSatelliteLayer.addTo(this.map);
+                } else if (this.currentTile === 'google') {
+                    this.googleSatelliteLayer.addTo(this.map);
                 } else {
                     this.osmLayer.addTo(this.map);
                 }
@@ -640,13 +667,20 @@
             setMapTile(type) {
                 this.currentTile = type;
                 if (!this.map) return;
+                
+                // Lepas layer yang sedang aktif
+                if (this.osmLayer && this.map.hasLayer(this.osmLayer)) this.map.removeLayer(this.osmLayer);
+                if (this.esriSatelliteLayer && this.map.hasLayer(this.esriSatelliteLayer)) this.map.removeLayer(this.esriSatelliteLayer);
+                if (this.googleSatelliteLayer && this.map.hasLayer(this.googleSatelliteLayer)) this.map.removeLayer(this.googleSatelliteLayer);
+
                 if (type === 'satellite') {
-                    if (this.osmLayer && this.map.hasLayer(this.osmLayer)) this.map.removeLayer(this.osmLayer);
-                    if (this.satelliteLayer && !this.map.hasLayer(this.satelliteLayer)) this.satelliteLayer.addTo(this.map);
+                    if (this.esriSatelliteLayer) this.esriSatelliteLayer.addTo(this.map);
+                } else if (type === 'google') {
+                    if (this.googleSatelliteLayer) this.googleSatelliteLayer.addTo(this.map);
                 } else {
-                    if (this.satelliteLayer && this.map.hasLayer(this.satelliteLayer)) this.map.removeLayer(this.satelliteLayer);
-                    if (this.osmLayer && !this.map.hasLayer(this.osmLayer)) this.osmLayer.addTo(this.map);
+                    if (this.osmLayer) this.osmLayer.addTo(this.map);
                 }
+
                 setTimeout(() => {
                     if (this.map) this.map.invalidateSize();
                 }, 100);

@@ -87,6 +87,34 @@ class SchoolSetting extends Model
     }
 
     /**
+     * Memverifikasi apakah IP client benar-benar berada di dalam jaringan WiFi resmi sekolah.
+     * HANYA bernilai true jika fitur IP Whitelist AKTIF dan IP client cocok dengan whitelist.
+     */
+    public function isSchoolWifiVerified(?string $ip): bool
+    {
+        if (!$this->is_ip_whitelist_active) {
+            return false;
+        }
+
+        if (empty($ip)) {
+            return false;
+        }
+
+        $allowedList = $this->getAllowedIpsArray();
+        if (empty($allowedList)) {
+            return false;
+        }
+
+        foreach ($allowedList as $allowed) {
+            if ($this->checkIpMatches($ip, $allowed)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Cek kecocokan IP (mendukung IP tunggal dan CIDR subnet).
      */
     protected function checkIpMatches(string $clientIp, string $allowedIp): bool

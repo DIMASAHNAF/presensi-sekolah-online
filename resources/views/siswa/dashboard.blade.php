@@ -1587,6 +1587,7 @@
                 ipWhitelistActive: {{ $schoolSetting->is_ip_whitelist_active ? 'true' : 'false' }},
                 clientIp: '{{ \App\Models\SchoolSetting::getClientIp(request()) }}',
                 isIpAllowed: {{ $schoolSetting->isIpAllowed(\App\Models\SchoolSetting::getClientIp(request())) ? 'true' : 'false' }},
+                isWifiVerified: {{ $schoolSetting->isSchoolWifiVerified(\App\Models\SchoolSetting::getClientIp(request())) ? 'true' : 'false' }},
 
                 // ── PWA install prompt ──
                 showInstallPrompt: false,
@@ -1749,11 +1750,14 @@
                 },
 
                 useSchoolNetwork() {
+                    // Hanya izinkan verifikasi jaringan jika IP Whitelist aktif dan IP terdaftar resmi
+                    if (!this.ipWhitelistActive || !this.isWifiVerified) return;
                     this.geoStatus = 'valid';
                     this.geoDistance = 0;
                     this.userAccuracy = 10;
-                    this.userLat = this.schoolLat;
-                    this.userLng = this.schoolLng;
+                    // JANGAN spoof userLat/userLng di client! Biarkan null agar backend memvalidasi secara aman via IP
+                    this.userLat = null;
+                    this.userLng = null;
                     this.isMockLocation = false;
                     this.isSchoolNetworkVerified = true;
                 },
@@ -1764,14 +1768,12 @@
                         return;
                     }
 
-                    // Jika perangkat terhubung ke WiFi / Jaringan Resmi SMKN 1 Beringin:
-                    // Otomatis verifikasi lokasi valid seketika tanpa takut kendala sinyal GPS laptop / indoor!
-                    if (this.isIpAllowed) {
-                        this.useSchoolNetwork();
-                    }
+                    const isVerifiedWifi = this.ipWhitelistActive && this.isWifiVerified;
 
                     if (!navigator.geolocation) {
-                        if (!this.isIpAllowed) {
+                        if (isVerifiedWifi) {
+                            this.useSchoolNetwork();
+                        } else {
                             this.geoStatus = 'error';
                             this.geoErrorMessage = 'Perangkat tidak mendukung Geolocation GPS.';
                         }
@@ -1779,7 +1781,7 @@
                     }
 
                     this.isRequestingGeo = true;
-                    if (!this.isIpAllowed) {
+                    if (!isVerifiedWifi) {
                         this.geoStatus = 'checking';
                     }
 
@@ -1796,13 +1798,13 @@
                             return;
                         }
 
-                        // 2. Deteksi akurasi sinyal satelit / WiFi GPS (toleransi hingga 500m sesuai radius sekolah)
+                        // 2. Deteksi akurasi sinyal satelit GPS
                         const accuracy = coords.accuracy || 0;
                         this.userAccuracy = Math.round(accuracy);
                         this.gpsTimestamp = pos.timestamp || Date.now();
 
                         if (accuracy <= 0 || accuracy > 500) {
-                            if (this.isIpAllowed) {
+                            if (isVerifiedWifi) {
                                 this.useSchoolNetwork();
                                 return;
                             }
@@ -1832,7 +1834,7 @@
                             isInsideGeofence = this.geoDistance <= this.schoolRadius;
                         }
 
-                        if (!this.geofencingActive || isInsideGeofence || this.isIpAllowed) {
+                        if (!this.geofencingActive || isInsideGeofence || isVerifiedWifi) {
                             this.geoStatus = 'valid';
                         } else {
                             this.geoStatus = 'outside';
@@ -1849,7 +1851,7 @@
                                 processCoords,
                                 (satErr) => {
                                     this.isRequestingGeo = false;
-                                    if (this.isIpAllowed) {
+                                    if (isVerifiedWifi) {
                                         this.useSchoolNetwork();
                                         return;
                                     }
@@ -1857,13 +1859,13 @@
                                     if (satErr.code === 1) {
                                         this.geoErrorMessage = 'Izin lokasi GPS DITOLAK browser. Buka setelan browser di ikon gembok kiri URL, pilih "Izinkan Lokasi".';
                                     } else if (satErr.code === 2) {
-                                        this.geoErrorMessage = 'Sinyal lokasi tidak tersedia. Jika memakai Laptop, sambungkan ke WiFi sekolah atau aktifkan Lokasi Windows.';
+                                        this.geoErrorMessage = 'Sinyal lokasi tidak tersedia. Harap aktifkan Lokasi / GPS di perangkat Anda.';
                                     } else {
-                                        this.geoErrorMessage = 'Waktu permintaan GPS habis. Jika memakai Laptop, sambungkan ke WiFi sekolah atau aktifkan Lokasi Windows.';
+                                        this.geoErrorMessage = 'Waktu permintaan GPS habis. Geser ke area terbuka atau muat ulang halaman.';
                                     }
                                     console.warn('Geolocation fallback error:', satErr);
                                 },
-                                { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+                                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                             );
                         },
                         { enableHighAccuracy: false, timeout: 4000, maximumAge: 300000 }
@@ -1978,6 +1980,7 @@
                                 this.ipWhitelistActive = data.network.active;
                                 this.clientIp = data.network.client_ip;
                                 this.isIpAllowed = data.network.is_allowed;
+                                this.isWifiVerified = data.network.is_wifi_verified;
                             }
                         })
                         .catch(() => { this.sesiLoading = false; });
@@ -2009,33 +2012,37 @@
                         return;
                     }
 
-                    if (this.ipWhitelistActive && !this.isIpAllowed) {
+                    if (this.ipWhitelistActive && !this.isWifiVerified) {
                         audioFx.playError();
                         alert(`Presensi ditolak: Anda harus terhubung ke jaringan WiFi resmi SMKN 1 Beringin.\nIP jaringan Anda (${this.clientIp}) tidak terdaftar.`);
                         return;
                     }
 
-                    if (this.geofencingActive) {
+                    const isVerifiedWifi = this.ipWhitelistActive && this.isWifiVerified;
+                    if (this.geofencingActive && !isVerifiedWifi) {
                         if (this.geoStatus === 'spoofed' || this.isMockLocation) {
                             audioFx.playError();
-                            alert('Presensi DITOLAK: Terdeteksi aplikasi Fake GPS / Mock Location aktif pada perangkat Anda. Harap nonaktifkan pemalsu lokasi dan Developer Options.');
+                            alert('Presensi DITOLAK: Terdeteksi aplikasi Fake GPS / Mock Location aktif pada perangkat Anda. Harap nonaktifkan pemalsu lokasi.');
                             return;
                         }
 
                         if (this.geoStatus === 'inaccurate') {
                             audioFx.playError();
-                            alert(`Akurasi GPS perangkat Anda (±${this.userAccuracy}m) belum memenuhi standar keamanan (maks 100m).\nSilakan pindah ke area terbuka dan pastikan Mode Akurasi Tinggi aktif.`);
+                            alert(`Akurasi sinyal satelit GPS Anda (±${this.userAccuracy}m) belum memenuhi batas toleransi.\nSilakan pindah ke area terbuka dan pastikan GPS aktif.`);
                             return;
                         }
 
                         if (this.geoStatus === 'outside') {
                             audioFx.playError();
-                            alert(`Presensi DITOLAK: Anda berada di luar area SMKN 1 Beringin (${this.formatDistance(this.geoDistance)}). Batas maksimal radius sekolah: ${this.schoolRadius} meter.`);
+                            alert(`Presensi DITOLAK: Anda berada di luar area pagar SMKN 1 Beringin (${this.formatDistance(this.geoDistance)}). Presensi wajib dilakukan di dalam lingkungan sekolah.`);
                             return;
                         }
 
-                        if (!this.userLat) {
+                        if (this.geoStatus === 'error' || !this.userLat) {
+                            audioFx.playError();
+                            alert(this.geoErrorMessage || 'Gagal mengunci titik koordinat GPS satelit. Pastikan izin lokasi aktif pada browser Anda.');
                             this.checkLocation(true);
+                            return;
                         }
                     }
 
